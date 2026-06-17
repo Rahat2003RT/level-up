@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'geonames' => [
+        'username' => env('GEONAME_USERNAME', 'demo'),
+    ]
+
 ];
