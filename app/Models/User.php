@@ -47,6 +47,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read Collection<int, User> $players
  * @property-read Collection<int, UserDeviceToken> $deviceTokens
  * @mixin Builder
+ * @property-read Collection<int, UserNotification> $notifications
  */
 class User extends Authenticatable implements MustVerifyEmail
 {

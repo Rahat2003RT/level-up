@@ -7,12 +7,27 @@ use App\Http\Controllers\Api\v1\Guest;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    // ---------------------------------------------------------------------------------------------------------------//
+    //                                                     ADMIN                                                      //
+    // ---------------------------------------------------------------------------------------------------------------//
     Route::prefix('admin')->group(function () {
+        // ----------------------------------------------------------------//
+        //                          AUTH METHODS                           //
+        // ----------------------------------------------------------------//
         Route::post('/login', [Admin\AuthController::class, 'login']);
+
+
+
         Route::middleware(['auth:sanctum', 'can:access-admin', 'check.status'])->group(function () {
+            // ----------------------------------------------------------------//
+            //                  ADMIN-NOTIFICATIONS METHODS                    //
+            // ----------------------------------------------------------------//
             Route::prefix('notifications')->group(function () {
                 Route::post('/send-all', [Admin\NotificationController::class, 'sendToAll']);
             });
+            // ----------------------------------------------------------------//
+            //                      ADMIN-USERS METHODS                        //
+            // ----------------------------------------------------------------//
             Route::prefix('users')->group(function () {
                 Route::get('/', [Admin\UserController::class, 'index']);
                 Route::get('/{user}', [Admin\UserController::class, 'show']);
@@ -27,17 +42,29 @@ Route::prefix('v1')->group(function () {
         });
     });
 
-
+    // ---------------------------------------------------------------------------------------------------------------//
+    //                                                     USERS                                                      //
+    // ---------------------------------------------------------------------------------------------------------------//
     Route::middleware(['auth:sanctum', 'check.status'])->group(function () {
+        // ----------------------------------------------------------------//
+        //                        PROFILE METHODS                          //
+        // ----------------------------------------------------------------//
         Route::prefix('profile')->group(function () {
             Route::get('me', [User\ProfileController::class, 'me']);
+            Route::get('notifications', [User\ProfileController::class, 'notifications']);
             Route::post('update', [User\ProfileController::class, 'update']);
         });
+        // ----------------------------------------------------------------//
+        //                        CAPTAIN METHODS                          //
+        // ----------------------------------------------------------------//
         Route::prefix('captain')->middleware(['can:captain-leader'])->group(function () {
 
         });
     });
     Route::group([], function () {
+        // ----------------------------------------------------------------//
+        //                          AUTH METHODS                           //
+        // ----------------------------------------------------------------//
         Route::prefix('auth')->group(function () {
             Route::post('/register', [Guest\AuthController::class, 'register']);
             Route::post('/login', [Guest\AuthController::class, 'login']);

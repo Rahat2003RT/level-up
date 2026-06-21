@@ -27,9 +27,9 @@ class ProfileController extends Controller
         return UserResource::make($request->user());
     }
 
-    public function getNotifications(NotificationsRequest $request): AnonymousResourceCollection
+    public function notifications(Request $request): AnonymousResourceCollection
     {
-        $notifications = $this->service->getNotifications($request->user(), $request->validated());
+        $notifications = $this->service->getNotifications($request->user());
         return NotificationsResource::collection($notifications);
     }
 
@@ -45,9 +45,9 @@ class ProfileController extends Controller
     /**
      * Удаление пользователя
      */
-    public function destroy(): Response
+    public function destroy(Request $request): Response
     {
-        $this->service->deleteAccount();
+        $this->service->deleteAccount($request->user());
         return response()->noContent();
     }
 }

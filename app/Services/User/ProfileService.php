@@ -4,25 +4,30 @@ namespace App\Services\User;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 final class ProfileService
 {
     public function updateProfile(User $user, array $data): User
     {
-        if (!empty($user->role)) {
-            unset($data['role']);
-        }
         $user->update($data);
         return $user;
     }
-    public function deleteAccount(): void
+    public function deleteAccount(User $user): void
     {
-        $user = auth()->user();
         $user->delete();
     }
 
-    public function getNotifications(User $user, array $data): HasMany
+    public function getNotifications(User $user): LengthAwarePaginator
     {
-        return $user->notifications();
+        $notifications = $user->notifications()->latest()->paginate(20);
+        $unreadIds = $notifications->where('is_read', false)->pluck('id');
+        if ($unreadIds->isNotEmpty()) {
+            $user->notifications()->whereIn('id', $unreadIds)->update([
+                'is_read' => true,
+                'read_at' => now(),
+            ]);
+        }
+        return $notifications;
     }
 }

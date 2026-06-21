@@ -30,7 +30,7 @@ final class UserController extends Controller
      */
     public function index(IndexUserRequest $request): AnonymousResourceCollection
     {
-        $users = $this->service->index($request->validated());
+        $users = $this->service->getUsers($request->validated());
         return UserResource::collection($users);
     }
 

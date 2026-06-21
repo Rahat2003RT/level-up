@@ -12,7 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 final readonly class UserService
 {
-    public function index(array $filters): LengthAwarePaginator
+    public function getUsers(array $filters): LengthAwarePaginator
     {
         /** @var Builder|User $query */
         $query = User::query();

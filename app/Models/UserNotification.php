@@ -2,11 +2,26 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserNotification
+/**
+ * Class UserNotification
+ * * @property int $id
+ * @property int $user_id
+ * @property string $title
+ * @property string|null $description
+ * @property string|null $image
+ * @property bool $is_read
+ * @property Carbon|null $read_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
+ * * @property-read User $user
+ */
+class UserNotification extends Model
 {
-    protected array $fillable = [
+    protected $fillable = [
         'user_id',
         'title',
         'description',
@@ -15,8 +30,13 @@ class UserNotification
         'read_at',
     ];
 
-    protected array $casts = [
+    protected $casts = [
         'is_read' => 'boolean',
         'read_at' => 'datetime',
     ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 }

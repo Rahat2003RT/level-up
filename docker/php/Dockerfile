@@ -1,7 +1,7 @@
 FROM php:8.5-fpm-alpine
 
 RUN apk add --no-cache \
-    linux-headers libpq-dev zip unzip git curl bash pcre-dev $PHPIZE_DEPS \
+    linux-headers postgresql-dev zip unzip git curl bash pcre-dev $PHPIZE_DEPS
 
 RUN docker-php-ext-install pdo pdo_pgsql pcntl bcmath
 RUN pecl install redis && docker-php-ext-enable redis
