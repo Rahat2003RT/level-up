@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * * @property-read User $user
+ * @method static insert(array $dbPayload)
  */
 class UserNotification extends Model
 {
