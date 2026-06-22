@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
             return $user->isElite();
         });
 
-        Gate::define('viewApiDocs', function () {
+        Gate::define('viewApiDocs', function (?User $user) {
             if (app()->environment('local')) {
                 return true;
             }
