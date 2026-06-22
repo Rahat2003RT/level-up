@@ -14,7 +14,7 @@ final readonly class UserService
 {
     public function getUsers(array $filters): LengthAwarePaginator
     {
-        $query = User::query();
+        $query = User::query()->where('role', '!=', UserRole::ADMIN->value);
 
         if (($filters['status'] ?? null) === 'deleted') {
             $query->onlyTrashed();
