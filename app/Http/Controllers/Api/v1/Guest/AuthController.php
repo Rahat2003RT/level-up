@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Api\v1\Guest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Guest\Auth\LoginRequest;
 use App\Http\Requests\Guest\Auth\RegisterRequest;
+use App\Http\Requests\Guest\Auth\ForgotPasswordRequest; // Создадим ниже
+use App\Http\Requests\Guest\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Guest\Auth\AuthService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
 #[Group('Авторизация', weight: 10)]
@@ -49,5 +52,29 @@ final class AuthController extends Controller
     {
         $this->service->logout();
         return response()->noContent();
+    }
+
+    /**
+     * Запрос ссылки на сброс пароля (Resend)
+     */
+    public function sendResetLink(ForgotPasswordRequest $request): JsonResponse
+    {
+        $status = $this->service->sendResetLink($request->validated());
+
+        return response()->json([
+            'message' => __($status)
+        ], $status === 'passwords.sent' ? 200 : 400);
+    }
+
+    /**
+     * Сброс пароля на новый
+     */
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    {
+        $status = $this->service->resetPassword($request->validated());
+
+        return response()->json([
+            'message' => __($status)
+        ], $status === 'passwords.reset' ? 200 : 400);
     }
 }

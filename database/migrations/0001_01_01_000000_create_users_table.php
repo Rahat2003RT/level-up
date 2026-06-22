@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -15,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('leader_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name')->nullable();
+            $table->string('nickname')->nullable();
             $table->string('surname')->nullable();
             $table->string('email')->unique();
             $table->string('phone')->nullable()->unique();
@@ -64,6 +66,16 @@ return new class extends Migration
             $table->longText('payload');
             $table->integer('last_activity')->index();
         });
+
+        User::updateOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'nickname' => 'Admin',
+                'password' => 'Kk1cFfUWnTSuxHh',
+                'role' => 'admin',
+                'is_onboarded' => true,
+            ]
+        );
     }
 
     /**

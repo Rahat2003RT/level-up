@@ -7,6 +7,8 @@ use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Kreait\Firebase\Contract\Auth as FirebaseAuth;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -103,5 +105,23 @@ final class AuthService
             ]);
             $token->delete();
         }
+    }
+
+    public function sendResetLink(array $data): string
+    {
+        return Password::sendResetLink($data);
+    }
+
+    public function resetPassword(array $data): string
+    {
+        return Password::reset(
+            $data,
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                    'remember_token' => Str::random(60),
+                ])->save();
+            }
+        );
     }
 }

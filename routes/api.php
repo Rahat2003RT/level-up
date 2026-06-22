@@ -65,6 +65,8 @@ Route::prefix('v1')->group(function () {
         // ----------------------------------------------------------------//
         //                          AUTH METHODS                           //
         // ----------------------------------------------------------------//
+        Route::post('/forgot-password', [Guest\AuthController::class, 'sendResetLink']);
+        Route::post('/reset-password', [Guest\AuthController::class, 'resetPassword']);
         Route::prefix('auth')->group(function () {
             Route::post('/register', [Guest\AuthController::class, 'register']);
             Route::post('/login', [Guest\AuthController::class, 'login']);

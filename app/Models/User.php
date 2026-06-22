@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\UserPlan;
 use App\Enums\UserRole;
+use App\Notifications\CustomResetPasswordNotification;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,6 +22,7 @@ use Laravel\Sanctum\HasApiTokens;
  * * @property int $id
  * @property int|null $leader_id
  * @property string|null $name
+ * @property string|null $nickname
  * @property string|null $surname
  * @property string|null $avatar
  * @property string|null $token
@@ -56,6 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'leader_id',
         'name',
+        'nickname',
         'surname',
         'email',
         'phone',
@@ -145,5 +148,18 @@ class User extends Authenticatable implements MustVerifyEmail
                 $user->role = $user->getOriginal('role');
             }
         });
+    }
+
+    /**
+     * Отправка уведомления о сбросе пароля.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $locale = request()->header('X-Locale', request()->input('lang', 'en'));
+
+        $this->notify(new CustomResetPasswordNotification($token, $locale));
     }
 }
