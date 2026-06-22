@@ -19,7 +19,7 @@ class LoginRequest extends ApiBaseRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'nickname' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
         ];
     }

@@ -17,9 +17,9 @@ final readonly class AuthService
      */
     public function login(array $data): User
     {
-        if (!Auth::attempt(['email' => $data['email'], 'password' => $data['password']])) {
+        if (!Auth::attempt(['nickname' => $data['nickname'], 'password' => $data['password']])) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid credentials.']
+                'nickname' => ['Invalid credentials.']
             ]);
         }
 
@@ -29,7 +29,7 @@ final readonly class AuthService
         if ($user->role != 'admin') {
             Auth::logout();
             throw ValidationException::withMessages([
-                'email' => ['Access forbidden.']
+                'nickname' => ['Access forbidden.']
             ]);
         }
 
@@ -37,7 +37,7 @@ final readonly class AuthService
             Auth::logout();
             $reason = $user->block_reason ?? 'No reason provided';
             throw ValidationException::withMessages([
-                'email' => ["Your account is blocked. Reason: {$reason}"]
+                'nickname' => ["Your account is blocked. Reason: {$reason}"]
             ]);
         }
 
