@@ -14,28 +14,47 @@ final readonly class UserService
 {
     public function getUsers(array $filters): LengthAwarePaginator
     {
-        /** @var Builder|User $query */
         $query = User::query();
+
+        if (($filters['status'] ?? null) === 'deleted') {
+            $query->onlyTrashed();
+        }
+
         if (!empty($filters['role'])) {
             $query->where('role', $filters['role']);
         }
 
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
+        if (!empty($filters['country'])) {
+            $query->where('country', $filters['country']);
+        }
+
+        if (!empty($filters['query'])) {
+            $search = $filters['query'];
             $query->where(function ($q) use ($search) {
-                $q->where('first_name', 'like', "%$search%")
-                    ->orWhere('last_name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%");
+                $q->where('name', 'ilike', "%$search%")
+                    ->orWhere('email', 'ilike', "%$search%")
+                    ->orWhere('account_id', 'ilike', "%$search%");
             });
         }
 
-        if (!empty($filters['with_deleted'])) {
-            $query->withTrashed();
+
+        $orderBy = $filters['order_by'] ?? 'created_at';
+        $orderSort = $filters['order_sort'] ?? 'desc';
+
+        if ($orderBy === 'date_register') {
+            $orderBy = 'created_at';
         }
 
-        return $query->latest()->paginate($filters['per_page'] ?? 15);
-    }
+        $query->orderBy($orderBy, $orderSort);
 
+        return $query->paginate($filters['limit'] ?? 15);
+    }
+    public function createUser(array $data): User
+    {
+        $data['password'] = bcrypt($data['password']);
+
+        return User::create($data);
+    }
     public function changeRole(User $user, string $roleValue): User
     {
         $role = UserRole::tryFrom($roleValue);

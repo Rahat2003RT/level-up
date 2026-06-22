@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Users\BlockUserRequest;
 use App\Http\Requests\Admin\Users\ChangeRoleRequest;
 use App\Http\Requests\Admin\Users\ChangeUserRequest;
+use App\Http\Requests\Admin\Users\CreateUserRequest;
 use App\Http\Requests\Admin\Users\IndexUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -32,6 +33,17 @@ final class UserController extends Controller
     {
         $users = $this->service->getUsers($request->validated());
         return UserResource::collection($users);
+    }
+
+    /**
+     * Создание нового пользователя администратором
+     * @param CreateUserRequest $request
+     * @return UserResource
+     */
+    public function store(CreateUserRequest $request): UserResource
+    {
+        $user = $this->service->createUser($request->validated());
+        return UserResource::make($user);
     }
 
     /**
