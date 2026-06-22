@@ -18,22 +18,25 @@ final readonly class AuthService
      */
     public function login(array $data): User
     {
+        // Ищем пользователя напрямую в БД по никнейму
         /** @var User|null $user */
         $user = User::where('nickname', $data['nickname'])->first();
 
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+        // Проверяем хэш пароля вручную
+        if (!$user || !\Illuminate\Support\Facades\Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'nickname' => ['Invalid credentials.']
             ]);
         }
 
-        if ($user->role != 'admin') {
+        // Теперь $user — это 100% чистая модель из БД, проверяем роль:
+        if ($user->role !== 'admin') {
             throw ValidationException::withMessages([
                 'nickname' => ['Access forbidden.']
             ]);
         }
 
-        if ($user->blocked_at !== null) {
+        if ($user->blocked_at) {
             $reason = $user->block_reason ?? 'No reason provided';
             throw ValidationException::withMessages([
                 'nickname' => ["Your account is blocked. Reason: {$reason}"]
@@ -41,7 +44,6 @@ final readonly class AuthService
         }
 
         $token = $user->createToken('admin_panel')->plainTextToken;
-
         $user->setAttribute('token', $token);
 
         return $user;
