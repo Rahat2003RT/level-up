@@ -8,7 +8,7 @@ use App\Http\Resources\UserResource;
 use App\Services\Admin\Auth\AuthService;
 use Dedoc\Scramble\Attributes\Group;
 
-#[Group('Авторизация', weight: 0)]
+#[Group('Админ-панель', weight: 0)]
 final class AuthController extends Controller
 {
     public function __construct(

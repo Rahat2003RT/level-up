@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Admin;
 
-use App\Models\User;
 use App\Models\UserDeviceToken;
 use App\Models\UserNotification;
 use Kreait\Firebase\Contract\Messaging;
@@ -18,54 +17,62 @@ final readonly class NotificationService
         private Messaging $messaging
     ) {}
 
-    /**
-     * Оптимизированная массовая рассылка (без удержания статистики в памяти).
-     */
     public function sendMassPush(array $data): void
     {
-        $title = $data['title'] ?? '';
-        $description = $data['body'] ?? '';
-        $notification = Notification::create($title, $description);
+        $titles = $data['title'] ?? [];
+        $descriptions = $data['description'] ?? [];
 
-        User::query()->chunkById(500, function ($users) use ($title, $description, $notification) {
-            $dbPayload = [];
+        $jsonTitle = json_encode($titles, JSON_UNESCAPED_UNICODE);
+        $jsonDescription = json_encode($descriptions, JSON_UNESCAPED_UNICODE);
 
-            foreach ($users as $user) {
-                $dbPayload[] = [
-                    'user_id'     => $user->id,
-                    'title'       => $title,
-                    'description' => $description,
+        $now = now();
+
+        UserDeviceToken::query()
+            ->select(['user_device_tokens.id', 'user_device_tokens.user_id', 'user_device_tokens.token', 'users.locale'])
+            ->join('users', 'users.id', '=', 'user_device_tokens.user_id')
+            ->where('users.notifications_enabled', true)
+            ->chunkById(500, function ($deviceTokens) use ($titles, $descriptions, $jsonTitle, $jsonDescription, $now) {
+
+                $userIds = $deviceTokens->pluck('user_id')->unique()->toArray();
+                $dbPayload = array_map(fn($userId) => [
+                    'user_id'     => $userId,
+                    'title'       => $jsonTitle,
+                    'description' => $jsonDescription,
                     'is_read'     => false,
-                    'created_at'  => now(),
-                    'updated_at'  => now(),
-                ];
-            }
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ], $userIds);
 
-            if (!empty($dbPayload)) {
-                UserNotification::insert($dbPayload);
-            }
+                UserNotification::insertOrIgnore($dbPayload);
 
-            $tokens = UserDeviceToken::whereIn('user_id', $users->pluck('id'))
-                ->pluck('token')
-                ->toArray();
+                foreach ($deviceTokens->groupBy('locale') as $locale => $groupedTokens) {
+                    $fcmTitle = $titles[$locale] ?? $titles['en'] ?? collect($titles)->first() ?? '';
+                    $fcmDescription = $descriptions[$locale] ?? $descriptions['en'] ?? collect($descriptions)->first() ?? '';
 
-            if (empty($tokens)) {
-                return;
-            }
+                    if (empty($fcmTitle) && empty($fcmDescription)) {
+                        continue;
+                    }
 
-            $message = CloudMessage::new()->withNotification($notification);
+                    $tokens = $groupedTokens->pluck('token')->filter()->toArray();
+                    if (empty($tokens)) {
+                        continue;
+                    }
 
-            try {
-                $report = $this->messaging->sendMulticast($message, $tokens);
+                    $message = CloudMessage::new()->withNotification(
+                        Notification::create((string)$fcmTitle, (string)$fcmDescription)
+                    );
 
-                $invalidTokens = array_merge($report->invalidTokens(), $report->unknownTokens());
+                    try {
+                        $report = $this->messaging->sendMulticast($message, $tokens);
+                        $invalidTokens = array_merge($report->invalidTokens(), $report->unknownTokens());
 
-                if (!empty($invalidTokens)) {
-                    UserDeviceToken::whereIn('token', $invalidTokens)->delete();
+                        if (!empty($invalidTokens)) {
+                            UserDeviceToken::whereIn('token', $invalidTokens)->delete();
+                        }
+                    } catch (Throwable $e) {
+                        logger()->error("FCM Mass Push Chunk Error ($locale): " . $e->getMessage());
+                    }
                 }
-            } catch (Throwable $e) {
-                logger()->error('FCM Mass Push Chunk Error: ' . $e->getMessage());
-            }
-        });
+            }, 'user_device_tokens.id');
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('account_id', 10)->unique()->nullable();
             $table->foreignId('leader_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('name')->nullable();
             $table->string('nickname')->nullable();

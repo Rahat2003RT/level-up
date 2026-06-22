@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
 /**
@@ -74,7 +75,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'blocked_at',
         'block_reason',
         'token',
-        'plan'
+        'plan',
+        'account_id'
     ];
     protected $hidden = [
         'password',
@@ -148,7 +150,21 @@ class User extends Authenticatable implements MustVerifyEmail
                 $user->role = $user->getOriginal('role');
             }
         });
+        static::creating(function ($user) {
+            if (!$user->account_id) {
+                $user->account_id = static::generateUniqueAccountId();
+            }
+        });
     }
+    public static function generateUniqueAccountId(): string
+    {
+        do {
+            $account_id = Str::random(10);
+        } while (static::where('account_id', $account_id)->exists());
+
+        return $account_id;
+    }
+
 
     /**
      * Отправка уведомления о сбросе пароля.

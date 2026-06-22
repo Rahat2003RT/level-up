@@ -52,6 +52,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('profile')->group(function () {
             Route::get('me', [User\ProfileController::class, 'me']);
             Route::get('notifications', [User\ProfileController::class, 'notifications']);
+            Route::get('unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
             Route::post('update', [User\ProfileController::class, 'update']);
         });
         // ----------------------------------------------------------------//
@@ -70,14 +71,6 @@ Route::prefix('v1')->group(function () {
         Route::prefix('auth')->group(function () {
             Route::post('/register', [Guest\AuthController::class, 'register']);
             Route::post('/login', [Guest\AuthController::class, 'login']);
-        });
-
-        // ----------------------------------------------------------------//
-        //                        COUNTRY METHODS                          //
-        // ----------------------------------------------------------------//
-        Route::prefix('regions')->group(function () {
-            Route::post('countries', [Server\RegionController::class, 'getCountries']);
-            Route::post('cities', [Server\RegionController::class, 'getCities']);
         });
     });
 });

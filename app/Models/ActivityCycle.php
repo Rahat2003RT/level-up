@@ -25,6 +25,6 @@ class ActivityCycle extends Model
 
     public function dailyReports(): HasMany
     {
-        return $this->hasMany(DailyReport::class);
+        return $this->hasMany(DailyChecklist::class);
     }
 }

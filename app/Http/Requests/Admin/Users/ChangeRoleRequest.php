@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin\Users;
 
+use App\Enums\UserRole;
 use App\Http\Requests\ApiBaseRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,9 +20,10 @@ final class ChangeRoleRequest extends ApiBaseRequest
     {
         return [
             'role' => [
-                'required',
-                'integer',
-                Rule::in(['player', 'leader']),
+                'nullable',
+                'string',
+                'max:32',
+                Rule::in(collect(UserRole::cases())->reject(fn($role) => $role === UserRole::ADMIN)->pluck('value')->toArray())
             ],
         ];
     }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\v1\Guest;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Guest\Auth\LoginRequest;
 use App\Http\Requests\Guest\Auth\RegisterRequest;
-use App\Http\Requests\Guest\Auth\ForgotPasswordRequest; // Создадим ниже
+use App\Http\Requests\Guest\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Guest\Auth\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Guest\Auth\AuthService;
@@ -67,7 +67,7 @@ final class AuthController extends Controller
     }
 
     /**
-     * Сброс пароля на новый
+     * Сброс пароля
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {

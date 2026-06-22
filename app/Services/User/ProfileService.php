@@ -3,15 +3,43 @@
 namespace App\Services\User;
 
 use App\Models\User;
+use App\Models\UserDeviceToken;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 final class ProfileService
 {
     public function updateProfile(User $user, array $data): User
     {
+        if (array_key_exists('role', $data) && $data['role'] !== null) {
+            if ($user->role !== null && $user->role->value !== $data['role']) {
+                throw ValidationException::withMessages([
+                    'role' => ['You cannot change your role once it is set.']
+                ]);
+            }
+        }
+        if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
+            if ($user->avatar_path && !str_starts_with($user->avatar_path, 'http')) {
+                Storage::disk('public')->delete($user->avatar_path);
+            }
+            $data['avatar_path'] = $data['avatar']->store('avatars', 'public');
+            unset($data['avatar']);
+        }
+
+        $token = $data['device_token'] ?? null;
+        unset($data['device_token']);
+
         $user->update($data);
-        return $user;
+        if ($token) {
+            UserDeviceToken::where('token', $token)
+                ->where('user_id', '!=', $user->id)
+                ->delete();
+            $user->deviceTokens()->firstOrCreate(['token' => $token]);
+        }
+        return $user->fresh(['deviceTokens']);
     }
     public function deleteAccount(User $user): void
     {
@@ -21,13 +49,17 @@ final class ProfileService
     public function getNotifications(User $user): LengthAwarePaginator
     {
         $notifications = $user->notifications()->latest()->paginate(20);
-        $unreadIds = $notifications->where('is_read', false)->pluck('id');
-        if ($unreadIds->isNotEmpty()) {
-            $user->notifications()->whereIn('id', $unreadIds)->update([
-                'is_read' => true,
-                'read_at' => now(),
-            ]);
-        }
+        $user->notifications()->where('is_read', false)->update([
+            'is_read' => true,
+            'read_at' => now(),
+        ]);
+
         return $notifications;
+    }
+    public function getUnreadCount(User $user): int
+    {
+        return $user->notifications()
+            ->where('is_read', false)
+            ->count();
     }
 }
