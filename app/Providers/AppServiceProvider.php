@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
             return $user->isElite();
         });
 
-        Scramble::auth(function ($request) {
+        Gate::define('viewApiDocs', function () {
             if (app()->environment('local')) {
                 return true;
             }
