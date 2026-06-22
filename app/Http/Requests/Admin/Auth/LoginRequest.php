@@ -6,7 +6,7 @@ use App\Http\Requests\ApiBaseRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
- * @property string $email
+ * @property string $nickname
  * @property string $password
  */
 class LoginRequest extends ApiBaseRequest
@@ -19,7 +19,7 @@ class LoginRequest extends ApiBaseRequest
     public function rules(): array
     {
         return [
-            'nickname' => ['required', 'string', 'email'],
+            'nickname' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
