@@ -1,5 +1,7 @@
 <?php
 
+use App\Enums\UserPlan;
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -73,7 +75,8 @@ return new class extends Migration
             [
                 'nickname' => 'Admin',
                 'password' => Hash::make('Kk1cFfUWnTSuxHh'),
-                'role' => 'admin',
+                'role' => UserRole::ADMIN,
+                'plan' => UserPlan::STARTER,
                 'is_onboarded' => true,
             ]
         );

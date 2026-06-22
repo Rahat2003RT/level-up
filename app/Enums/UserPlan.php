@@ -6,7 +6,7 @@ namespace App\Enums;
 
 enum UserPlan: string
 {
-    case STARTER = '';
+    case STARTER = 'starter';
     case PRO = 'pro';
     case MAX = 'max';
 }
