@@ -26,7 +26,7 @@ class UpdateRequest extends ApiBaseRequest
             'surname'               => ['nullable', 'string', 'max:255'],
             'phone'                 => ['nullable', 'string', 'max:32'],
             'company_name'          => ['nullable', 'string', 'max:255'],
-            'country'               => ['nullable', 'string', 'size:2'],
+            'country'               => ['nullable', 'string', 'max:32'],
             'city'                  => ['nullable', 'string', 'max:255'],
             'locale'                => ['nullable', 'string', 'max:5', Rule::in($locales)],
             'avatar'                => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],

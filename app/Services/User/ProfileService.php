@@ -3,7 +3,7 @@
 namespace App\Services\User;
 
 use App\Models\User;
-use App\Models\UserDeviceToken;
+use App\Models\UserDevice;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -27,7 +27,7 @@ final class ProfileService
 
         $user->update($data);
         if ($token) {
-            UserDeviceToken::where('token', $token)
+            UserDevice::where('token', $token)
                 ->where('user_id', '!=', $user->id)
                 ->delete();
             $user->deviceTokens()->firstOrCreate(['token' => $token]);

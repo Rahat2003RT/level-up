@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $email
  * @mixin Builder
  */
-class UserDeviceToken extends Model
+class UserDevice extends Model
 {
     protected $fillable = [
         'user_id',

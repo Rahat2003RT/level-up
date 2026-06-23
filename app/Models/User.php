@@ -48,7 +48,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $deleted_at
  * * @property-read User|null $leader
  * @property-read Collection<int, User> $players
- * @property-read Collection<int, UserDeviceToken> $deviceTokens
+ * @property-read Collection<int, UserDevice> $deviceTokens
  * @mixin Builder
  * @property-read Collection<int, UserNotification> $notifications
  */
@@ -113,7 +113,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function deviceTokens(): HasMany
     {
-        return $this->hasMany(UserDeviceToken::class);
+        return $this->hasMany(UserDevice::class);
     }
 
     public function notifications(): HasMany

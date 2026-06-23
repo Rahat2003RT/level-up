@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Admin;
 
-use App\Models\UserDeviceToken;
+use App\Models\UserDevice;
 use App\Models\UserNotification;
 use Kreait\Firebase\Contract\Messaging;
 use Kreait\Firebase\Messaging\CloudMessage;
@@ -27,7 +27,7 @@ final readonly class NotificationService
 
         $now = now();
 
-        UserDeviceToken::query()
+        UserDevice::query()
             ->select(['user_device_tokens.id', 'user_device_tokens.user_id', 'user_device_tokens.token', 'users.locale'])
             ->join('users', 'users.id', '=', 'user_device_tokens.user_id')
             ->where('users.notifications_enabled', true)
@@ -67,7 +67,7 @@ final readonly class NotificationService
                         $invalidTokens = array_merge($report->invalidTokens(), $report->unknownTokens());
 
                         if (!empty($invalidTokens)) {
-                            UserDeviceToken::whereIn('token', $invalidTokens)->delete();
+                            UserDevice::whereIn('token', $invalidTokens)->delete();
                         }
                     } catch (Throwable $e) {
                         logger()->error("FCM Mass Push Chunk Error ($locale): " . $e->getMessage());
