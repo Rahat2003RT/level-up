@@ -30,7 +30,7 @@ class UpdateRequest extends ApiBaseRequest
             'city'                  => ['nullable', 'string', 'max:255'],
             'locale'                => ['nullable', 'string', 'max:5', Rule::in($locales)],
             'avatar'                => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
-            'date_of_birth'         => ['nullable', 'date', 'before:today'],
+            'date_of_birth'         => ['nullable', 'string'],
             'notifications_enabled' => ['nullable', 'boolean'],
             'device_token'          => ['nullable', 'string', 'max:255'],
         ];

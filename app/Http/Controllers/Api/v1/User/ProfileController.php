@@ -14,7 +14,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
 #[Group('Профиль пользователя', weight: 100)]
-class ProfileController extends Controller
+final class ProfileController extends Controller
 {
     public function __construct(
         protected ProfileService $service

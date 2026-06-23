@@ -36,7 +36,7 @@ final class UserResource extends JsonResource
 
             'country' => $this->country,
             'city' => $this->city,
-            'company' => $this->company,
+            'company_name' => $this->company_name,
             'timezone' => $this->timezone,
             'date_of_birth' => $this->date_of_birth,
             'notifications_enabled' => $this->notifications_enabled,

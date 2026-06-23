@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('phone')->nullable()->unique();
             $table->string('password');
             $table->string('avatar_path')->nullable();
-            $table->timestamp('date_of_birth')->nullable();
+            $table->string('date_of_birth')->nullable();
 
             $table->string('country')->nullable();
             $table->string('city')->nullable();
