@@ -21,13 +21,14 @@ final class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'account_id' => $this->account_id,
             'leader_id' => $this->leader_id,
             'name' => $this->name,
             'surname' => $this->surname,
             'email' => $this->email,
             'phone' => $this->phone,
 
-            'avatar_path' => match (true) {
+            'avatar' => match (true) {
                 empty($this->avatar_path) => null,
                 filter_var($this->avatar_path, FILTER_VALIDATE_URL) => $this->avatar_path,
                 default => Storage::disk('public')->url($this->avatar_path),
@@ -37,6 +38,8 @@ final class UserResource extends JsonResource
             'city' => $this->city,
             'company' => $this->company,
             'timezone' => $this->timezone,
+            'date_of_birth' => $this->date_of_birth,
+            'notifications_enabled' => $this->notifications_enabled,
 
             'role' => $this->role?->value,
             'plan' => $this->plan?->value,
