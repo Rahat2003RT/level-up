@@ -56,8 +56,17 @@ class DailyChecklist extends Model
 
     protected $casts = [
         'date' => 'date',
+        'day_number' => 'integer',
         'is_completed' => 'boolean',
         'is_day_off' => 'boolean',
+        'scheduled_meetings' => 'integer',
+        'completed_meetings' => 'integer',
+        'new_clients' => 'integer',
+        'new_partners' => 'integer',
+        'business_conversations' => 'integer',
+        'presentations' => 'integer',
+        'sales' => 'integer',
+        'daily_income' => 'integer',
         'social_media_activity' => 'boolean',
         'communication_with_sponsor' => 'boolean',
     ];
@@ -65,5 +74,10 @@ class DailyChecklist extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function isEditable(): bool
+    {
+        return !$this->is_completed && !$this->is_day_off && $this->date->isToday();
     }
 }

@@ -15,12 +15,6 @@ final class RegisterRequest extends ApiBaseRequest
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:6'],
             'name'     => ['required', 'string', 'max:255'],
-            'role' => [
-                'nullable',
-                'string',
-                'max:32',
-                Rule::in(collect(UserRole::cases())->reject(fn($role) => $role === UserRole::ADMIN)->pluck('value')->toArray())
-            ],
             'locale'                => ['nullable', 'string', 'max:5', Rule::in($locales)],
         ];
     }

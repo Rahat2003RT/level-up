@@ -35,12 +35,12 @@ final readonly class NotificationService
 
                 $userIds = $deviceTokens->pluck('user_id')->unique()->toArray();
                 $dbPayload = array_map(fn($userId) => [
-                    'user_id'     => $userId,
-                    'title'       => $jsonTitle,
+                    'user_id' => $userId,
+                    'title' => $jsonTitle,
                     'description' => $jsonDescription,
-                    'is_read'     => false,
-                    'created_at'  => $now,
-                    'updated_at'  => $now,
+                    'is_read' => false,
+                    'created_at' => $now,
+                    'updated_at' => $now,
                 ], $userIds);
 
                 UserNotification::insertOrIgnore($dbPayload);
@@ -73,6 +73,6 @@ final readonly class NotificationService
                         logger()->error("FCM Mass Push Chunk Error ($locale): " . $e->getMessage());
                     }
                 }
-            }, 'user_devices.id');
+            });
     }
 }
