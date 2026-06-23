@@ -31,7 +31,7 @@ final readonly class NotificationService
             ->select(['user_devices.id', 'user_devices.user_id', 'user_devices.token', 'users.locale'])
             ->join('users', 'users.id', '=', 'user_devices.user_id')
             ->where('users.notifications_enabled', true)
-            ->chunkById(500, function ($deviceTokens) use ($titles, $descriptions, $jsonTitle, $jsonDescription, $now) {
+            ->chunk(500, function ($deviceTokens) use ($titles, $descriptions, $jsonTitle, $jsonDescription, $now) {
 
                 $userIds = $deviceTokens->pluck('user_id')->unique()->toArray();
                 $dbPayload = array_map(fn($userId) => [
