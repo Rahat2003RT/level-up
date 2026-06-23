@@ -13,8 +13,8 @@ final class RegisterRequest extends ApiBaseRequest
         $locales = ['ru', 'en', 'es', 'pt', 'fr', 'de'];
         return [
             'email'    => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8'],
-            'name'     => ['requires', 'string', 'max:255'],
+            'password' => ['required', 'string', 'min:6'],
+            'name'     => ['required', 'string', 'max:255'],
             'role' => [
                 'nullable',
                 'string',

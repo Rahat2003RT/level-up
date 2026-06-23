@@ -28,12 +28,6 @@ class UpdateRequest extends ApiBaseRequest
             'company_name'          => ['nullable', 'string', 'max:255'],
             'country'               => ['nullable', 'string', 'size:2'],
             'city'                  => ['nullable', 'string', 'max:255'],
-            'role' => [
-                'nullable',
-                'string',
-                'max:32',
-                Rule::in(collect(UserRole::cases())->reject(fn($role) => $role === UserRole::ADMIN)->pluck('value')->toArray())
-            ],
             'locale'                => ['nullable', 'string', 'max:5', Rule::in($locales)],
             'avatar'                => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'date_of_birth'         => ['nullable', 'date', 'before:today'],

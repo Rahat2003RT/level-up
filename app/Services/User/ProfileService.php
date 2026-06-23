@@ -14,13 +14,6 @@ final class ProfileService
 {
     public function updateProfile(User $user, array $data): User
     {
-        if (array_key_exists('role', $data) && $data['role'] !== null) {
-            if ($user->role !== null && $user->role->value !== $data['role']) {
-                throw ValidationException::withMessages([
-                    'role' => ['You cannot change your role once it is set.']
-                ]);
-            }
-        }
         if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
             if ($user->avatar_path && !str_starts_with($user->avatar_path, 'http')) {
                 Storage::disk('public')->delete($user->avatar_path);
