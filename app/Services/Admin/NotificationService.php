@@ -28,8 +28,8 @@ final readonly class NotificationService
         $now = now();
 
         UserDevice::query()
-            ->select(['user_device_tokens.id', 'user_device_tokens.user_id', 'user_device_tokens.token', 'users.locale'])
-            ->join('users', 'users.id', '=', 'user_device_tokens.user_id')
+            ->select(['user_devices.id', 'user_devices.user_id', 'user_devices.token', 'users.locale'])
+            ->join('users', 'users.id', '=', 'user_devices.user_id')
             ->where('users.notifications_enabled', true)
             ->chunkById(500, function ($deviceTokens) use ($titles, $descriptions, $jsonTitle, $jsonDescription, $now) {
 
@@ -73,6 +73,6 @@ final readonly class NotificationService
                         logger()->error("FCM Mass Push Chunk Error ($locale): " . $e->getMessage());
                     }
                 }
-            }, 'user_device_tokens.id');
+            }, 'user_devices.id');
     }
 }
