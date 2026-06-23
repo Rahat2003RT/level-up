@@ -53,7 +53,7 @@ Route::prefix('v1')->group(function () {
             Route::get('me', [User\ProfileController::class, 'me']);
             Route::get('notifications', [User\ProfileController::class, 'notifications']);
             Route::get('unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
-            Route::post('update', [User\ProfileController::class, 'update']);
+            Route::patch('update', [User\ProfileController::class, 'update']);
         });
         // ----------------------------------------------------------------//
         //                        CAPTAIN METHODS                          //
