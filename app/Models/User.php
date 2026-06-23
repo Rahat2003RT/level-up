@@ -76,7 +76,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'block_reason',
         'token',
         'plan',
-        'account_id'
+        'account_id',
+        'date_of_birth',
     ];
     protected $hidden = [
         'password',
