@@ -78,6 +78,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'plan',
         'account_id',
         'date_of_birth',
+        'locale',
+        'notifications_enabled',
     ];
     protected $hidden = [
         'password',

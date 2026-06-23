@@ -26,12 +26,18 @@ final class ProfileService
         unset($data['device_token']);
 
         $user->update($data);
+
         if ($token) {
             UserDevice::where('token', $token)
                 ->where('user_id', '!=', $user->id)
                 ->delete();
-            $user->deviceTokens()->firstOrCreate(['token' => $token]);
+
+            $user->deviceTokens()->updateOrCreate(
+                ['token' => $token],
+                ['token' => $token]
+            );
         }
+
         return $user->fresh(['deviceTokens']);
     }
     public function deleteAccount(User $user): void
