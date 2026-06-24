@@ -18,13 +18,14 @@ class PlayerService
      * Получить существующий чек-лист или подготовить данные для нового.
      *
      * @param User $user
-     * @param string $date
+     * @param array $data
      * @return DailyChecklist|array|null
      */
-    public function getOrCreateVirtual(User $user, string $date): DailyChecklist|array|null
+    public function getOrCreateVirtual(User $user, array $data): DailyChecklist|array|null
     {
-        $today = Carbon::today()->toDateString();
+        $date = $data['date'];
         $userId = $user->id;
+        $today = Carbon::today()->toDateString();
         $checklist = DailyChecklist::where('user_id', $userId)
             ->where('date', $date)
             ->first();
@@ -46,8 +47,7 @@ class PlayerService
                 'progress'     => $progress,
             ];
         }
-
-        return null;
+        abort(404, 'Checklist not found for the specified date.');
     }
 
     /**
@@ -141,7 +141,7 @@ class PlayerService
      * @param array $data
      * @return array
      */
-    public function getStatistics(User $user, array$data): array
+    public function getStatistics(User $user, array $data): array
     {
         $days = $data['days'];
         $startDate = Carbon::today()->subDays($days - 1)->toDateString();
@@ -207,7 +207,7 @@ class PlayerService
             ->orderBy('date', 'desc')
             ->get();
 
-        foreach ($checklists as $index => $checklist) {
+        foreach ($checklists as $checklist) {
             if ($checklist->date === Carbon::today()->toDateString() && !$checklist->is_completed && !$checklist->is_day_off) {
                 continue;
             }

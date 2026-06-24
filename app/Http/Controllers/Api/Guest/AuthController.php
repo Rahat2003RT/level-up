@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\v1\Guest;
+namespace App\Http\Controllers\Api\Guest;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Guest\Auth\LoginRequest;
