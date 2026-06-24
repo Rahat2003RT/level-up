@@ -41,6 +41,9 @@ class DailyChecklistResource extends JsonResource
                 'current_streak'  => (int) $progress['current_streak'],
                 'total_completed' => (int) $progress['total_completed'],
             ],
+            'is_editable' => is_array($this->resource)
+                ? $this->resource['is_editable']
+                : $this->isEditable(),
         ];
     }
 }

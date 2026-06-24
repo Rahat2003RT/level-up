@@ -33,6 +33,7 @@ class PlayerService
 
         if ($checklist) {
             $checklist->progress = $progress;
+            $checklist->is_editable = $checklist->isEditable();
             return $checklist;
         }
 
@@ -45,6 +46,7 @@ class PlayerService
                 'is_completed' => false,
                 'is_day_off'   => false,
                 'progress'     => $progress,
+                'is_editable'  => true,
             ];
         }
         abort(404, 'Checklist not found for the specified date.');
