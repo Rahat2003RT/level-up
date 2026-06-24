@@ -14,6 +14,11 @@ class DailyChecklistResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $progress = $this['progress'] ?? $this->progress ?? [
+            'current_streak' => 0,
+            'total_completed' => 0
+        ];
+
         return [
             'date'                       => $this['date'] ?? $this->date,
             'day_number'                 => (int) ($this['day_number'] ?? $this->day_number),
@@ -32,6 +37,10 @@ class DailyChecklistResource extends JsonResource
             'plans_for_the_day'          => (string) ($this['plans_for_the_day'] ?? $this->plans_for_the_day ?? ''),
             'results_for_the_day'        => (string) ($this['results_for_the_day'] ?? $this->results_for_the_day ?? ''),
             'notes_for_the_day'          => (string) ($this['notes_for_the_day'] ?? $this->notes_for_the_day ?? ''),
+            'progress' => [
+                'current_streak'  => (int) $progress['current_streak'],
+                'total_completed' => (int) $progress['total_completed'],
+            ],
         ];
     }
 }

@@ -5,7 +5,7 @@ namespace App\Http\Requests\Admin\Notifications;
 use App\Http\Requests\ApiBaseRequest;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SendMassPushRequest extends ApiBaseRequest
+final class SendMassPushRequest extends ApiBaseRequest
 {
     public function rules(): array
     {

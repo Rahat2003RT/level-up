@@ -9,7 +9,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
  * @property string $nickname
  * @property string $password
  */
-class LoginRequest extends ApiBaseRequest
+final class LoginRequest extends ApiBaseRequest
 {
     /**
      * Get the validation rules that apply to the request.
