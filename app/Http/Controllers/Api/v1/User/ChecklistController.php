@@ -3,55 +3,47 @@ namespace App\Http\Controllers\Api\v1\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Checklist\StoreDailyChecklistRequest;
+use App\Http\Resources\DailyChecklistResource;
 use App\Models\DailyChecklist;
+use App\Services\User\ChecklistService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
-class DailyChecklistController extends Controller
+final class ChecklistController extends Controller
 {
-    public function show(Request $request): JsonResponse
+
+    protected function __construct(
+        protected ChecklistService $service
+    )
+    {
+
+    }
+    public function show(Request $request)
     {
         $date = $request->query('date', Carbon::today()->toDateString());
+        $userId = $request->user()->id;
 
-        $checklist = DailyChecklist::where('user_id', $request->user()->id)
+        $checklist = DailyChecklist::where('user_id', $userId)
             ->where('date', $date)
             ->first();
 
         if (!$checklist && $date === Carbon::today()->toDateString()) {
-            $nextDayNumber = DailyChecklist::where('user_id', $request->user()->id)->count() + 1;
+            $nextDayNumber = DailyChecklist::where('user_id', $userId)->count() + 1;
 
-            return response()->json([
-                'data' => [
-                    'date' => $date,
-                    'day_number' => $nextDayNumber,
-                    'is_completed' => false,
-                    'is_day_off' => false,
-                    'scheduled_meetings' => 0,
-                    'completed_meetings' => 0,
-                    'new_clients' => 0,
-                    'new_partners' => 0,
-                    'business_conversations' => 0,
-                    'presentations' => 0,
-                    'sales' => 0,
-                    'daily_income' => 0,
-                    'social_media_activity' => false,
-                    'communication_with_sponsor' => false,
-                    'plans_for_the_day' => '',
-                    'results_for_the_day' => '',
-                    'notes_for_the_day' => '',
-                ]
+            return new DailyChecklistResource([
+                'date' => $date,
+                'day_number' => $nextDayNumber,
             ]);
         }
 
         if (!$checklist) {
-            return response()->json(['message' => 'Данные за указанный день отсутствуют.'], 404);
+            return response()->noContent(404);
         }
-
-        return response()->json(['data' => $checklist]);
+        return DailyChecklistResource::make($checklist);
     }
 
-    public function storeOrUpdate(StoreDailyChecklistRequest $request): JsonResponse
+    public function storeOrUpdate(StoreDailyChecklistRequest $request)
     {
         $user = $request->user();
         $today = Carbon::today()->toDateString();
@@ -60,11 +52,9 @@ class DailyChecklistController extends Controller
             ->where('date', $today)
             ->first();
 
+        // Если редактировать нельзя, отдаем просто 403 статус (без текста)
         if ($checklist && !$checklist->isEditable()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Редактирование закрытого дня запрещено.'
-            ], 403);
+            return response()->noContent(403);
         }
 
         $nextDayNumber = $checklist ? $checklist->day_number : (DailyChecklist::where('user_id', $user->id)->count() + 1);
@@ -76,33 +66,33 @@ class DailyChecklistController extends Controller
             array_merge($data, ['day_number' => $nextDayNumber])
         );
 
-        return response()->json(['data' => $checklist]);
+        return new DailyChecklistResource($checklist);
     }
 
-    public function complete(Request $request): JsonResponse
+    public function complete(Request $request)
     {
         $checklist = DailyChecklist::where('user_id', $request->user()->id)
             ->where('date', Carbon::today()->toDateString())
             ->first();
 
+        // Сначала нужно создать запись, иначе 400 Bad Request
         if (!$checklist) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Сначала заполните или сохраните данные за сегодня.'], 400);
+            return response()->noContent(400);
         }
 
+        // Если нельзя редактировать — 403 Forbidden
         if (!$checklist->isEditable()) {
-            return response()->json(['message' => 'День уже закрыт или является выходным.'], 403);
+            return response()->noContent(403);
         }
 
         $checklist->update(['is_completed' => true]);
 
         // TODO: Здесь вызываем Event/Job для пересчета достижений и статистики (за 10/30/90 дней)
 
-        return response()->json(['message' => 'День успешно завершен!', 'data' => $checklist]);
+        return DailyChecklistResource::make($checklist);
     }
 
-    public function setDayOff(Request $request): JsonResponse
+    public function setDayOff(Request $request)
     {
         $user = $request->user();
         $today = Carbon::today()->toDateString();
@@ -112,7 +102,7 @@ class DailyChecklistController extends Controller
             ->first();
 
         if ($checklist && !$checklist->isEditable()) {
-            return response()->json(['message' => 'Изменение статуса невозможно.'], 403);
+            return response()->noContent(403);
         }
 
         $nextDayNumber = $checklist ? $checklist->day_number : (DailyChecklist::where('user_id', $user->id)->count() + 1);
@@ -136,6 +126,6 @@ class DailyChecklistController extends Controller
             ]
         );
 
-        return response()->json(['data' => $checklist]);
+        return new DailyChecklistResource($checklist);
     }
 }

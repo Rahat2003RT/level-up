@@ -56,6 +56,15 @@ Route::prefix('v1')->group(function () {
             Route::patch('update', [User\ProfileController::class, 'update']);
         });
         // ----------------------------------------------------------------//
+        //                        CHECKLIST METHODS                        //
+        // ----------------------------------------------------------------//
+        Route::prefix('checklist')->group(function () {
+            Route::get('/', [User\ChecklistController::class, 'show']);
+            Route::post('/', [User\ChecklistController::class, 'storeOrUpdate']);
+            Route::post('/complete', [User\ChecklistController::class, 'complete']);
+            Route::post('/day-off', [User\ChecklistController::class, 'setDayOff']);
+        });
+        // ----------------------------------------------------------------//
         //                        CAPTAIN METHODS                          //
         // ----------------------------------------------------------------//
         Route::prefix('captain')->middleware(['can:captain-leader'])->group(function () {
