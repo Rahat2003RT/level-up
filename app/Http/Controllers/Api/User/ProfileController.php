@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
-#[Group('Профиль пользователя', weight: 100)]
+#[Group('Пользователь', weight: 200)]
 final class ProfileController extends Controller
 {
     public function __construct(

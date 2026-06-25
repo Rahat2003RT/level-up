@@ -14,7 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 
-#[Group('Авторизация', weight: 10)]
+#[Group('Авторизация', weight: 100)]
 final class AuthController extends Controller
 {
     public function __construct(

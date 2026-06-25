@@ -16,7 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-#[Group('Роль: Player', weight: 0)]
+#[Group('Роль: Player', weight: 250)]
 final class PlayerController extends Controller
 {
     protected function __construct(
