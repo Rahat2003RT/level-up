@@ -12,11 +12,12 @@ use App\Models\DailyChecklist;
 use App\Services\User\PlayerService;
 use Carbon\Carbon;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-#[Group('Роль: Player', weight: 250)]
+#[Group('Пользователь / Player', weight: 250)]
 final class PlayerController extends Controller
 {
     protected function __construct(
@@ -41,6 +42,7 @@ final class PlayerController extends Controller
      * Создать или обновить чек-лист за сегодня.
      * @param StoreDailyChecklistRequest $request
      * @return DailyChecklistResource
+     * @throws AuthorizationException
      */
     public function storeOrUpdate(StoreDailyChecklistRequest $request): DailyChecklistResource
     {
@@ -53,6 +55,7 @@ final class PlayerController extends Controller
      *
      * @param Request $request
      * @return DailyChecklistResource
+     * @throws AuthorizationException
      */
     public function complete(Request $request): DailyChecklistResource
     {

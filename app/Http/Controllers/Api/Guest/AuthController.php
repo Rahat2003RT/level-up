@@ -7,6 +7,7 @@ use App\Http\Requests\Guest\Auth\LoginRequest;
 use App\Http\Requests\Guest\Auth\RegisterRequest;
 use App\Http\Requests\Guest\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Guest\Auth\ResetPasswordRequest;
+use App\Http\Requests\Guest\Auth\VerifyResetCodeRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Guest\Auth\AuthService;
 use Dedoc\Scramble\Attributes\Group;
@@ -57,26 +58,38 @@ final class AuthController extends Controller
     }
 
     /**
-     * Запрос ссылки на сброс пароля (Resend)
+     * Запрос кода на сброс пароля
      */
-    public function sendResetLink(ForgotPasswordRequest $request): JsonResponse
+    public function sendResetCode(ForgotPasswordRequest $request): JsonResponse
     {
-        $status = $this->service->sendResetLink($request->validated());
+        $this->service->sendResetCode($request->validated());
 
         return response()->json([
-            'message' => __($status)
-        ], $status === 'passwords.sent' ? 200 : 400);
+            'message' => __('passwords.sent')
+        ], 200);
     }
 
     /**
-     * Сброс пароля
+     * Проверка кода сброса пароля (Для мобильного приложения)
+     */
+    public function verifyResetCode(VerifyResetCodeRequest $request): JsonResponse
+    {
+        $this->service->verifyResetCode($request->validated());
+
+        return response()->json([
+            'message' => __('passwords.code_valid')
+        ], 200);
+    }
+
+    /**
+     * Сброс пароля (Финальный шаг)
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        $status = $this->service->resetPassword($request->validated());
+        $this->service->resetPassword($request->validated());
 
         return response()->json([
-            'message' => __($status)
-        ], $status === 'passwords.reset' ? 200 : 400);
+            'message' => __('passwords.reset')
+        ], 200);
     }
 }

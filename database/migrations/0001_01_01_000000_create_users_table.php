@@ -35,8 +35,8 @@ return new class extends Migration
             $table->string('locale', 5)->default('ru');
             $table->string('timezone')->default('UTC');
 
-            $table->string('role', 20)->default('player');
-            $table->string('plan', 20)->default('starter');
+            $table->string('role', 20)->nullable();
+            $table->string('plan', 20)->nullable();
             $table->timestamp('subscribed_until')->nullable();
             $table->string('robokassa_sub_id')->nullable();
 

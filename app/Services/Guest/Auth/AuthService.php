@@ -2,9 +2,9 @@
 
 namespace App\Services\Guest\Auth;
 
-use App\Enums\UserPlan;
-use App\Enums\UserRole;
 use App\Models\User;
+use App\Notifications\CustomResetPasswordNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Password;
@@ -109,21 +109,72 @@ final class AuthService
         }
     }
 
-    public function sendResetLink(array $data): string
+    public function sendResetCode(array $data): void
     {
-        return Password::sendResetLink($data);
+        $email = $data['email'];
+        $user = User::where('email', $email)->firstOrFail();
+
+        $locale = request()->header('X-Locale', request()->input('lang', $user->locale ?? 'en'));
+
+        $code = (string) rand(100000, 999999);
+
+        DB::table('password_reset_codes')->where('email', $email)->delete();
+        DB::table('password_reset_codes')->insert([
+            'email' => $email,
+            'code' => $code,
+            'created_at' => now(),
+        ]);
+
+        $user->notify(new CustomResetPasswordNotification($code, $locale));
     }
 
-    public function resetPassword(array $data): string
+    /**
+     * @throws ValidationException
+     */
+    public function verifyResetCode(array $data): void
     {
-        return Password::reset(
-            $data,
-            function (User $user, string $password) {
-                $user->forceFill([
-                    'password' => Hash::make($password),
-                    'remember_token' => Str::random(60),
-                ])->save();
-            }
-        );
+        $record = DB::table('password_reset_codes')
+            ->where('email', $data['email'])
+            ->where('code', $data['code'])
+            ->first();
+
+        if (!$record) {
+            throw ValidationException::withMessages([
+                'code' => [__('passwords.code_invalid_or_expired')],
+            ]);
+        }
+
+        if (now()->subMinutes(15)->gt($record->created_at)) {
+            DB::table('password_reset_codes')->where('email', $data['email'])->delete();
+            throw ValidationException::withMessages([
+                'code' => [__('passwords.code_invalid_or_expired')],
+            ]);
+        }
+    }
+
+    /**
+     * 3. Непосредственно обновление пароля
+     * @throws ValidationException
+     */
+    public function resetPassword(array $data): void
+    {
+        $this->verifyResetCode([
+            'email' => $data['email'],
+            'code' => $data['code']
+        ]);
+
+        $user = User::where('email', $data['email'])->firstOrFail();
+        $user->forceFill([
+            'password' => Hash::make($data['password']),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        DB::table('password_reset_codes')->where('email', $data['email'])->delete();
+
+        Log::channel('auth')->info('User successfully reset password', [
+            'user_id' => $user->id,
+            'email' => $user->email,
+            'ip' => request()->ip()
+        ]);
     }
 }

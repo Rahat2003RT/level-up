@@ -5,20 +5,18 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\HtmlString;
 
 class CustomResetPasswordNotification extends Notification
 {
     use Queueable;
 
-    public string $token;
-    public $locale;
+    public string $code;
+    public string $locale;
 
-    /**
-     * Передаем токен и локаль пользователя
-     */
-    public function __construct(string $token, string $locale = 'en')
+    public function __construct(string $code, string $locale = 'en')
     {
-        $this->token = $token;
+        $this->code = $code;
         $this->locale = in_array($locale, ['ru', 'en', 'es', 'pt', 'fr', 'de']) ? $locale : 'en';
     }
 
@@ -29,10 +27,32 @@ class CustomResetPasswordNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
+        $codeBlock = '
+        <div style="text-align: center; margin: 35px 0;">
+            <div style="
+                display: inline-block;
+                background-color: #f3f4f6;
+                border: 2px dashed #cbd5e1;
+                border-radius: 12px;
+                padding: 16px 32px;
+                font-size: 32px;
+                font-family: monospace;
+                font-weight: 700;
+                letter-spacing: 6px;
+                color: #1e293b;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            ">' . e($this->code) . '</div>
+        </div>';
+
         return (new MailMessage)
             ->subject(__('passwords.reset_subject', [], $this->locale))
             ->greeting(__('passwords.reset_greeting', [], $this->locale))
             ->line(__('passwords.reset_line_1', [], $this->locale))
+
+            ->markdown('vendor.notifications.email', [
+                'slot' => new HtmlString($codeBlock)
+            ])
+
             ->line(__('passwords.reset_line_2', [], $this->locale))
             ->salutation(__('passwords.reset_salutation', [], $this->locale));
     }
