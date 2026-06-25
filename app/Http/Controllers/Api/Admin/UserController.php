@@ -17,7 +17,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
-#[Group('Админ-панель / Пользователи', weight: 10)]
+#[Group('Пользователь / Админка', weight: 10)]
 final class UserController extends Controller
 {
     public function __construct(

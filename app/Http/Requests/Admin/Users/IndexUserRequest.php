@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin\Users;
 
+use App\Enums\UserRole;
 use App\Http\Requests\ApiBaseRequest;
+use Illuminate\Validation\Rule;
 
 final class IndexUserRequest extends ApiBaseRequest
 {
@@ -26,7 +28,11 @@ final class IndexUserRequest extends ApiBaseRequest
             'query'      => ['nullable', 'string', 'max:100'],
             'order_by'   => ['nullable', 'string', 'in:' . implode(',', $allowedSorts)],
             'order_sort' => ['nullable', 'string', 'in:asc,desc'],
-            'role'       => ['nullable', 'string', 'in:users,captains'],
+            'role' => [
+                'nullable',
+                'string',
+                Rule::in(collect(UserRole::cases())->reject(fn($role) => $role === UserRole::ADMIN)->pluck('value')->toArray())
+            ],
             'country'    => ['nullable', 'string', 'max:100'],
         ];
     }

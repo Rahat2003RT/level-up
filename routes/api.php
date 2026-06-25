@@ -49,10 +49,11 @@ Route::prefix('v1')->group(function () {
         //                        PROFILE METHODS                          //
         // ----------------------------------------------------------------//
         Route::prefix('profile')->group(function () {
-            Route::get('me', [User\ProfileController::class, 'me']);
-            Route::get('notifications', [User\ProfileController::class, 'notifications']);
-            Route::get('unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
-            Route::patch('update', [User\ProfileController::class, 'update']);
+            Route::get('/', [User\ProfileController::class, 'me']);
+            Route::get('/notifications', [User\ProfileController::class, 'notifications']);
+            Route::get('/unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
+            Route::patch('/', [User\ProfileController::class, 'update']);
+            Route::delete('/', [User\ProfileController::class, 'destroy']);
         });
         // ----------------------------------------------------------------//
         //                        PLAYER METHODS                           //

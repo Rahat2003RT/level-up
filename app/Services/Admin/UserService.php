@@ -47,7 +47,7 @@ final readonly class UserService
 
         $query->orderBy($orderBy, $orderSort);
 
-        return $query->paginate($filters['limit'] ?? 15);
+        return $query->paginate($filters['limit'] ?? 20);
     }
     public function createUser(array $data): User
     {

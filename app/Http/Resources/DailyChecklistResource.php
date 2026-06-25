@@ -5,7 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class DailyChecklistResource extends JsonResource
+final class DailyChecklistResource extends JsonResource
 {
     /**
      * Преобразует ресурс в массив.

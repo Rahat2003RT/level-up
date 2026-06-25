@@ -12,12 +12,13 @@ use App\Services\Guest\Auth\AuthService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 #[Group('Авторизация', weight: 10)]
 final class AuthController extends Controller
 {
     public function __construct(
-        protected AuthService $service
+        private readonly AuthService $service
     )
     {
     }
@@ -37,6 +38,7 @@ final class AuthController extends Controller
      * Авторизация
      * @param LoginRequest $request
      * @return UserResource
+     * @throws ValidationException
      */
     public function login(LoginRequest $request): UserResource
     {
