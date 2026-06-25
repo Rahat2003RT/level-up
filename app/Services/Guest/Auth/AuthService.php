@@ -32,7 +32,6 @@ final class AuthService
         $user = User::create([
             'email' => $data['email'],
             'password' => $data['password'],
-            'role' => $data['role'],
             'name' => $data['name'],
             'locale' => $data['locale'],
         ]);
