@@ -8,6 +8,14 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StatisticsRequest extends ApiBaseRequest
 {
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'days' => $this->input('days') ?? 10,
+        ]);
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
