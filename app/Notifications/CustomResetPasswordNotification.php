@@ -12,7 +12,7 @@ class CustomResetPasswordNotification extends Notification
     use Queueable;
 
     public string $code;
-    public string $locale;
+    public $locale;
 
     public function __construct(string $code, string $locale = 'en')
     {
