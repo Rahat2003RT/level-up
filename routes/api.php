@@ -69,10 +69,16 @@ Route::prefix('v1')->group(function () {
     });
     Route::group([], function () {
         // ----------------------------------------------------------------//
+        //                        PASSWORD RESET                           //
+        // ----------------------------------------------------------------//
+        Route::prefix('password')->group(function () {
+            Route::post('/forgot', [Guest\AuthController::class, 'sendResetCode']);
+            Route::post('/verify-code', [Guest\AuthController::class, 'verifyResetCode']);
+            Route::post('/reset', [Guest\AuthController::class, 'resetPassword']);
+        });
+        // ----------------------------------------------------------------//
         //                          AUTH METHODS                           //
         // ----------------------------------------------------------------//
-        Route::post('/forgot-password', [Guest\AuthController::class, 'sendResetLink']);
-        Route::post('/reset-password', [Guest\AuthController::class, 'resetPassword']);
         Route::prefix('auth')->group(function () {
             Route::post('/register', [Guest\AuthController::class, 'register']);
             Route::post('/login', [Guest\AuthController::class, 'login']);

@@ -71,6 +71,9 @@ final class AuthController extends Controller
 
     /**
      * Проверка кода сброса пароля (Для мобильного приложения)
+     * @param VerifyResetCodeRequest $request
+     * @return JsonResponse
+     * @throws ValidationException
      */
     public function verifyResetCode(VerifyResetCodeRequest $request): JsonResponse
     {
@@ -83,6 +86,9 @@ final class AuthController extends Controller
 
     /**
      * Сброс пароля (Финальный шаг)
+     * @param ResetPasswordRequest $request
+     * @return JsonResponse
+     * @throws ValidationException
      */
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
