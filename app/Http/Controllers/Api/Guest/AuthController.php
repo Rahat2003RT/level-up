@@ -70,7 +70,7 @@ final class AuthController extends Controller
     }
 
     /**
-     * Проверка кода сброса пароля (Для мобильного приложения)
+     * Проверка кода сброса пароля
      * @param VerifyResetCodeRequest $request
      * @return JsonResponse
      * @throws ValidationException
@@ -85,7 +85,7 @@ final class AuthController extends Controller
     }
 
     /**
-     * Сброс пароля (Финальный шаг)
+     * Сброс пароля
      * @param ResetPasswordRequest $request
      * @return JsonResponse
      * @throws ValidationException
