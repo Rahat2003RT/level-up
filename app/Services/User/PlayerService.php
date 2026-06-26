@@ -204,7 +204,7 @@ class PlayerService
     }
 
     /**
-     * Получить данные о прогрессе игрока (стрики, победы, пропуски, процент).
+     * Прогресс игрока.
      *
      * @param int $userId
      * @return array
@@ -214,39 +214,18 @@ class PlayerService
         $wins = DailyChecklist::where('user_id', $userId)
             ->where('is_completed', true)
             ->count();
+        $todayChecklist = $this->getTodayChecklist($userId);
+        $currentDayNumber = $todayChecklist ? $todayChecklist->day_number : $this->getNextDayNumber($userId);
 
-        $firstChecklist = DailyChecklist::where('user_id', $userId)
-            ->orderBy('date', 'asc')
-            ->first();
+        $totalCourseDays = 90;
+        $percentage = ($currentDayNumber / $totalCourseDays) * 100;
+        $percentage = round($percentage, 0);
 
-        $loses = 0;
-        $percentage = 0.0;
-
-        if ($firstChecklist) {
-            $startDate = Carbon::parse($firstChecklist->date);
-            $today = Carbon::today();
-
-            $totalDaysSoFar = $startDate->diffInDays($today) + 1;
-
-            $dayOffs = DailyChecklist::where('user_id', $userId)
-                ->where('is_day_off', true)
-                ->count();
-
-            $trackableDays = max(1, $totalDaysSoFar - $dayOffs);
-
-            $createdNotCompleted = DailyChecklist::where('user_id', $userId)
-                ->where('date', '<', $today->toDateString())
-                ->where('is_completed', false)
-                ->where('is_day_off', false)
-                ->count();
-
-            $actualRecordsCount = DailyChecklist::where('user_id', $userId)->count();
-            $missingDaysCount = max(0, $totalDaysSoFar - $actualRecordsCount);
-
-            $loses = $createdNotCompleted + $missingDaysCount;
-
-            $percentage = round(($wins / $trackableDays) * 100, 2);
-        }
+        $loses = DailyChecklist::where('user_id', $userId)
+            ->where('date', '<', Carbon::today()->toDateString())
+            ->where('is_completed', false)
+            ->where('is_day_off', false)
+            ->count();
 
         $currentStreak = 0;
         $checklists = DailyChecklist::where('user_id', $userId)
@@ -269,7 +248,7 @@ class PlayerService
         return [
             'current_streak'  => $currentStreak,
             'wins'            => $wins,
-            'loses'           => $loses,
+            'misses'           => $loses,
             'percentage'      => min(100, max(0, $percentage)),
         ];
     }

@@ -17,7 +17,7 @@ final class DailyChecklistResource extends JsonResource
         $progressData = data_get($this->resource, 'progress', [
             'current_streak' => 0,
             'wins' => 0,
-            'loses' => 0,
+            'misses' => 0,
             'percentage' => 0,
         ]);
 
@@ -42,7 +42,7 @@ final class DailyChecklistResource extends JsonResource
             'progress' => [
                 'current_streak'   => (int) data_get($progressData, 'current_streak', 0),
                 'wins'             => (int) data_get($progressData, 'wins', 0),
-                'loses'            => (int) data_get($progressData, 'loses', 0),
+                'misses'            => (int) data_get($progressData, 'loses', 0),
                 'percentage'       => (float) data_get($progressData, 'percentage', 0.0),
             ],
             'is_editable' => is_array($this->resource)
