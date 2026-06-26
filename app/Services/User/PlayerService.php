@@ -41,12 +41,25 @@ class PlayerService
             $nextDayNumber = DailyChecklist::where('user_id', $userId)->max('day_number') + 1;
 
             return [
-                'date' => $date,
-                'day_number' => $nextDayNumber,
-                'is_completed' => false,
-                'is_day_off'   => false,
-                'progress'     => $progress,
-                'is_editable'  => true,
+                'date'                        => $date,
+                'day_number'                  => $nextDayNumber,
+                'is_completed'                => false,
+                'is_day_off'                  => false,
+                'scheduled_meetings'          => 0,
+                'completed_meetings'          => 0,
+                'new_clients'                 => 0,
+                'new_partners'                => 0,
+                'business_conversations'      => 0,
+                'presentations'               => 0,
+                'sales'                       => 0,
+                'daily_income'                => 0.0,
+                'social_media_activity'       => false,
+                'communication_with_sponsor'  => false,
+                'plans_for_the_day'           => '',
+                'results_for_the_day'         => '',
+                'notes_for_the_day'           => '',
+                'progress'                    => $progress,
+                'is_editable'                 => true,
             ];
         }
         abort(404, 'Checklist not found for the specified date.');
