@@ -19,7 +19,7 @@ final class ResetPasswordRequest extends ApiBaseRequest
         return [
             'email'    => ['required', 'email', 'exists:users,email'],
             'code'     => ['required', 'string', 'size:6'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['required', 'string', 'min:8'],
         ];
     }
 }
