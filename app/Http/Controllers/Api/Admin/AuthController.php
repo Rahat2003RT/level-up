@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
 use App\Services\Admin\Auth\AuthService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Validation\ValidationException;
 
 #[Group('Авторизация / Админка', weight: 0)]
 final class AuthController extends Controller
@@ -19,6 +20,7 @@ final class AuthController extends Controller
      * Авторизация админа
      * @param LoginRequest $request
      * @return UserResource
+     * @throws ValidationException
      */
     public function login(LoginRequest $request): UserResource
     {

@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('plan_type', 20)->default('starter');
-            $table->string('status', 20)->default('active');
+            $table->string('plan_type', 20)->nullable();
+            $table->string('status', 20)->nullable();
 
             $table->timestamp('starts_at')->useCurrent();
             $table->timestamp('expires_at')->nullable();
 
             $table->string('robokassa_recurring_id')->nullable()->index();
-            $table->boolean('auto_renew')->default(true);
+            $table->boolean('auto_renew')->default(false);
 
             $table->timestamps();
             $table->softDeletes();

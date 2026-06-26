@@ -72,7 +72,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'company_name',
         'timezone',
         'role',
-        'is_onboarded',
         'last_activity_at',
         'blocked_at',
         'block_reason',
@@ -98,7 +97,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_activity_at' => 'datetime',
             'blocked_at' => 'datetime',
             'password' => 'hashed',
-            'is_onboarded' => 'boolean',
             'role' => UserRole::class,
             'plan' => UserPlan::class,
         ];

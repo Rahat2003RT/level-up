@@ -14,9 +14,6 @@ Route::prefix('v1')->group(function () {
         //                          AUTH METHODS                           //
         // ----------------------------------------------------------------//
         Route::post('/login', [Admin\AuthController::class, 'login']);
-
-
-
         Route::middleware(['auth:sanctum', 'can:access-admin', 'check.status'])->group(function () {
             // ----------------------------------------------------------------//
             //                  ADMIN-NOTIFICATIONS METHODS                    //
@@ -40,7 +37,6 @@ Route::prefix('v1')->group(function () {
             });
         });
     });
-
     // ---------------------------------------------------------------------------------------------------------------//
     //                                                     USERS                                                      //
     // ---------------------------------------------------------------------------------------------------------------//
@@ -65,15 +61,12 @@ Route::prefix('v1')->group(function () {
                 Route::post('/complete', [User\PlayerController::class, 'complete']);
                 Route::post('/day-off', [User\PlayerController::class, 'setDayOff']);
             });
-
             Route::get('/statistics', [User\PlayerController::class, 'statistics']);
         });
         // ----------------------------------------------------------------//
         //                        CAPTAIN METHODS                          //
         // ----------------------------------------------------------------//
-        Route::prefix('captain')->middleware(['can:captain-leader'])->group(function () {
-
-        });
+        Route::prefix('captain')->middleware(['can:captain-leader'])->group(function () {});
     });
     Route::group([], function () {
         // ----------------------------------------------------------------//

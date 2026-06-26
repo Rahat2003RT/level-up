@@ -40,8 +40,6 @@ return new class extends Migration
             $table->timestamp('subscribed_until')->nullable();
             $table->string('robokassa_sub_id')->nullable();
 
-            $table->boolean('is_onboarded')->default(false);
-
             $table->boolean('notifications_enabled')->default(false);
 
             $table->timestamp('email_verified_at')->nullable();
@@ -71,6 +69,24 @@ return new class extends Migration
             $table->integer('last_activity')->index();
         });
 
+        Schema::create('personal_access_tokens', function (Blueprint $table) {
+            $table->id();
+            $table->morphs('tokenable');
+            $table->text('name');
+            $table->string('token', 64)->unique();
+            $table->text('abilities')->nullable();
+            $table->timestamp('last_used_at')->nullable();
+            $table->timestamp('expires_at')->nullable()->index();
+            $table->timestamps();
+        });
+
+        Schema::create('password_reset_codes', function (Blueprint $table) {
+            $table->id();
+            $table->string('email')->index();
+            $table->string('code');
+            $table->timestamp('created_at')->nullable();
+        });
+
         User::updateOrCreate(
             ['email' => 'admin@admin.com'],
             [
@@ -91,5 +107,7 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('personal_access_tokens');
+        Schema::dropIfExists('password_reset_codes');
     }
 };

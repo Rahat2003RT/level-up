@@ -77,7 +77,7 @@ final class AuthController extends Controller
         $this->service->verifyResetCode($request->validated());
 
         return response()->json([
-            'message' => __('passwords.code_valid')
+            'message' => 'Password is sent to your email.'
         ], 200);
     }
 

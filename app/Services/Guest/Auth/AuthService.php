@@ -162,7 +162,7 @@ final class AuthService
             'email' => $data['email'],
             'code' => $data['code']
         ]);
-
+        /** @var User $user */
         $user = User::where('email', $data['email'])->firstOrFail();
         $user->forceFill([
             'password' => Hash::make($data['password']),
