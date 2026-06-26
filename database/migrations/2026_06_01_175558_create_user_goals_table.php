@@ -13,16 +13,11 @@ return new class extends Migration
     {
         Schema::create('user_goals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-
+            $table->foreignId('user_id')->unique()->constrained('users')->onDelete('cascade');
             $table->integer('target_clients_count')->default(0);
             $table->integer('target_partners_count')->default(0);
-            $table->decimal('target_sales_volume', 12, 2)->default(0.00);
-
-            $table->string('period', 7);
-
+            $table->integer('target_sales_volume')->default(0);
             $table->timestamps();
-            $table->unique(['user_id', 'period']);
         });
     }
 

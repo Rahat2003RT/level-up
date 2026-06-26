@@ -1,14 +1,13 @@
 <?php
 
-namespace App\Http\Requests\Guest\Auth;
+namespace App\Http\Requests\User\Goal;
 
 use App\Http\Requests\ApiBaseRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-final class ResetPasswordRequest extends ApiBaseRequest
+class StoreUserGoalRequest extends ApiBaseRequest
 {
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -17,9 +16,9 @@ final class ResetPasswordRequest extends ApiBaseRequest
     public function rules(): array
     {
         return [
-            'email'    => ['required', 'email', 'exists:users,email'],
-            'code'     => ['required', 'string', 'size:6'],
-            'password' => ['required', 'string', 'min:6'],
+            'target_clients_count'  => ['required', 'integer', 'min:0'],
+            'target_partners_count' => ['required', 'integer', 'min:0'],
+            'target_sales_volume'   => ['required', 'integer', 'min:0'],
         ];
     }
 }

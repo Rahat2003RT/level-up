@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace App\Http\Resources;
 
 use App\Models\User;
+use App\Models\UserGoal;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
 /**
  * Class UserResource
- * * @package App\Http\Resources
- * * @mixin User
+ * @package App\Http\Resources
+ * @mixin User
  * @property string|null $token Токен доступа (динамически передается при авторизации)
+ * @property-read UserGoal|null $goal Цели пользователя
  */
 final class UserResource extends JsonResource
 {
@@ -63,6 +65,9 @@ final class UserResource extends JsonResource
             'device_tokens' => $this->whenLoaded('deviceTokens', function () {
                 return $this->deviceTokens->pluck('token');
             }),
+
+            'goal' => UserGoalResource::make($this->whenLoaded('goal')),
+
             'last_activity_at' => $this->last_activity_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

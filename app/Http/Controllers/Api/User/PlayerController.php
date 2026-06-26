@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Checklist\StoreDailyChecklistRequest;
+use App\Http\Requests\User\Goal\StoreUserGoalRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Resources\DailyChecklistResource;
@@ -11,7 +12,9 @@ use App\Http\Resources\PlayerStatisticsResource;
 use App\Services\User\PlayerService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 #[Group('Пользователь / Player', weight: 250)]
 final class PlayerController extends Controller
@@ -69,5 +72,17 @@ final class PlayerController extends Controller
     {
         $stats = $this->service->getStatistics($request->user(), $request->validated());
         return PlayerStatisticsResource::make($stats);
+    }
+
+    /**
+     * Сохранить или обновить цели игрока.
+     *
+     * @param StoreUserGoalRequest $request
+     * @return Response
+     */
+    public function storeGoal(StoreUserGoalRequest $request): Response
+    {
+        $this->service->updateOrCreateGoal($request->user(), $request->validated());
+        return response()->noContent();
     }
 }

@@ -6,6 +6,7 @@ namespace App\Services\User;
 
 use App\Models\User;
 use App\Models\DailyChecklist;
+use App\Models\UserGoal;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -248,5 +249,20 @@ class PlayerService
             'misses'           => $loses,
             'percentage'      => min(100, max(0, $percentage)),
         ];
+    }
+
+    /**
+     * Обновить или создать цели для пользователя.
+     *
+     * @param User $user
+     * @param array $data
+     * @return UserGoal
+     */
+    public function updateOrCreateGoal(User $user, array $data): UserGoal
+    {
+        return $user->goal()->updateOrCreate(
+            [],
+            $data
+        );
     }
 }
