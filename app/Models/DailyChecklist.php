@@ -25,8 +25,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $daily_income
  * @property bool $social_media_activity
  * @property bool $communication_with_sponsor
- * @property string|null $plans_for_the_day
- * @property string|null $results_for_the_day
  * @property string|null $notes_for_the_day
  *
  * @property-read User $user
@@ -49,8 +47,6 @@ class DailyChecklist extends Model
         'daily_income',
         'social_media_activity',
         'communication_with_sponsor',
-        'plans_for_the_day',
-        'results_for_the_day',
         'notes_for_the_day',
     ];
 

@@ -31,8 +31,6 @@ class StoreDailyChecklistRequest extends FormRequest
             'social_media_activity' => 'nullable|boolean',
             'communication_with_sponsor' => 'nullable|boolean',
 
-            'plans_for_the_day' => 'nullable|string|max:5000',
-            'results_for_the_day' => 'nullable|string|max:5000',
             'notes_for_the_day' => 'nullable|string|max:5000',
         ];
     }

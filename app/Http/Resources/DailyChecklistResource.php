@@ -36,8 +36,6 @@ final class DailyChecklistResource extends JsonResource
             'daily_income'               => (float) ($this['daily_income'] ?? $this->daily_income),
             'social_media_activity'      => (bool) ($this['social_media_activity'] ?? $this->social_media_activity),
             'communication_with_sponsor' => (bool) ($this['communication_with_sponsor'] ?? $this->communication_with_sponsor),
-            'plans_for_the_day'          => (string) ($this['plans_for_the_day'] ?? $this->plans_for_the_day ?? ''),
-            'results_for_the_day'        => (string) ($this['results_for_the_day'] ?? $this->results_for_the_day ?? ''),
             'notes_for_the_day'          => (string) ($this['notes_for_the_day'] ?? $this->notes_for_the_day ?? ''),
             'progress' => [
                 'current_streak'   => (int) data_get($progressData, 'current_streak', 0),

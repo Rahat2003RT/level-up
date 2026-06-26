@@ -34,8 +34,6 @@ return new class extends Migration
             $table->boolean('communication_with_sponsor')->default(false);
 
             // Текстовые блоки
-            $table->text('plans_for_the_day')->nullable();
-            $table->text('results_for_the_day')->nullable();
             $table->text('notes_for_the_day')->nullable();
 
             $table->timestamps();

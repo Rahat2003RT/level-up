@@ -66,69 +66,66 @@ class PlayerService
     }
 
     /**
-     * Создать или обновить чек-лист на сегодня.
+     * Создать чек-лист на сегодня.
+     *
+     * @param User $user
+     * @param array $data
+     * @return DailyChecklist
+     * @throws AuthorizationException
      */
-    public function storeOrUpdateToday(User $user, array $data): DailyChecklist
+    public function storeAndCompleteToday(User $user, array $data): DailyChecklist
     {
         $checklist = $this->getTodayChecklist($user->id);
-
-        if ($checklist && !$checklist->isEditable()) {
-            throw new AuthorizationException('This checklist is no longer editable.');
+        if ($checklist) {
+            throw new AuthorizationException('The checklist for today has already been completed and cannot be edited.');
         }
-
-        $dayNumber = $checklist ? $checklist->day_number : $this->getNextDayNumber($user->id);
-
-        $updatedChecklist = DailyChecklist::updateOrCreate(
-            ['user_id' => $user->id, 'date' => Carbon::today()->toDateString()],
-            array_merge($data, ['day_number' => $dayNumber])
-        );
-
+        $dayNumber = $this->getNextDayNumber($user->id);
+        $updatedChecklist = DailyChecklist::create(array_merge($data, [
+            'user_id'      => $user->id,
+            'date'         => Carbon::today()->toDateString(),
+            'day_number'   => $dayNumber,
+            'is_completed' => true,
+            'is_day_off'   => false,
+        ]));
         $updatedChecklist->progress = $this->getUserProgress($user->id);
+
         return $updatedChecklist;
     }
 
     /**
-     * Завершить чек-лист.
-     */
-    public function completeToday(User $user): DailyChecklist
-    {
-        $checklist = $this->getTodayChecklist($user->id);
-
-        if (!$checklist) {
-            throw new BadRequestHttpException('Checklist must be created before completion.');
-        }
-
-        if (!$checklist->isEditable()) {
-            throw new AuthorizationException('This checklist is no longer editable.');
-        }
-
-        $checklist->update(['is_completed' => true]);
-
-        $checklist->progress = $this->getUserProgress($user->id);
-        return $checklist;
-    }
-
-    /**
      * Установить выходной день.
+     * @throws AuthorizationException
      */
     public function setDayOffToday(User $user): DailyChecklist
     {
-        $defaultDayOffData = [
-            'is_day_off' => true,
-            'is_completed' => false,
-            'scheduled_meetings' => 0,
-            'completed_meetings' => 0,
-            'new_clients' => 0,
-            'new_partners' => 0,
-            'business_conversations' => 0,
-            'presentations' => 0,
-            'sales' => 0,
-            'daily_income' => 0,
-            'social_media_activity' => false,
-            'communication_with_sponsor' => false
-        ];
+        $checklist = $this->getTodayChecklist($user->id);
 
-        return $this->storeOrUpdateToday($user, $defaultDayOffData);
+        if ($checklist) {
+            throw new AuthorizationException("Today's checklist has already been recorded.");
+        }
+
+        $dayNumber = $this->getNextDayNumber($user->id);
+
+        $updatedChecklist = DailyChecklist::create([
+            'user_id'                    => $user->id,
+            'date'                       => Carbon::today()->toDateString(),
+            'day_number'                 => $dayNumber,
+            'is_completed'               => false,
+            'is_day_off'                 => true,
+            'scheduled_meetings'         => 0,
+            'completed_meetings'         => 0,
+            'new_clients'                => 0,
+            'new_partners'               => 0,
+            'business_conversations'     => 0,
+            'presentations'              => 0,
+            'sales'                      => 0,
+            'daily_income'               => 0,
+            'social_media_activity'      => false,
+            'communication_with_sponsor' => false
+        ]);
+
+        $updatedChecklist->progress = $this->getUserProgress($user->id);
+        return $updatedChecklist;
     }
 
     /**

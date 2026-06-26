@@ -46,20 +46,7 @@ final class PlayerController extends Controller
      */
     public function storeOrUpdate(StoreDailyChecklistRequest $request): DailyChecklistResource
     {
-        $checklist = $this->service->storeOrUpdateToday($request->user(), $request->validated());
-        return DailyChecklistResource::make($checklist);
-    }
-
-    /**
-     * Отметить сегодняшний чек-лист как выполненный.
-     *
-     * @param Request $request
-     * @return DailyChecklistResource
-     * @throws AuthorizationException
-     */
-    public function complete(Request $request): DailyChecklistResource
-    {
-        $checklist = $this->service->completeToday($request->user());
+        $checklist = $this->service->storeAndCompleteToday($request->user(), $request->validated());
         return DailyChecklistResource::make($checklist);
     }
 
