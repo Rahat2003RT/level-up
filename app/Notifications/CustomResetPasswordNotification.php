@@ -45,6 +45,7 @@ class CustomResetPasswordNotification extends Notification
     </div>';
 
         return (new MailMessage)
+            ->view('notifications::email') // <-- Добавьте эту строку
             ->subject(__('passwords.reset_subject', [], $this->locale))
             ->greeting(__('passwords.reset_greeting', [], $this->locale))
             ->line(__('passwords.reset_line_1', [], $this->locale))
