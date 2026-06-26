@@ -204,19 +204,51 @@ class PlayerService
     }
 
     /**
-     * Получить данные о прогрессе игрока (стрики, общие показатели).
+     * Получить данные о прогрессе игрока (стрики, победы, пропуски, процент).
      *
      * @param int $userId
      * @return array
      */
     public function getUserProgress(int $userId): array
     {
-        $totalCompleted = DailyChecklist::where('user_id', $userId)
+        $wins = DailyChecklist::where('user_id', $userId)
             ->where('is_completed', true)
             ->count();
 
-        $currentStreak = 0;
+        $firstChecklist = DailyChecklist::where('user_id', $userId)
+            ->orderBy('date', 'asc')
+            ->first();
 
+        $loses = 0;
+        $percentage = 0.0;
+
+        if ($firstChecklist) {
+            $startDate = Carbon::parse($firstChecklist->date);
+            $today = Carbon::today();
+
+            $totalDaysSoFar = $startDate->diffInDays($today) + 1;
+
+            $dayOffs = DailyChecklist::where('user_id', $userId)
+                ->where('is_day_off', true)
+                ->count();
+
+            $trackableDays = max(1, $totalDaysSoFar - $dayOffs);
+
+            $createdNotCompleted = DailyChecklist::where('user_id', $userId)
+                ->where('date', '<', $today->toDateString())
+                ->where('is_completed', false)
+                ->where('is_day_off', false)
+                ->count();
+
+            $actualRecordsCount = DailyChecklist::where('user_id', $userId)->count();
+            $missingDaysCount = max(0, $totalDaysSoFar - $actualRecordsCount);
+
+            $loses = $createdNotCompleted + $missingDaysCount;
+
+            $percentage = round(($wins / $trackableDays) * 100, 2);
+        }
+
+        $currentStreak = 0;
         $checklists = DailyChecklist::where('user_id', $userId)
             ->where('date', '<=', Carbon::today()->toDateString())
             ->orderBy('date', 'desc')
@@ -236,7 +268,9 @@ class PlayerService
 
         return [
             'current_streak'  => $currentStreak,
-            'total_completed' => $totalCompleted,
+            'wins'            => $wins,
+            'loses'           => $loses,
+            'percentage'      => min(100, max(0, $percentage)),
         ];
     }
 }

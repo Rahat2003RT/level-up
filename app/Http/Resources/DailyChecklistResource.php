@@ -14,10 +14,12 @@ final class DailyChecklistResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $progress = $this['progress'] ?? $this->progress ?? [
+        $progressData = data_get($this->resource, 'progress', [
             'current_streak' => 0,
-            'total_completed' => 0
-        ];
+            'wins' => 0,
+            'loses' => 0,
+            'percentage' => 0,
+        ]);
 
         return [
             'date'                       => $this['date'] ?? $this->date,
@@ -38,8 +40,10 @@ final class DailyChecklistResource extends JsonResource
             'results_for_the_day'        => (string) ($this['results_for_the_day'] ?? $this->results_for_the_day ?? ''),
             'notes_for_the_day'          => (string) ($this['notes_for_the_day'] ?? $this->notes_for_the_day ?? ''),
             'progress' => [
-                'current_streak'  => (int) $progress['current_streak'],
-                'total_completed' => (int) $progress['total_completed'],
+                'current_streak'   => (int) data_get($progressData, 'current_streak', 0),
+                'wins'             => (int) data_get($progressData, 'wins', 0),
+                'loses'            => (int) data_get($progressData, 'loses', 0),
+                'percentage'       => (float) data_get($progressData, 'percentage', 0.0),
             ],
             'is_editable' => is_array($this->resource)
                 ? $this->resource['is_editable']
