@@ -26,8 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
-        $exceptions->respond(function ($request, Throwable $e) {
-            if ($e instanceof ValidationException && $request->expectsJson()) {
+        $exceptions->render(function (ValidationException $e, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
                 $firstErrorMessage = collect($e->errors())->flatten()->first();
 
                 return response()->json([
