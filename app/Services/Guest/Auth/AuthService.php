@@ -33,7 +33,7 @@ final class AuthService
             'email' => $data['email'],
             'password' => $data['password'],
             'name' => $data['name'],
-            'locale' => $data['locale'],
+            'locale' => $data['locale'] ?? 'en',
         ]);
 
         Log::channel('auth')->info('User registered successfully', [
