@@ -75,6 +75,6 @@ class CustomResetPasswordNotification extends Notification
 
         return (new MailMessage)
             ->subject($subject)
-            ->html($htmlContent);
+            ->view(['html' => new HtmlString($htmlContent)]);
     }
 }
