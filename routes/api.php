@@ -69,10 +69,10 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             //                        CONTACT METHODS                          //
             // ----------------------------------------------------------------//
-            Route::prefix('contact')->group(function () {
+            Route::prefix('contacts')->group(function () {
                 Route::get('/', [User\PlayerController::class, 'contacts']);
                 Route::post('/', [User\PlayerController::class, 'storeContact']);
-                Route::patch('/', [User\PlayerController::class, 'updateContact']);
+                Route::patch('/{contact}', [User\PlayerController::class, 'updateContact']);
             });
             // ----------------------------------------------------------------//
             //                       STATISTICS METHODS                        //
