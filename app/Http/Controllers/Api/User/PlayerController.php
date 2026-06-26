@@ -84,6 +84,6 @@ final class PlayerController extends Controller
     public function storeGoal(StoreUserGoalRequest $request): UserResource
     {
         $this->service->updateOrCreateGoal($request->user(), $request->validated());
-        return UserResource::make($request->user());
+        return UserResource::make($request->user()->load('goal'));
     }
 }
