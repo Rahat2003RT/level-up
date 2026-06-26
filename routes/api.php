@@ -61,6 +61,7 @@ Route::prefix('v1')->group(function () {
                 Route::post('/day-off', [User\PlayerController::class, 'setDayOff']);
             });
             Route::get('/statistics', [User\PlayerController::class, 'statistics']);
+            Route::post('/goals', [User\PlayerController::class, 'storeGoal']);
         });
         // ----------------------------------------------------------------//
         //                        CAPTAIN METHODS                          //
