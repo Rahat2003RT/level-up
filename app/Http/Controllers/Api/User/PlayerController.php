@@ -20,7 +20,7 @@ use Illuminate\Http\Response;
 #[Group('Пользователь / Player', weight: 250)]
 final class PlayerController extends Controller
 {
-    protected function __construct(
+    public function __construct(
         protected PlayerService $service
     )
     {
