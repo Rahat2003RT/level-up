@@ -16,6 +16,7 @@ use App\Services\Admin\UserService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 #[Group('Пользователь / Админка', weight: 10)]
 final class UserController extends Controller
@@ -61,6 +62,7 @@ final class UserController extends Controller
      * @param ChangeRoleRequest $request
      * @param User $user
      * @return UserResource
+     * @throws ValidationException
      */
     public function changeRole(ChangeRoleRequest $request, User $user): UserResource
     {
@@ -126,22 +128,22 @@ final class UserController extends Controller
      * Восстановление пользователя
      * @param User $user
      * @return UserResource
+     * @throws ValidationException
      */
     public function restore(User $user): UserResource
     {
         $user = $this->service->restore($user->id);
-
         return UserResource::make($user);
     }
 
     /**
      * Окончательное удаление
-     * @param int $id
+     * @param User $user
      * @return Response
      */
-    public function forceDelete(int $id): Response
+    public function forceDelete(User $user): Response
     {
-        $this->service->forceDelete($id);
+        $this->service->forceDelete($user);
         return response()->noContent();
     }
 }

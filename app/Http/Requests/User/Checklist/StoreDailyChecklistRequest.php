@@ -16,6 +16,23 @@ class StoreDailyChecklistRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'scheduled_meetings'         => $this->input('scheduled_meetings') ?? 0,
+            'completed_meetings'         => $this->input('completed_meetings') ?? 0,
+            'new_clients'                => $this->input('new_clients') ?? 0,
+            'new_partners'               => $this->input('new_partners') ?? 0,
+            'business_conversations'     => $this->input('business_conversations') ?? 0,
+            'presentations'              => $this->input('presentations') ?? 0,
+            'sales'                      => $this->input('sales') ?? 0,
+            'daily_income'               => $this->input('daily_income') ?? 0,
+
+            'social_media_activity'      => filter_var($this->input('social_media_activity'), FILTER_VALIDATE_BOOLEAN),
+            'communication_with_sponsor' => filter_var($this->input('communication_with_sponsor'), FILTER_VALIDATE_BOOLEAN),
+        ]);
+    }
+
     public function rules(): array
     {
         return [

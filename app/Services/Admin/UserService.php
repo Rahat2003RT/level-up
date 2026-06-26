@@ -55,6 +55,10 @@ final readonly class UserService
 
         return User::create($data);
     }
+
+    /**
+     * @throws ValidationException
+     */
     public function changeRole(User $user, string $roleValue): User
     {
         $role = UserRole::tryFrom($roleValue);
@@ -102,6 +106,9 @@ final readonly class UserService
         $user->delete();
     }
 
+    /**
+     * @throws ValidationException
+     */
     public function restore(int $id): User
     {
         /** @var User|null $user */
@@ -117,18 +124,8 @@ final readonly class UserService
 
         return $user;
     }
-
-    public function forceDelete(int $id): void
+    public function forceDelete(User $user): void
     {
-        /** @var User|null $user */
-        $user = User::withTrashed()->find($id);
-
-        if (!$user) {
-            throw ValidationException::withMessages([
-                'user' => ['User not found.']
-            ]);
-        }
-
         $user->forceDelete();
     }
 }

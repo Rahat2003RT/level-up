@@ -8,14 +8,10 @@ use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\PlayerStatisticsResource;
-use App\Models\DailyChecklist;
 use App\Services\User\PlayerService;
-use Carbon\Carbon;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 
 #[Group('Пользователь / Player', weight: 250)]
 final class PlayerController extends Controller
@@ -55,6 +51,7 @@ final class PlayerController extends Controller
      *
      * @param Request $request
      * @return DailyChecklistResource
+     * @throws AuthorizationException
      */
     public function setDayOff(Request $request): DailyChecklistResource
     {
