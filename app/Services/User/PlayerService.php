@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
+use App\Enums\ContactType;
+use App\Models\Contact;
 use App\Models\User;
 use App\Models\DailyChecklist;
 use App\Models\UserGoal;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -27,6 +30,7 @@ class PlayerService
         $date = $data['date'];
         $userId = $user->id;
         $today = Carbon::today()->toDateString();
+        /** @var  DailyChecklist $checklist */
         $checklist = DailyChecklist::where('user_id', $userId)
             ->where('date', $date)
             ->first();
@@ -264,5 +268,36 @@ class PlayerService
             [],
             $data
         );
+    }
+
+
+    /**
+     * Получить контакты пользователя по определенному типу.
+     *
+     * @param User $user
+     * @param array $data
+     * @return Collection
+     */
+    public function getContactsByType(User $user, array $data): Collection
+    {
+        return $user->contacts()
+            ->where('type', $data['type']->value)
+            ->when($data['query'], function ($query, $search) {
+                $query->where('name', 'like', "%{$search}%");
+            })
+            ->latest()
+            ->get();
+    }
+
+    /**
+     * Создать новый контакт.
+     *
+     * @param User $user
+     * @param array $data
+     * @return Contact
+     */
+    public function createContact(User $user, array $data): Contact
+    {
+        return $user->contacts()->create($data);
     }
 }

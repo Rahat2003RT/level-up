@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers\Api\User;
 
+use App\Enums\ContactType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Checklist\StoreDailyChecklistRequest;
+use App\Http\Requests\User\Contact\GetContactsRequest;
+use App\Http\Requests\User\Contact\StoreContactRequest;
 use App\Http\Requests\User\Goal\StoreUserGoalRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Requests\User\Player\StatisticsRequest;
+use App\Http\Resources\ContactResource;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\PlayerStatisticsResource;
 use App\Http\Resources\UserResource;
@@ -15,7 +19,9 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Validation\Rules\Enum;
 
 #[Group('Пользователь / Player', weight: 250)]
 final class PlayerController extends Controller
@@ -32,7 +38,7 @@ final class PlayerController extends Controller
      * @param ShowChecklistRequest $request
      * @return DailyChecklistResource
      */
-    public function show(ShowChecklistRequest $request): DailyChecklistResource
+    public function showChecklist(ShowChecklistRequest $request): DailyChecklistResource
     {
         $result = $this->service->getOrCreateVirtual($request->user(), $request->validated());
         return DailyChecklistResource::make($result);
@@ -44,7 +50,7 @@ final class PlayerController extends Controller
      * @return DailyChecklistResource
      * @throws AuthorizationException
      */
-    public function storeOrUpdate(StoreDailyChecklistRequest $request): DailyChecklistResource
+    public function storeChecklist(StoreDailyChecklistRequest $request): DailyChecklistResource
     {
         $checklist = $this->service->storeAndCompleteToday($request->user(), $request->validated());
         return DailyChecklistResource::make($checklist);
@@ -85,5 +91,33 @@ final class PlayerController extends Controller
     {
         $this->service->updateOrCreateGoal($request->user(), $request->validated());
         return UserResource::make($request->user()->load('goal'));
+    }
+
+    /**
+     * Список контактов с возможностью пойска
+     * *
+     * @param GetContactsRequest $request
+     * @return AnonymousResourceCollection
+     */
+    public function contacts(GetContactsRequest $request): AnonymousResourceCollection
+    {
+        $contacts = $this->service->getContactsByType($request->user(), $request->validated());
+        return ContactResource::collection($contacts);
+    }
+
+    /**
+     * Создать новый контакт.
+     * * @param StoreContactRequest $request
+     * @return ContactResource
+     */
+    public function storeContact(StoreContactRequest $request): ContactResource
+    {
+        $contact = $this->service->createContact($request->user(), $request->validated());
+        return ContactResource::make($contact);
+    }
+
+    public function updateContact()
+    {
+
     }
 }

@@ -14,6 +14,9 @@ Route::prefix('v1')->group(function () {
         //                          AUTH METHODS                           //
         // ----------------------------------------------------------------//
         Route::post('/login', [Admin\AuthController::class, 'login']);
+        // ----------------------------------------------------------------//
+        //                          ADMIN METHODS                          //
+        // ----------------------------------------------------------------//
         Route::middleware(['auth:sanctum', 'can:access-admin', 'check.status'])->group(function () {
             // ----------------------------------------------------------------//
             //                  ADMIN-NOTIFICATIONS METHODS                    //
@@ -55,18 +58,32 @@ Route::prefix('v1')->group(function () {
         //                        PLAYER METHODS                           //
         // ----------------------------------------------------------------//
         Route::prefix('player')->group(function () {
+            // ----------------------------------------------------------------//
+            //                       CHECKLIST METHODS                         //
+            // ----------------------------------------------------------------//
             Route::prefix('checklist')->group(function () {
-                Route::get('/', [User\PlayerController::class, 'show']);
-                Route::post('/', [User\PlayerController::class, 'storeOrUpdate']);
+                Route::get('/', [User\PlayerController::class, 'showChecklist']);
+                Route::post('/', [User\PlayerController::class, 'storeChecklist']);
                 Route::post('/day-off', [User\PlayerController::class, 'setDayOff']);
             });
+            // ----------------------------------------------------------------//
+            //                        CONTACT METHODS                          //
+            // ----------------------------------------------------------------//
+            Route::prefix('contact')->group(function () {
+                Route::get('/', [User\PlayerController::class, 'contacts']);
+                Route::post('/', [User\PlayerController::class, 'storeContact']);
+                Route::patch('/', [User\PlayerController::class, 'updateContact']);
+            });
+            // ----------------------------------------------------------------//
+            //                       STATISTICS METHODS                        //
+            // ----------------------------------------------------------------//
             Route::get('/statistics', [User\PlayerController::class, 'statistics']);
+            // ----------------------------------------------------------------//
+            //                          GOALS METHODS                          //
+            // ----------------------------------------------------------------//
             Route::post('/goals', [User\PlayerController::class, 'storeGoal']);
+
         });
-        // ----------------------------------------------------------------//
-        //                        CAPTAIN METHODS                          //
-        // ----------------------------------------------------------------//
-        Route::prefix('captain')->middleware(['can:captain-leader'])->group(function () {});
     });
     Route::group([], function () {
         // ----------------------------------------------------------------//
@@ -77,7 +94,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/login', [Guest\AuthController::class, 'login']);
         });
         // ----------------------------------------------------------------//
-        //                        PASSWORD RESET                           //
+        //                       PASSWORD METHODS                          //
         // ----------------------------------------------------------------//
         Route::prefix('password')->group(function () {
             Route::post('/forgot', [Guest\AuthController::class, 'sendResetCode']);

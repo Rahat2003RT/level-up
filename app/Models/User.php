@@ -130,6 +130,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(UserGoal::class);
     }
 
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(Contact::class);
+    }
+
     // --- МЕТОДЫ ПРОВЕРКИ РОЛЕЙ ---
 
     public function isAdmin(): bool
