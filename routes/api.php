@@ -58,7 +58,6 @@ Route::prefix('v1')->group(function () {
             Route::prefix('checklist')->group(function () {
                 Route::get('/', [User\PlayerController::class, 'show']);
                 Route::post('/', [User\PlayerController::class, 'storeOrUpdate']);
-                Route::post('/complete', [User\PlayerController::class, 'complete']);
                 Route::post('/day-off', [User\PlayerController::class, 'setDayOff']);
             });
             Route::get('/statistics', [User\PlayerController::class, 'statistics']);
