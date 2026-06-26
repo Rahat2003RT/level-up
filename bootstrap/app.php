@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,4 +26,15 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*'),
         );
+        $exceptions->respond(function ($request, Throwable $e) {
+            if ($e instanceof ValidationException && $request->expectsJson()) {
+                $firstErrorMessage = collect($e->errors())->flatten()->first();
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $firstErrorMessage ?? $e->getMessage(),
+                ], 422);
+            }
+            return null;
+        });
     })->create();
