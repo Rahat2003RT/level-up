@@ -167,7 +167,7 @@ class PlayerService
                 DB::raw('SUM(new_partners) as total_partners'),
                 DB::raw('SUM(sales) as total_sales'),
                 DB::raw('SUM(daily_income) as total_income'),
-                DB::raw('COUNT(CASE WHEN is_completed = 1 AND is_day_off = 0 THEN 1 END) as active_days_count')
+                DB::raw('COUNT(CASE WHEN is_completed = true AND is_day_off = false THEN 1 END) as active_days_count')
             ])
             ->first();
 
