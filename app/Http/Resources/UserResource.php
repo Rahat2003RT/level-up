@@ -40,6 +40,7 @@ final class UserResource extends JsonResource
             'timezone' => $this->timezone,
             'date_of_birth' => $this->date_of_birth,
             'notifications_enabled' => $this->notifications_enabled,
+            'locale' => $this->locale,
 
             'role' => $this->role?->value,
             'plan' => $this->plan?->value,

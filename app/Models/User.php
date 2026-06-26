@@ -36,9 +36,11 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string|null $company_name
  * @property string $locale
  * @property string $timezone
+ * @property string|null $date_of_birth
  * @property UserRole $role
  * @property UserPlan $plan
  * @property bool $is_onboarded
+ * @property bool $notifications_enabled
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $last_activity_at
  * @property Carbon|null $blocked_at
