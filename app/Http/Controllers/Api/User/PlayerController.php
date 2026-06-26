@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Checklist\StoreDailyChecklistRequest;
 use App\Http\Requests\User\Contact\GetContactsRequest;
 use App\Http\Requests\User\Contact\StoreContactRequest;
+use App\Http\Requests\User\Contact\UpdateContactRequest;
 use App\Http\Requests\User\Goal\StoreUserGoalRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Requests\User\Player\StatisticsRequest;
@@ -14,6 +15,7 @@ use App\Http\Resources\ContactResource;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\PlayerStatisticsResource;
 use App\Http\Resources\UserResource;
+use App\Models\Contact;
 use App\Services\User\PlayerService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -107,7 +109,7 @@ final class PlayerController extends Controller
 
     /**
      * Создать новый контакт.
-     * * @param StoreContactRequest $request
+     * @param StoreContactRequest $request
      * @return ContactResource
      */
     public function storeContact(StoreContactRequest $request): ContactResource
@@ -116,8 +118,9 @@ final class PlayerController extends Controller
         return ContactResource::make($contact);
     }
 
-    public function updateContact()
+    public function updateContact(UpdateContactRequest $request, Contact $contact): ContactResource
     {
-
+        $updatedContact = $this->service->updateContact($contact, $request->validated());
+        return ContactResource::make($updatedContact);
     }
 }

@@ -300,4 +300,17 @@ class PlayerService
     {
         return $user->contacts()->create($data);
     }
+
+    /**
+     * Обновить данные существующего контакта.
+     *
+     * @param Contact $contact
+     * @param array $data
+     * @return Contact
+     */
+    public function updateContact(Contact $contact, array $data): Contact
+    {
+        $contact->update($data);
+        return $contact;
+    }
 }
