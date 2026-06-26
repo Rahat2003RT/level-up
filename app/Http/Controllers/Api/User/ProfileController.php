@@ -27,7 +27,8 @@ final class ProfileController extends Controller
      */
     public function me(Request $request): UserResource
     {
-        return UserResource::make($request->user());
+        $user = $this->service->getInfoAboutMe($request->user());
+        return UserResource::make($user);
     }
 
     /**

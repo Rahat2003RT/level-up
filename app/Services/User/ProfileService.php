@@ -61,4 +61,15 @@ final class ProfileService
             ->where('is_read', false)
             ->count();
     }
+    /**
+     * @param User $user
+     * @return User
+     */
+    public function getInfoAboutMe(User $user): User
+    {
+        return $user->load([
+            'goal',
+            'deviceTokens'
+        ]);
+    }
 }
