@@ -5,4 +5,5 @@ return [
     'reset_line_1' => 'Sie erhalten diese E-Mail, weil wir eine Anfrage zum Zurücksetzen des Passworts für Ihr Konto erhalten haben.',
     'reset_action' => 'Passwort zurücksetzen',
     'reset_line_2' => 'Wenn Sie kein Zurücksetzen des Passworts beantragt haben, sind keine weiteren Maßnahmen erforderlich.',
+    'reset_salutation' => "Mit freundlichen Grüßen,\nTeam Level up",
 ];

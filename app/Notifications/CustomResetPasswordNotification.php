@@ -27,7 +27,7 @@ class CustomResetPasswordNotification extends Notification
 
     public function toMail($notifiable): MailMessage
     {
-        $subject = __('passwords.reset_subject', [], $this->locale);
+        $subject = __('passwords.reset_subjects', [], $this->locale);
         $greeting = __('passwords.reset_greeting', [], $this->locale);
         $line1 = __('passwords.reset_line_1', [], $this->locale);
         $line2 = __('passwords.reset_line_2', [], $this->locale);
