@@ -9,6 +9,7 @@ use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\PlayerStatisticsResource;
+use App\Http\Resources\UserResource;
 use App\Services\User\PlayerService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -78,11 +79,11 @@ final class PlayerController extends Controller
      * Сохранить или обновить цели игрока.
      *
      * @param StoreUserGoalRequest $request
-     * @return Response
+     * @return UserResource
      */
-    public function storeGoal(StoreUserGoalRequest $request): Response
+    public function storeGoal(StoreUserGoalRequest $request): UserResource
     {
         $this->service->updateOrCreateGoal($request->user(), $request->validated());
-        return response()->noContent();
+        return UserResource::make($request->user());
     }
 }
