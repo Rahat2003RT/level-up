@@ -9,7 +9,6 @@ use App\Http\Requests\Admin\Users\BlockUserRequest;
 use App\Http\Requests\Admin\Users\ChangeRoleRequest;
 use App\Http\Requests\Admin\Users\ChangeUserRequest;
 use App\Http\Requests\Admin\Users\CreateUserRequest;
-use App\Http\Requests\Admin\Users\IndexPlayersRequest;
 use App\Http\Requests\Admin\Users\IndexUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -35,6 +34,17 @@ final class UserController extends Controller
     {
         $users = $this->service->getUsers($request->validated());
         return UserResource::collection($users);
+    }
+
+    /**
+     * Список игроков
+     * @param IndexUserRequest $request
+     * @return AnonymousResourceCollection
+     */
+    public function indexPlayers(IndexUserRequest $request): AnonymousResourceCollection
+    {
+        $players = $this->service->getPlayers($request->validated());
+        return UserResource::collection($players);
     }
 
     /**
@@ -68,7 +78,6 @@ final class UserController extends Controller
     public function changeRole(ChangeRoleRequest $request, User $user): UserResource
     {
         $updatedUser = $this->service->changeRole($user, $request->validated('role'));
-
         return UserResource::make($updatedUser);
     }
 
@@ -81,7 +90,6 @@ final class UserController extends Controller
     public function changeUser(ChangeUserRequest $request, User $user): UserResource
     {
         $updatedUser = $this->service->changeUser($user, $request->validated());
-
         return UserResource::make($updatedUser);
     }
 
@@ -148,9 +156,4 @@ final class UserController extends Controller
         return response()->noContent();
     }
 
-    public function indexPlayers(IndexUserRequest $request): AnonymousResourceCollection
-    {
-        $players = $this->service->getPlayers($request->validated());
-        return UserResource::collection($players);
-    }
 }

@@ -4,17 +4,14 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
-use App\Enums\ContactType;
 use App\Models\Contact;
-use App\Models\User;
 use App\Models\DailyChecklist;
-use App\Models\UserGoal;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class PlayerService
 {
@@ -46,25 +43,25 @@ class PlayerService
             $nextDayNumber = DailyChecklist::where('user_id', $userId)->max('day_number') + 1;
 
             return [
-                'date'                        => $date,
-                'day_number'                  => $nextDayNumber,
-                'is_completed'                => false,
-                'is_day_off'                  => false,
-                'scheduled_meetings'          => 0,
-                'completed_meetings'          => 0,
-                'new_clients'                 => 0,
-                'new_partners'                => 0,
-                'business_conversations'      => 0,
-                'presentations'               => 0,
-                'sales'                       => 0,
-                'daily_income'                => 0.0,
-                'social_media_activity'       => false,
-                'communication_with_sponsor'  => false,
-                'plans_for_the_day'           => '',
-                'results_for_the_day'         => '',
-                'notes_for_the_day'           => '',
-                'progress'                    => $progress,
-                'is_editable'                 => true,
+                'date' => $date,
+                'day_number' => $nextDayNumber,
+                'is_completed' => false,
+                'is_day_off' => false,
+                'scheduled_meetings' => 0,
+                'completed_meetings' => 0,
+                'new_clients' => 0,
+                'new_partners' => 0,
+                'business_conversations' => 0,
+                'presentations' => 0,
+                'sales' => 0,
+                'daily_income' => 0.0,
+                'social_media_activity' => false,
+                'communication_with_sponsor' => false,
+                'plans_for_the_day' => '',
+                'results_for_the_day' => '',
+                'notes_for_the_day' => '',
+                'progress' => $progress,
+                'is_editable' => true,
             ];
         }
         abort(404, 'Checklist not found for the specified date.');
@@ -86,11 +83,11 @@ class PlayerService
         }
         $dayNumber = $this->getNextDayNumber($user->id);
         $updatedChecklist = DailyChecklist::create(array_merge($data, [
-            'user_id'      => $user->id,
-            'date'         => Carbon::today()->toDateString(),
-            'day_number'   => $dayNumber,
+            'user_id' => $user->id,
+            'date' => Carbon::today()->toDateString(),
+            'day_number' => $dayNumber,
             'is_completed' => true,
-            'is_day_off'   => false,
+            'is_day_off' => false,
         ]));
         $updatedChecklist->progress = $this->getUserProgress($user->id);
 
@@ -112,20 +109,20 @@ class PlayerService
         $dayNumber = $this->getNextDayNumber($user->id);
 
         $updatedChecklist = DailyChecklist::create([
-            'user_id'                    => $user->id,
-            'date'                       => Carbon::today()->toDateString(),
-            'day_number'                 => $dayNumber,
-            'is_completed'               => false,
-            'is_day_off'                 => true,
-            'scheduled_meetings'         => 0,
-            'completed_meetings'         => 0,
-            'new_clients'                => 0,
-            'new_partners'               => 0,
-            'business_conversations'     => 0,
-            'presentations'              => 0,
-            'sales'                      => 0,
-            'daily_income'               => 0,
-            'social_media_activity'      => false,
+            'user_id' => $user->id,
+            'date' => Carbon::today()->toDateString(),
+            'day_number' => $dayNumber,
+            'is_completed' => false,
+            'is_day_off' => true,
+            'scheduled_meetings' => 0,
+            'completed_meetings' => 0,
+            'new_clients' => 0,
+            'new_partners' => 0,
+            'business_conversations' => 0,
+            'presentations' => 0,
+            'sales' => 0,
+            'daily_income' => 0,
+            'social_media_activity' => false,
             'communication_with_sponsor' => false
         ]);
 
@@ -177,31 +174,31 @@ class PlayerService
             ->first();
 
         $totalMeetings = $totals->total_meetings ?? 0;
-        $totalClients  = $totals->total_clients ?? 0;
+        $totalClients = $totals->total_clients ?? 0;
         $totalPartners = $totals->total_partners ?? 0;
-        $totalSales    = $totals->total_sales ?? 0;
-        $totalIncome   = $totals->total_income ?? 0;
-        $activeDays    = $totals->active_days_count ?? 0;
+        $totalSales = $totals->total_sales ?? 0;
+        $totalIncome = $totals->total_income ?? 0;
+        $activeDays = $totals->active_days_count ?? 0;
 
         $activeDaysPercentage = $days > 0 ? ($activeDays / $days) * 100 : 0;
 
         $totalVolume = $totalIncome;
 
         return [
-            'period_days'            => $days,
-            'total_meetings'         => $totalMeetings,
-            'avg_meetings'           => $totalMeetings / $days,
-            'total_clients'          => $totalClients,
-            'avg_clients'            => $totalClients / $days,
-            'total_partners'         => $totalPartners,
-            'avg_partners'           => $totalPartners / $days,
-            'total_sales'            => $totalSales,
-            'avg_sales'              => $totalSales / $days,
-            'total_income'           => $totalIncome,
-            'avg_income'             => $totalIncome / $days,
-            'active_days_count'      => $activeDays,
+            'period_days' => $days,
+            'total_meetings' => $totalMeetings,
+            'avg_meetings' => $totalMeetings / $days,
+            'total_clients' => $totalClients,
+            'avg_clients' => $totalClients / $days,
+            'total_partners' => $totalPartners,
+            'avg_partners' => $totalPartners / $days,
+            'total_sales' => $totalSales,
+            'avg_sales' => $totalSales / $days,
+            'total_income' => $totalIncome,
+            'avg_income' => $totalIncome / $days,
+            'active_days_count' => $activeDays,
             'active_days_percentage' => $activeDaysPercentage,
-            'total_volume'           => $totalVolume,
+            'total_volume' => $totalVolume,
         ];
     }
 
@@ -221,7 +218,7 @@ class PlayerService
 
         $totalCourseDays = 90;
         $percentage = ($currentDayNumber / $totalCourseDays) * 100;
-        $percentage = round($percentage, 0);
+        $percentage = round($percentage);
 
         $loses = DailyChecklist::where('user_id', $userId)
             ->where('date', '<', Carbon::today()->toDateString())
@@ -248,10 +245,10 @@ class PlayerService
         }
 
         return [
-            'current_streak'  => $currentStreak,
-            'wins'            => $wins,
-            'misses'           => $loses,
-            'percentage'      => min(100, max(0, $percentage)),
+            'current_streak' => $currentStreak,
+            'wins' => $wins,
+            'misses' => $loses,
+            'percentage' => min(100, max(0, $percentage)),
         ];
     }
 
@@ -260,9 +257,9 @@ class PlayerService
      *
      * @param User $user
      * @param array $data
-     * @return UserGoal
+     * @return Model
      */
-    public function updateOrCreateGoal(User $user, array $data): UserGoal
+    public function updateOrCreateGoal(User $user, array $data): Model
     {
         return $user->goal()->updateOrCreate(
             [],
@@ -283,7 +280,7 @@ class PlayerService
         return $user->contacts()
             ->where('type', $data['type']->value)
             ->when($data['query'], function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%");
+                $query->where('name', 'like', "%$search%");
             })
             ->latest()
             ->get();

@@ -31,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('access-elite', function (User $user) {
             return $user->isElite();
         });
+        Gate::define('access-player', function (User $user) {
+            return $user->isPlayer();
+        });
 
         Gate::define('viewApiDocs', function (?User $user) {
             if (app()->environment('local')) {

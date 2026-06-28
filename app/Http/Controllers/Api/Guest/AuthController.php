@@ -63,10 +63,7 @@ final class AuthController extends Controller
     public function sendResetCode(ForgotPasswordRequest $request): JsonResponse
     {
         $this->service->sendResetCode($request->validated());
-
-        return response()->json([
-            'message' => __('passwords.sent')
-        ], 200);
+        return response()->json(['message' => __('passwords.sent')]);
     }
 
     /**
@@ -78,10 +75,9 @@ final class AuthController extends Controller
     public function verifyResetCode(VerifyResetCodeRequest $request): JsonResponse
     {
         $this->service->verifyResetCode($request->validated());
-
         return response()->json([
             'message' => 'Password is sent to your email.'
-        ], 200);
+        ]);
     }
 
     /**
@@ -93,9 +89,6 @@ final class AuthController extends Controller
     public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
         $this->service->resetPassword($request->validated());
-
-        return response()->json([
-            'message' => __('passwords.reset')
-        ], 200);
+        return response()->json(['message' => __('passwords.reset')]);
     }
 }

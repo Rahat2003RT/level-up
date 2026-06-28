@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\User;
 
-use App\Enums\ContactType;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Checklist\StoreDailyChecklistRequest;
 use App\Http\Requests\User\Contact\GetContactsRequest;
@@ -19,11 +18,8 @@ use App\Models\Contact;
 use App\Services\User\PlayerService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
-use Illuminate\Validation\Rules\Enum;
 
 #[Group('Пользователь / Player', weight: 250)]
 final class PlayerController extends Controller
@@ -47,7 +43,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Создать или обновить чек-лист за сегодня.
+     * Заполнение чек-листа за сегодня.
      * @param StoreDailyChecklistRequest $request
      * @return DailyChecklistResource
      * @throws AuthorizationException
@@ -73,7 +69,6 @@ final class PlayerController extends Controller
 
     /**
      * Получить статистику игрока за выбранный период.
-     *
      * @param StatisticsRequest $request
      * @return PlayerStatisticsResource
      */
@@ -85,7 +80,6 @@ final class PlayerController extends Controller
 
     /**
      * Сохранить или обновить цели игрока.
-     *
      * @param StoreUserGoalRequest $request
      * @return UserResource
      */
@@ -96,8 +90,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Список контактов с возможностью пойска
-     * *
+     * Список контактов
      * @param GetContactsRequest $request
      * @return AnonymousResourceCollection
      */
@@ -106,6 +99,8 @@ final class PlayerController extends Controller
         $contacts = $this->service->getContactsByType($request->user(), $request->validated());
         return ContactResource::collection($contacts);
     }
+
+
 
     /**
      * Создать новый контакт.
@@ -118,6 +113,12 @@ final class PlayerController extends Controller
         return ContactResource::make($contact);
     }
 
+    /**
+     * Редактировать контакт
+     * @param UpdateContactRequest $request
+     * @param Contact $contact
+     * @return ContactResource
+     */
     public function updateContact(UpdateContactRequest $request, Contact $contact): ContactResource
     {
         $updatedContact = $this->service->updateContact($contact, $request->validated());

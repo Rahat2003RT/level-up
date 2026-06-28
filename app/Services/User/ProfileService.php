@@ -4,12 +4,10 @@ namespace App\Services\User;
 
 use App\Models\User;
 use App\Models\UserDevice;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 
 final class ProfileService
 {
@@ -41,6 +39,7 @@ final class ProfileService
 
         return $user->fresh(['deviceTokens']);
     }
+
     public function deleteAccount(User $user): void
     {
         $user->delete();
@@ -56,12 +55,14 @@ final class ProfileService
 
         return $notifications;
     }
+
     public function getUnreadCount(User $user): int
     {
         return $user->notifications()
             ->where('is_read', false)
             ->count();
     }
+
     /**
      * @param User $user
      * @return User

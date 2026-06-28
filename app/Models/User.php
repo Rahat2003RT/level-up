@@ -23,6 +23,7 @@ use Laravel\Sanctum\HasApiTokens;
  * Class User
  * * @property int $id
  * @property int|null $leader_id
+ * @property string|null $account_id
  * @property string|null $name
  * @property string|null $nickname
  * @property string|null $surname

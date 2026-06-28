@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
+use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpFoundation\Response;
 
 final class CheckUserStatus
@@ -13,17 +14,18 @@ final class CheckUserStatus
     {
         /** @var User $user */
         $user = $request->user();
-
         if ($user && $user->blocked_at !== null) {
-
             if (method_exists($user, 'currentAccessToken') && $user->currentAccessToken()) {
-                $user->currentAccessToken()->delete();
+                $token = $user->currentAccessToken();
+                if ($token instanceof PersonalAccessToken) {
+                    $token->delete();
+                }
             }
 
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Your account is blocked.',
-                'reason'  => $user->block_reason,
+                'reason' => $user->block_reason,
             ], 403);
         }
 
