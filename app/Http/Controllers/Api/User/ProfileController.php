@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Profile\ChangePasswordRequest;
 use App\Http\Requests\User\Profile\UpdateRequest;
 use App\Http\Resources\NotificationsResource;
 use App\Http\Resources\UserResource;
@@ -69,6 +70,16 @@ final class ProfileController extends Controller
     public function destroy(Request $request): Response
     {
         $this->service->deleteAccount($request->user());
+        return response()->noContent();
+    }
+
+    /**
+     * @param ChangePasswordRequest $request
+     * @return Response
+     */
+    public function changePassword(ChangePasswordRequest $request): Response
+    {
+        $this->service->changePassword($request->user(), $request->validated());
         return response()->noContent();
     }
 }

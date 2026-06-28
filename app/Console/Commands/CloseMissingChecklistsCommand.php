@@ -28,7 +28,6 @@ class CloseMissingChecklistsCommand extends Command
 
                     if (!$checklist) {
                         $nextDayNumber = DailyChecklist::where('user_id', $user->id)->count() + 1;
-
                         DailyChecklist::create([
                             'user_id' => $user->id,
                             'date' => $yesterdayString,

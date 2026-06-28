@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\Users\BlockUserRequest;
 use App\Http\Requests\Admin\Users\ChangeRoleRequest;
 use App\Http\Requests\Admin\Users\ChangeUserRequest;
 use App\Http\Requests\Admin\Users\CreateUserRequest;
+use App\Http\Requests\Admin\Users\IndexPlayersRequest;
 use App\Http\Requests\Admin\Users\IndexUserRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
@@ -145,5 +146,11 @@ final class UserController extends Controller
     {
         $this->service->forceDelete($user);
         return response()->noContent();
+    }
+
+    public function indexPlayers(IndexUserRequest $request): AnonymousResourceCollection
+    {
+        $players = $this->service->getPlayers($request->validated());
+        return UserResource::collection($players);
     }
 }

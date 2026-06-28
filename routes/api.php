@@ -29,6 +29,7 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             Route::prefix('users')->group(function () {
                 Route::get('/', [Admin\UserController::class, 'index']);
+                Route::get('/players', [Admin\UserController::class, 'indexPlayers']);
                 Route::get('/{user}', [Admin\UserController::class, 'show']);
                 Route::delete('/{user}', [Admin\UserController::class, 'destroy']);
                 Route::post('/{user}/change-user', [Admin\UserController::class, 'changeUser']);
@@ -52,6 +53,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/notifications', [User\ProfileController::class, 'notifications']);
             Route::get('/unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
             Route::patch('/', [User\ProfileController::class, 'update']);
+            Route::patch('/change-password', [User\ProfileController::class, 'changePassword']);
             Route::delete('/', [User\ProfileController::class, 'destroy']);
         });
         // ----------------------------------------------------------------//

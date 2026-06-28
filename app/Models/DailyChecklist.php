@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -26,7 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $social_media_activity
  * @property bool $communication_with_sponsor
  * @property string|null $notes_for_the_day
- *
+ * @mixin Builder
  * @property-read User $user
  */
 class DailyChecklist extends Model

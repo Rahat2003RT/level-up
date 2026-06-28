@@ -7,6 +7,7 @@ use App\Models\UserDevice;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -71,5 +72,10 @@ final class ProfileService
             'goal',
             'deviceTokens'
         ]);
+    }
+
+    public function changePassword(User $user, array $data): void
+    {
+        $user->password = Hash::make($data['password']);
     }
 }

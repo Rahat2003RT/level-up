@@ -24,30 +24,7 @@ final readonly class UserService
             $query->where('role', $filters['role']);
         }
 
-        if (!empty($filters['country'])) {
-            $query->where('country', $filters['country']);
-        }
-
-        if (!empty($filters['query'])) {
-            $search = $filters['query'];
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'ilike', "%$search%")
-                    ->orWhere('email', 'ilike', "%$search%")
-                    ->orWhere('account_id', 'ilike', "%$search%");
-            });
-        }
-
-
-        $orderBy = $filters['order_by'] ?? 'created_at';
-        $orderSort = $filters['order_sort'] ?? 'desc';
-
-        if ($orderBy === 'date_register') {
-            $orderBy = 'created_at';
-        }
-
-        $query->orderBy($orderBy, $orderSort);
-
-        return $query->paginate($filters['limit'] ?? 20);
+        return $this->applyFiltersAndPaginate($query, $filters);
     }
     public function createUser(array $data): User
     {
@@ -127,5 +104,40 @@ final readonly class UserService
     public function forceDelete(User $user): void
     {
         $user->forceDelete();
+    }
+
+    public function getPlayers(array $filters): LengthAwarePaginator
+    {
+        // Базовый запрос только для игроков
+        $query = User::query()->where('role', UserRole::PLAYER->value);
+
+        return $this->applyFiltersAndPaginate($query, $filters);
+    }
+
+    private function applyFiltersAndPaginate(Builder $query, array $filters): LengthAwarePaginator
+    {
+        if (!empty($filters['country'])) {
+            $query->where('country', $filters['country']);
+        }
+
+        if (!empty($filters['query'])) {
+            $search = $filters['query'];
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('name', 'ilike', "%$search%")
+                    ->orWhere('email', 'ilike', "%$search%")
+                    ->orWhere('account_id', 'ilike', "%$search%");
+            });
+        }
+
+        $orderBy = $filters['order_by'] ?? 'created_at';
+        $orderSort = $filters['order_sort'] ?? 'desc';
+
+        if ($orderBy === 'date_register') {
+            $orderBy = 'created_at';
+        }
+
+        $query->orderBy($orderBy, $orderSort);
+
+        return $query->paginate($filters['limit'] ?? 20);
     }
 }
