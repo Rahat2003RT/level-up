@@ -27,9 +27,10 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             //                      ADMIN-USERS METHODS                        //
             // ----------------------------------------------------------------//
+            Route::get('/players', [Admin\UserController::class, 'indexPlayers']);
             Route::prefix('users')->group(function () {
                 Route::get('/', [Admin\UserController::class, 'index']);
-                Route::get('/players', [Admin\UserController::class, 'indexPlayers']);
+
                 Route::get('/{user}', [Admin\UserController::class, 'show']);
                 Route::delete('/{user}', [Admin\UserController::class, 'destroy']);
                 Route::post('/{user}/change-user', [Admin\UserController::class, 'changeUser']);
