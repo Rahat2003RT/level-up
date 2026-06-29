@@ -18,6 +18,7 @@ use App\Models\Contact;
 use App\Services\User\PlayerService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -31,6 +32,19 @@ final class PlayerController extends Controller
 
     }
 
+    /**
+     * Прогресс пользователя
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function progress(Request $request): JsonResponse
+    {
+        $progress = $this->service->getProgress($request->user());
+
+        return response()->json([
+            'progress' => $progress
+        ]);
+    }
     /**
      * Просмотр чек-листа за выбранный день.
      * @param ShowChecklistRequest $request

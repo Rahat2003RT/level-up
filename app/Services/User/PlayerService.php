@@ -64,7 +64,7 @@ class PlayerService
                 'is_editable' => true,
             ];
         }
-        abort(404, 'Checklist not found for the specified date.');
+        return [];
     }
 
     /**
@@ -309,5 +309,10 @@ class PlayerService
     {
         $contact->update($data);
         return $contact;
+    }
+
+    public function getProgress(User $user): array
+    {
+        return $this->getUserProgress($user->id);
     }
 }
