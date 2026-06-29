@@ -61,6 +61,7 @@ Route::prefix('v1')->group(function () {
         //                        PLAYER METHODS                           //
         // ----------------------------------------------------------------//
         Route::prefix('player')->group(function () {
+            Route::get('/progress', [User\PlayerController::class, 'progress']);
             // ----------------------------------------------------------------//
             //                       CHECKLIST METHODS                         //
             // ----------------------------------------------------------------//
