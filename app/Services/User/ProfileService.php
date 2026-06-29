@@ -78,5 +78,6 @@ final class ProfileService
     public function changePassword(User $user, array $data): void
     {
         $user->password = Hash::make($data['password']);
+        $user->save();
     }
 }
