@@ -31,6 +31,7 @@ class PlayerService
         $checklist = DailyChecklist::where('user_id', $userId)
             ->where('date', $date)
             ->first();
+        /** @var DailyChecklist|null $checklist */
         $progress = $this->getUserProgress($user->id);
 
         if ($checklist) {
@@ -89,6 +90,7 @@ class PlayerService
             'is_completed' => true,
             'is_day_off' => false,
         ]));
+        /** @var DailyChecklist $updatedChecklist */
         $updatedChecklist->progress = $this->getUserProgress($user->id);
 
         return $updatedChecklist;
@@ -125,7 +127,7 @@ class PlayerService
             'social_media_activity' => false,
             'communication_with_sponsor' => false
         ]);
-
+        /** @var DailyChecklist $updatedChecklist */
         $updatedChecklist->progress = $this->getUserProgress($user->id);
         return $updatedChecklist;
     }
@@ -232,8 +234,9 @@ class PlayerService
             ->orderBy('date', 'desc')
             ->get();
 
+        /** @var Collection<DailyChecklist> $checklists */
         foreach ($checklists as $checklist) {
-            if ($checklist->date === Carbon::today()->toDateString() && !$checklist->is_completed && !$checklist->is_day_off) {
+            if ($checklist->date == Carbon::today()->toDateString() && !$checklist->is_completed && !$checklist->is_day_off) {
                 continue;
             }
 
@@ -273,17 +276,25 @@ class PlayerService
      *
      * @param User $user
      * @param array $data
-     * @return Collection
+     * @return array
      */
-    public function getContactsByType(User $user, array $data): Collection
+    public function getContactsByType(User $user, array $data): array
     {
-        return $user->contacts()
-            ->where('type', $data['type']->value)
-            ->when($data['query'], function ($query, $search) {
+        $contactsQuery = $user->contacts();
+        $contactsPaginator = $contactsQuery
+            ->where('type', $data['type'])
+            ->when($data['query'] ?? null, function ($query, $search) {
                 $query->where('name', 'like', "%$search%");
             })
             ->latest()
-            ->get();
+            ->paginate($data['limit'] ?? 20);
+
+        $totalVolume = (float)$user->contacts()->sum('volume');
+
+        return [
+            'contacts' => $contactsPaginator,
+            'total_volume' => $totalVolume,
+        ];
     }
 
     /**

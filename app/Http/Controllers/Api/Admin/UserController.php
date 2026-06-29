@@ -105,7 +105,6 @@ final class UserController extends Controller
             $user,
             $request->validated('block_reason')
         );
-
         return UserResource::make($updatedUser);
     }
 
@@ -129,7 +128,6 @@ final class UserController extends Controller
     public function destroy(User $user): Response
     {
         $this->service->destroy($user);
-
         return response()->noContent();
     }
 

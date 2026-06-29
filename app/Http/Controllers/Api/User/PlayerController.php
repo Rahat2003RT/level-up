@@ -110,8 +110,11 @@ final class PlayerController extends Controller
      */
     public function contacts(GetContactsRequest $request): AnonymousResourceCollection
     {
-        $contacts = $this->service->getContactsByType($request->user(), $request->validated());
-        return ContactResource::collection($contacts);
+        $result = $this->service->getContactsByType($request->user(), $request->validated());
+        return ContactResource::collection($result['contacts'])
+            ->additional([
+                'total_volume' => $result['total_volume']
+            ]);
     }
 
 

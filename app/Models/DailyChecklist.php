@@ -29,6 +29,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $notes_for_the_day
  * @mixin Builder
  * @property-read User $user
+ * @property array $progress
+ * @property bool $is_editable
  */
 class DailyChecklist extends Model
 {

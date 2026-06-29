@@ -108,9 +108,7 @@ final readonly class UserService
 
     public function getPlayers(array $filters): LengthAwarePaginator
     {
-        // Базовый запрос только для игроков
         $query = User::query()->where('role', UserRole::PLAYER->value);
-
         return $this->applyFiltersAndPaginate($query, $filters);
     }
 
