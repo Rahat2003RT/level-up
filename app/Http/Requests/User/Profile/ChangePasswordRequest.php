@@ -17,7 +17,8 @@ class ChangePasswordRequest extends ApiBaseRequest
     public function rules(): array
     {
         return [
-            'password' => ['required', 'string', 'min:6'],
+            'old_password' => ['required', 'string', 'min:6'],
+            'new_password' => ['required', 'string', 'min:6'],
         ];
     }
 }

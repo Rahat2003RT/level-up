@@ -117,8 +117,6 @@ final class PlayerController extends Controller
             ]);
     }
 
-
-
     /**
      * Создать новый контакт.
      * @param StoreContactRequest $request
@@ -140,5 +138,25 @@ final class PlayerController extends Controller
     {
         $updatedContact = $this->service->updateContact($contact, $request->validated());
         return ContactResource::make($updatedContact);
+    }
+
+    /**
+     * Удалить контакт
+     * * @param Request $request
+     * @param Contact $contact
+     * @return JsonResponse
+     * @throws AuthorizationException
+     */
+    public function destroyContact(Request $request, Contact $contact): JsonResponse
+    {
+        if ($contact->user_id !== $request->user()->id) {
+            throw new AuthorizationException('You do not own this contact.');
+        }
+
+        $this->service->deleteContact($contact);
+
+        return response()->json([
+            'message' => 'Contact deleted successfully.'
+        ]);
     }
 }

@@ -66,6 +66,8 @@ final class ProfileController extends Controller
 
     /**
      * Удаление пользователя
+     * @param Request $request
+     * @return Response
      */
     public function destroy(Request $request): Response
     {
@@ -74,6 +76,7 @@ final class ProfileController extends Controller
     }
 
     /**
+     * Смена пароля
      * @param ChangePasswordRequest $request
      * @return Response
      */

@@ -222,6 +222,9 @@ class PlayerService
         $percentage = ($currentDayNumber / $totalCourseDays) * 100;
         $percentage = round($percentage);
 
+        $planStartDate = DailyChecklist::where('user_id', $userId)->min('date')
+            ?? Carbon::today()->toDateString();
+
         $loses = DailyChecklist::where('user_id', $userId)
             ->where('date', '<', Carbon::today()->toDateString())
             ->where('is_completed', false)
@@ -252,6 +255,8 @@ class PlayerService
             'wins' => $wins,
             'misses' => $loses,
             'percentage' => min(100, max(0, $percentage)),
+            'plan_start_date' => $planStartDate,
+            'current_day_number' => $currentDayNumber,
         ];
     }
 
@@ -320,6 +325,17 @@ class PlayerService
     {
         $contact->update($data);
         return $contact;
+    }
+
+    /**
+     * Удалить контакт.
+     *
+     * @param Contact $contact
+     * @return bool|null
+     */
+    public function deleteContact(Contact $contact): ?bool
+    {
+        return $contact->delete();
     }
 
     public function getProgress(User $user): array

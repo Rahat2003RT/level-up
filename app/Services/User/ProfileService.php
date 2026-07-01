@@ -8,6 +8,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 final class ProfileService
 {
@@ -77,7 +78,12 @@ final class ProfileService
 
     public function changePassword(User $user, array $data): void
     {
-        $user->password = Hash::make($data['password']);
+        if (!Hash::check($data['old_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'old_password' => ['Current password is incorrect.'],
+            ]);
+        }
+        $user->password = Hash::make($data['new_password']);
         $user->save();
     }
 }
