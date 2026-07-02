@@ -93,6 +93,9 @@ Route::prefix('v1')->group(function () {
                 Route::post('/{token}/answer', [User\LeaderController::class, 'answerInvitation']);
             });
         });
+        // ----------------------------------------------------------------//
+        //                        LEADER METHODS                           //
+        // ----------------------------------------------------------------//
         Route::middleware(['can:access-leader'])->prefix('leader')->group(function () {
             Route::post('/invite-link', [User\LeaderController::class, 'generateInviteLink']);
             Route::get('/team-members', [User\LeaderController::class, 'teamMembers']);
