@@ -148,4 +148,32 @@ final class PlayerController extends Controller
             'message' => 'Contact deleted successfully.'
         ]);
     }
+
+
+    /**
+     * Принять или отклонить приглашение
+     */
+    public function answerInvitation(Request $request, string $token): JsonResponse
+    {
+        $request->validate([
+            'accept' => 'required|boolean'
+        ]);
+
+        $result = $this->service->handleInvitation(
+            $request->user(),
+            $token,
+            (bool)$request->input('accept')
+        );
+
+        return response()->json($result);
+    }
+
+    /**
+     * Получить данные о команде
+     */
+    public function getTeamByToken(Request $request, string $token): JsonResponse
+    {
+        $data = $this->service->getTeamDataByToken($request->user(), $token);
+        return response()->json($data);
+    }
 }
