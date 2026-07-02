@@ -222,8 +222,9 @@ class PlayerService
         $percentage = ($currentDayNumber / $totalCourseDays) * 100;
         $percentage = round($percentage);
 
-        $planStartDate = DailyChecklist::where('user_id', $userId)->min('date')
-            ?? Carbon::today()->toDateString();
+        $planStartDate = Carbon::parse(
+            DailyChecklist::where('user_id', $userId)->min('date') ?? Carbon::today()
+        )->startOfDay()->toIso8601String();
 
         $loses = DailyChecklist::where('user_id', $userId)
             ->where('date', '<', Carbon::today()->toDateString())
