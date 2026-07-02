@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Goal\StoreUserGoalRequest;
 use App\Http\Requests\User\Profile\ChangePasswordRequest;
 use App\Http\Requests\User\Profile\UpdateRequest;
 use App\Http\Resources\NotificationsResource;
@@ -13,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
 
 #[Group('Пользователь', weight: 200)]
 final class ProfileController extends Controller
@@ -79,10 +81,22 @@ final class ProfileController extends Controller
      * Смена пароля
      * @param ChangePasswordRequest $request
      * @return Response
+     * @throws ValidationException
      */
     public function changePassword(ChangePasswordRequest $request): Response
     {
         $this->service->changePassword($request->user(), $request->validated());
         return response()->noContent();
+    }
+
+    /**
+     * Сохранить или обновить цели игрока.
+     * @param StoreUserGoalRequest $request
+     * @return UserResource
+     */
+    public function storeGoal(StoreUserGoalRequest $request): UserResource
+    {
+        $this->service->updateOrCreateGoal($request->user(), $request->validated());
+        return UserResource::make($request->user()->load('goal'));
     }
 }

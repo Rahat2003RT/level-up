@@ -93,17 +93,6 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Сохранить или обновить цели игрока.
-     * @param StoreUserGoalRequest $request
-     * @return UserResource
-     */
-    public function storeGoal(StoreUserGoalRequest $request): UserResource
-    {
-        $this->service->updateOrCreateGoal($request->user(), $request->validated());
-        return UserResource::make($request->user()->load('goal'));
-    }
-
-    /**
      * Список контактов
      * @param GetContactsRequest $request
      * @return AnonymousResourceCollection

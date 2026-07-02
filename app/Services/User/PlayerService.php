@@ -260,21 +260,6 @@ class PlayerService
         ];
     }
 
-    /**
-     * Обновить или создать цели для пользователя.
-     *
-     * @param User $user
-     * @param array $data
-     * @return Model
-     */
-    public function updateOrCreateGoal(User $user, array $data): Model
-    {
-        return $user->goal()->updateOrCreate(
-            [],
-            $data
-        );
-    }
-
 
     /**
      * Получить контакты пользователя по определенному типу.

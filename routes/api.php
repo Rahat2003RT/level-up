@@ -54,9 +54,11 @@ Route::prefix('v1')->group(function () {
             Route::get('/notifications', [User\ProfileController::class, 'notifications']);
             Route::get('/unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
             Route::patch('/', [User\ProfileController::class, 'update']);
+            Route::patch('/goals', [User\PlayerController::class, 'storeGoal']);
             Route::patch('/change-password', [User\ProfileController::class, 'changePassword']);
             Route::delete('/', [User\ProfileController::class, 'destroy']);
         });
+
         // ----------------------------------------------------------------//
         //                        PLAYER METHODS                           //
         // ----------------------------------------------------------------//
@@ -77,17 +79,15 @@ Route::prefix('v1')->group(function () {
                 Route::get('/', [User\PlayerController::class, 'contacts']);
                 Route::post('/', [User\PlayerController::class, 'storeContact']);
                 Route::patch('/{contact}', [User\PlayerController::class, 'updateContact']);
-                Route::delete('/contacts/{contact}', [User\PlayerController::class, 'destroyContact']);
+                Route::delete('/{contact}', [User\PlayerController::class, 'destroyContact']);
             });
             // ----------------------------------------------------------------//
             //                       STATISTICS METHODS                        //
             // ----------------------------------------------------------------//
             Route::get('/statistics', [User\PlayerController::class, 'statistics']);
             // ----------------------------------------------------------------//
-            //                          GOALS METHODS                          //
+            //                          TEAMS METHODS                          //
             // ----------------------------------------------------------------//
-            Route::post('/goals', [User\PlayerController::class, 'storeGoal']);
-
             Route::prefix('team-invitation')->group(function () {
                 Route::get('/{token}', [User\LeaderController::class, 'getTeamByToken']);
                 Route::post('/{token}/answer', [User\LeaderController::class, 'answerInvitation']);
@@ -97,7 +97,6 @@ Route::prefix('v1')->group(function () {
             Route::post('/invite-link', [User\LeaderController::class, 'generateInviteLink']);
             Route::get('/team-members', [User\LeaderController::class, 'teamMembers']);
             Route::delete('/kick/{player}', [User\LeaderController::class, 'kickPlayer']);
-            //Route::post('/goals', [User\PlayerController::class, 'storeGoal']);
         });
     });
     Route::group([], function () {

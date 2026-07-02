@@ -4,6 +4,7 @@ namespace App\Services\User;
 
 use App\Models\User;
 use App\Models\UserDevice;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
@@ -76,6 +77,9 @@ final class ProfileService
         ]);
     }
 
+    /**
+     * @throws ValidationException
+     */
     public function changePassword(User $user, array $data): void
     {
         if (!Hash::check($data['old_password'], $user->password)) {
@@ -85,5 +89,20 @@ final class ProfileService
         }
         $user->password = Hash::make($data['new_password']);
         $user->save();
+    }
+
+    /**
+     * Обновить или создать цели для пользователя.
+     *
+     * @param User $user
+     * @param array $data
+     * @return Model
+     */
+    public function updateOrCreateGoal(User $user, array $data): Model
+    {
+        return $user->goal()->updateOrCreate(
+            [],
+            $data
+        );
     }
 }
