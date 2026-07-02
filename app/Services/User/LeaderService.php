@@ -13,9 +13,6 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class LeaderService
 {
-    /**
-     * 1 & 2. Генерация ссылки на 3 часа
-     */
     public function generateInvitation(User $leader): string
     {
         $invitation = TeamInvitation::updateOrCreate(
@@ -29,27 +26,24 @@ class LeaderService
         return config('app.url') . "/team/" . $invitation->token;
     }
 
-    /**
-     * 3. Получение данных команды по токену инвайта + Валидация
-     */
     public function getTeamDataByToken(User $user, string $token): array
     {
         $invitation = TeamInvitation::where('token', $token)->first();
 
         if (!$invitation) {
-            throw ValidationException::withMessages(['token' => 'Приглашение не найдено.']);
+            throw ValidationException::withMessages(['token' => 'Invitation not found.']);
         }
 
         if ($invitation->isExpired()) {
-            throw ValidationException::withMessages(['token' => 'Срок действия ссылки истек.']);
+            throw ValidationException::withMessages(['token' => 'Link has expired.']);
         }
 
         if ($user->role != UserRole::PLAYER) {
-            throw ValidationException::withMessages(['role' => 'Только пользователи с ролью Игрок могут вступать в команду.']);
+            throw ValidationException::withMessages(['role' => 'Only users with the Player role can join a team.']);
         }
 
         if ($user->leader_id === $invitation->leader_id) {
-            throw ValidationException::withMessages(['team' => 'Вы уже состоите в этой команде.']);
+            throw ValidationException::withMessages(['team' => 'You are already a member of this team.']);
         }
 
         return [
@@ -67,28 +61,24 @@ class LeaderService
         $invitation = TeamInvitation::where('token', $token)->first();
 
         if (!$invitation || $invitation->isExpired()) {
-            throw ValidationException::withMessages(['token' => 'Ссылка недействительна или устарела.']);
+            throw ValidationException::withMessages(['token' => 'The link is invalid or expired.']);
         }
 
         if ($accept) {
             $user->update(['leader_id' => $invitation->leader_id]);
-            return ['status' => 'accepted', 'message' => 'Вы успешно вступили в команду.'];
+            return ['status' => 'accepted', 'message' => 'You have successfully joined the team.'];
         }
 
-        return ['status' => 'declined', 'message' => 'Вы отклонили приглашение.'];
+        return ['status' => 'declined', 'message' => 'You declined the invitation.'];
     }
 
-    /**
-     * 5. Получение списка участников команды Лидера (+ пагинация и поиск)
-     * С подсчетом необходимых по ТЗ метрик (день плана, клиенты, партнеры, чек-лист на сегодня)
-     */
     public function getTeamMembers(User $leader, array $filters): LengthAwarePaginator
     {
         $todayStr = Carbon::today()->toDateString();
 
         return $leader->players()
             ->when($filters['query'] ?? null, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%");
+                $query->where('name', 'like', "%$search%");
             })
             ->withCount([
                 'contacts as clients_count' => function ($query) {
@@ -125,15 +115,11 @@ class LeaderService
             });
     }
 
-    /**
-     * Удаление пользователя из команды
-     */
     public function removePlayerFromTeam(User $leader, User $player): bool
     {
         if ($player->leader_id !== $leader->id) {
-            throw ValidationException::withMessages(['player' => 'Этот игрок не состоит в вашей команде.']);
+            throw ValidationException::withMessages(['player' => 'This player is not on your team.']);
         }
-
         return $player->update(['leader_id' => null]);
     }
 

@@ -28,13 +28,12 @@ final class LeaderController extends Controller
      */
     public function generateInviteLink(Request $request): JsonResponse
     {
-        if ($request->user()->role !== 'leader') {
-            return response()->json(['error' => 'Forbidden'], 403);
-        }
-
         $link = $this->service->generateInvitation($request->user());
-
-        return response()->json(['invite_url' => $link]);
+        return response()->json([
+            'data' => [
+                'invite_url' => $link
+            ]
+        ]);
     }
 
     /**
