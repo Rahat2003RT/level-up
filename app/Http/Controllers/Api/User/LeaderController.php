@@ -16,7 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
-#[Group('Управление Командой / Leader / В разработке', weight: 260)]
+#[Group('Пользователь / Leader', weight: 260)]
 final class LeaderController extends Controller
 {
     public function __construct(
