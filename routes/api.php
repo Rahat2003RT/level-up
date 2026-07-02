@@ -54,7 +54,7 @@ Route::prefix('v1')->group(function () {
             Route::get('/notifications', [User\ProfileController::class, 'notifications']);
             Route::get('/unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
             Route::patch('/', [User\ProfileController::class, 'update']);
-            Route::patch('/goals', [User\PlayerController::class, 'storeGoal']);
+            Route::patch('/goals', [User\ProfileController::class, 'storeGoal']);
             Route::patch('/change-password', [User\ProfileController::class, 'changePassword']);
             Route::delete('/', [User\ProfileController::class, 'destroy']);
         });

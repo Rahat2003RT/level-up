@@ -15,6 +15,7 @@ class LeaderService
 {
     public function generateInvitation(User $leader): string
     {
+        dd(132);
         $invitation = TeamInvitation::updateOrCreate(
             ['leader_id' => $leader->id],
             [
