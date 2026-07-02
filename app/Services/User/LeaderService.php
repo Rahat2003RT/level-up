@@ -1,13 +1,13 @@
 <?php
 namespace App\Services\User;
 
+use App\Enums\UserRole;
 use App\Models\Contact;
 use App\Models\TeamInvitation;
 use App\Models\User;
 use App\Models\DailyChecklist;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -18,7 +18,6 @@ class LeaderService
      */
     public function generateInvitation(User $leader): string
     {
-        // Каждому лидеру генерируем или обновляем токен
         $invitation = TeamInvitation::updateOrCreate(
             ['leader_id' => $leader->id],
             [
@@ -41,25 +40,21 @@ class LeaderService
             throw ValidationException::withMessages(['token' => 'Приглашение не найдено.']);
         }
 
-        // Валидация: ссылка устарела
         if ($invitation->isExpired()) {
             throw ValidationException::withMessages(['token' => 'Срок действия ссылки истек.']);
         }
 
-        // Валидация: другая роль (проверяем, например, что у игрока роль player, а не admin/leader)
-        // Если у вас роли хранятся в поле `role`, адаптируйте под себя:
-        if ($user->role !== 'player') {
+        if ($user->role != UserRole::PLAYER) {
             throw ValidationException::withMessages(['role' => 'Только пользователи с ролью Игрок могут вступать в команду.']);
         }
 
-        // Валидация: вы уже отказались (или уже состоите)
         if ($user->leader_id === $invitation->leader_id) {
             throw ValidationException::withMessages(['team' => 'Вы уже состоите в этой команде.']);
         }
 
         return [
             'leader_name' => $invitation->leader->name,
-            'leader_avatar' => $invitation->leader->avatar_url ?? null, // адаптируйте под ваше поле аватарки
+            'leader_avatar' => $invitation->leader->avatar_url ?? null,
             'token' => $token
         ];
     }
@@ -80,9 +75,6 @@ class LeaderService
             return ['status' => 'accepted', 'message' => 'Вы успешно вступили в команду.'];
         }
 
-        // В случае отказа, логика "вы уже отказались" из ТЗ подразумевает,
-        // что мы можем либо пометить где-то отказ, либо просто ничего не делать.
-        // Обычно достаточно вернуть статус.
         return ['status' => 'declined', 'message' => 'Вы отклонили приглашение.'];
     }
 
@@ -98,16 +90,14 @@ class LeaderService
             ->when($filters['query'] ?? null, function ($query, $search) {
                 $query->where('name', 'like', "%{$search}%");
             })
-            // Подтягиваем количество клиентов и партнеров из контактов
             ->withCount([
                 'contacts as clients_count' => function ($query) {
-                    $query->where('type', 'client'); // или как у вас в бд называется тип
+                    $query->where('type', 'client');
                 },
                 'contacts as partners_count' => function ($query) {
                     $query->where('type', 'partner');
                 }
             ])
-            // Подтягиваем сегодняшний чек-лист, чтобы узнать завершил ли его и какой текущий день плана
             ->with(['checklists' => function ($query) use ($todayStr) {
                 $query->where('date', $todayStr);
             }])
@@ -115,8 +105,6 @@ class LeaderService
             ->paginate($filters['limit'] ?? 15)
             ->through(function ($player) use ($todayStr) {
                 $todayChecklist = $player->checklists->first();
-
-                // Рассчитываем номер текущего дня аналогично PlayerService
                 if ($todayChecklist) {
                     $currentDayNumber = $todayChecklist->day_number;
                     $isCompletedToday = (bool)$todayChecklist->is_completed;
@@ -138,7 +126,7 @@ class LeaderService
     }
 
     /**
-     * 6. Удаление пользователя из команды
+     * Удаление пользователя из команды
      */
     public function removePlayerFromTeam(User $leader, User $player): bool
     {
