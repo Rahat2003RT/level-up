@@ -109,22 +109,21 @@ final class AuthService
         }
     }
 
+    /**
+     * @throws ValidationException
+     */
     public function sendResetCode(array $data): void
     {
         $email = $data['email'];
         $user = User::where('email', $email)->firstOrFail();
-
         $locale = request()->header('X-Locale', request()->input('lang', $user->locale ?? 'en'));
-
         $code = (string) rand(100000, 999999);
-
         DB::table('password_reset_codes')->where('email', $email)->delete();
         DB::table('password_reset_codes')->insert([
             'email' => $email,
             'code' => $code,
             'created_at' => now(),
         ]);
-
         $user->notify(new CustomResetPasswordNotification($code, $locale));
     }
 
@@ -144,7 +143,7 @@ final class AuthService
             ]);
         }
 
-        if (now()->subMinutes(15)->gt($record->created_at)) {
+        if (now()->subMinutes(2)->gt($record->created_at)) {
             DB::table('password_reset_codes')->where('email', $data['email'])->delete();
             throw ValidationException::withMessages([
                 'code' => [__('passwords.code_invalid_or_expired')],

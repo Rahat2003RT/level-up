@@ -1,6 +1,7 @@
 <?php
 namespace App\Services\User;
 
+use App\Models\Contact;
 use App\Models\TeamInvitation;
 use App\Models\User;
 use App\Models\DailyChecklist;
@@ -146,5 +147,68 @@ class LeaderService
         }
 
         return $player->update(['leader_id' => null]);
+    }
+
+
+
+    /**
+     * Получить контакты пользователя по определенному типу.
+     *
+     * @param User $user
+     * @param array $data
+     * @return array
+     */
+    public function getContacts(User $user, array $data): array
+    {
+        $contactsQuery = $user->contacts();
+        $contactsPaginator = $contactsQuery
+            ->when($data['query'] ?? null, function ($query, $search) {
+                $query->where('name', 'like', "%$search%");
+            })
+            ->latest()
+            ->paginate($data['limit'] ?? 20);
+
+        $totalVolume = (float)$user->contacts()->sum('volume');
+
+        return [
+            'contacts' => $contactsPaginator,
+            'total_volume' => $totalVolume,
+        ];
+    }
+
+    /**
+     * Создать новый контакт.
+     *
+     * @param User $user
+     * @param array $data
+     * @return Contact
+     */
+    public function createContact(User $user, array $data): Contact
+    {
+        return $user->contacts()->create($data);
+    }
+
+    /**
+     * Обновить данные существующего контакта.
+     *
+     * @param Contact $contact
+     * @param array $data
+     * @return Contact
+     */
+    public function updateContact(Contact $contact, array $data): Contact
+    {
+        $contact->update($data);
+        return $contact;
+    }
+
+    /**
+     * Удалить контакт.
+     *
+     * @param Contact $contact
+     * @return bool|null
+     */
+    public function deleteContact(Contact $contact): ?bool
+    {
+        return $contact->delete();
     }
 }
