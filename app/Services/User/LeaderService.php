@@ -42,6 +42,10 @@ class LeaderService
             throw ValidationException::withMessages(['role' => 'Only users with the Player role can join a team.']);
         }
 
+        if ($invitation->leader_id === $user->id) {
+            throw ValidationException::withMessages(['team' => 'You cannot join your own team.']);
+        }
+
         if ($user->leader_id === $invitation->leader_id) {
             throw ValidationException::withMessages(['team' => 'You are already a member of this team.']);
         }
@@ -62,6 +66,10 @@ class LeaderService
 
         if (!$invitation || $invitation->isExpired()) {
             throw ValidationException::withMessages(['token' => 'The link is invalid or expired.']);
+        }
+
+        if ($invitation->leader_id === $user->id) {
+            throw ValidationException::withMessages(['token' => 'You cannot join your own team.']);
         }
 
         if ($accept) {
