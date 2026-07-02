@@ -272,7 +272,9 @@ class PlayerService
     {
         $contactsQuery = $user->contacts();
         $contactsPaginator = $contactsQuery
-            ->where('type', $data['type'])
+            ->when($data['type'] ?? null, function ($query, $type) {
+                $query->where('type', $type);
+            })
             ->when($data['query'] ?? null, function ($query, $search) {
                 $query->where('name', 'like', "%$search%");
             })

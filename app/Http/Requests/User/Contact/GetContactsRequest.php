@@ -17,7 +17,7 @@ class GetContactsRequest extends ApiBaseRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', new Enum(ContactType::class)],
+            'type' => ['nullable', new Enum(ContactType::class)],
             'query' => ['nullable', 'string', 'max:255'],
             'page'       => ['nullable', 'integer', 'min:1'],
             'limit'      => ['nullable', 'integer', 'min:1', 'max:100'],
