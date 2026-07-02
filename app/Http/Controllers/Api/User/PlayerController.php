@@ -142,7 +142,7 @@ final class PlayerController extends Controller
 
     /**
      * Удалить контакт
-     * * @param Request $request
+     * @param Request $request
      * @param Contact $contact
      * @return JsonResponse
      * @throws AuthorizationException

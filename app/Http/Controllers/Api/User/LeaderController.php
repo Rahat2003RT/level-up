@@ -31,7 +31,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * 3. Получить данные о команде
+     * Получить данные о команде
      */
     public function getTeamByToken(Request $request, string $token): JsonResponse
     {
@@ -40,7 +40,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * 4. Принять или отклонить приглашение
+     * Принять или отклонить приглашение
      */
     public function answerInvitation(Request $request, string $token): JsonResponse
     {
@@ -58,7 +58,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * 5. Получить список участников команды
+     * Получить список участников команды
      */
     public function teamMembers(Request $request): JsonResponse
     {
@@ -77,7 +77,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * 6. Удалить пользователя из команды
+     * Удалить пользователя из команды
      */
     public function kickPlayer(Request $request, User $player): JsonResponse
     {
