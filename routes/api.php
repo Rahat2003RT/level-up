@@ -89,8 +89,8 @@ Route::prefix('v1')->group(function () {
             //                          TEAMS METHODS                          //
             // ----------------------------------------------------------------//
             Route::prefix('team-invitation')->group(function () {
-                Route::get('/{token}', [User\LeaderController::class, 'getTeamByToken']);
-                Route::post('/{token}/answer', [User\LeaderController::class, 'answerInvitation']);
+                Route::get('/{token}', [User\PlayerController::class, 'getTeamByToken']);
+                Route::post('/{token}/answer', [User\PlayerController::class, 'answerInvitation']);
             });
         });
         // ----------------------------------------------------------------//
