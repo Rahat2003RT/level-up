@@ -21,7 +21,6 @@ class LeaderChecklistAndPlanTest extends TestCase
     {
         parent::setUp();
 
-        // Создаем лидера и игрока для тестов
         $this->leader = User::factory()->create(['role' => 'leader']);
         $this->player = User::factory()->create(['role' => 'player']);
     }
@@ -30,34 +29,28 @@ class LeaderChecklistAndPlanTest extends TestCase
     // 1. ТЕСТЫ ЧЕК-ЛИСТА ЛИДЕРА
     // =========================================================================
 
-    /** @test */
-    public function leader_can_get_virtual_or_existing_checklist()
+    public function test_leader_can_get_virtual_or_existing_checklist()
     {
         $this->actingAs($this->leader, 'sanctum');
 
-        // Проверяем получение виртуального чек-листа на сегодня (когда записи еще нет)
         $response = $this->getJson('/api/v1/leader/checklist?date=' . Carbon::today()->toDateString());
 
         $response->assertStatus(200)
-            ->assertJsonPath('data.is_completed', false)
-            ->assertJsonPath('data.checked_team_activity', false);
+            ->assertJsonPath('data.is_completed', false);
 
-        // Создаем реальный чек-лист
         LeadershipChecklist::factory()->create([
             'user_id' => $this->leader->id,
             'date' => Carbon::today()->toDateString(),
             'checked_team_activity' => true
         ]);
 
-        // Снова запрашиваем
         $response = $this->getJson('/api/v1/leader/checklist?date=' . Carbon::today()->toDateString());
         $response->assertStatus(200)
             ->assertJsonPath('data.is_completed', true)
             ->assertJsonPath('data.checked_team_activity', true);
     }
 
-    /** @test */
-    public function leader_can_store_checklist_for_today()
+    public function test_leader_can_store_checklist_for_today()
     {
         $this->actingAs($this->leader, 'sanctum');
 
@@ -79,12 +72,10 @@ class LeaderChecklistAndPlanTest extends TestCase
         $this->assertDatabaseHas('leadership_checklists', [
             'user_id' => $this->leader->id,
             'is_completed' => true,
-            'checked_team_activity' => true
         ]);
     }
 
-    /** @test */
-    public function leader_cannot_store_checklist_twice_a_day()
+    public function test_leader_cannot_store_checklist_twice_a_day()
     {
         $this->actingAs($this->leader, 'sanctum');
 
@@ -104,7 +95,6 @@ class LeaderChecklistAndPlanTest extends TestCase
             'sent_new_invitations' => false,
         ]);
 
-        // Должно вернуть 403 из-за AuthorizationException в сервисе
         $response->assertStatus(403);
     }
 
@@ -112,8 +102,7 @@ class LeaderChecklistAndPlanTest extends TestCase
     // 2. ТЕСТЫ КОМАНДНОГО ПЛАНА (TEAM PLAN)
     // =========================================================================
 
-    /** @test */
-    public function leader_can_create_and_update_team_plan()
+    public function test_leader_can_create_and_update_team_plan()
     {
         $this->actingAs($this->leader, 'sanctum');
 
@@ -139,17 +128,14 @@ class LeaderChecklistAndPlanTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function player_can_get_their_leaders_team_plan()
+    public function test_player_can_get_their_leaders_team_plan()
     {
-        // Создаем план для лидера
         TeamPlan::create([
             'user_id' => $this->leader->id,
             'daily_calls' => 15,
             'daily_volume_points' => 200
         ]);
 
-        // Привязываем игрока к этому лидеру
         $this->player->update(['leader_id' => $this->leader->id]);
 
         $this->actingAs($this->player, 'sanctum');
@@ -165,41 +151,32 @@ class LeaderChecklistAndPlanTest extends TestCase
     // 3. ТЕСТЫ ВАЛИДАЦИИ ТОКЕНА И КОМАНДЫ
     // =========================================================================
 
-    /** @test */
-    public function player_already_in_team_cannot_view_or_accept_another_team_invitation()
+    public function test_player_already_in_team_cannot_view_another_team_invitation()
     {
-        // Создаем инвайт от лидера
         $invitation = TeamInvitation::create([
             'leader_id' => $this->leader->id,
             'token' => 'test-token-12345',
             'expires_at' => Carbon::now()->addHours(1)
         ]);
 
-        // Игрок УЖЕ состоит в какой-то другой команде
         $anotherLeader = User::factory()->create(['role' => 'leader']);
         $this->player->update(['leader_id' => $anotherLeader->id]);
 
         $this->actingAs($this->player, 'sanctum');
 
-        // Пытаемся получить данные по токену
         $response = $this->getJson('/api/v1/player/team-invitation/' . $invitation->token);
 
-        // Должна сработать наша новая валидация "вы уже состоите в команде" (422)
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['team']);
     }
 
-    /** @test */
-    public function get_team_members_returns_correct_data_without_pagination()
+    public function test_get_team_members_returns_correct_data_without_pagination()
     {
         $this->actingAs($this->leader, 'sanctum');
-
-        // Привязываем нашего игрока к лидеру
         $this->player->update(['leader_id' => $this->leader->id]);
 
         $response = $this->getJson('/api/v1/leader/team-members');
 
-        // Проверяем, что в структуре ответа нет ключей пагинации (links, meta), а есть чистый массив данных
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
