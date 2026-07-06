@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Storage;
  * Class UserResource
  * @package App\Http\Resources
  * @mixin User
- * @property string|null $token Токен доступа (динамически передается при авторизации)
- * @property-read UserGoal|null $goal Цели пользователя
+ * @property string|null $token
+ * @property-read UserGoal|null $goal
  */
 final class UserResource extends JsonResource
 {
@@ -67,6 +67,22 @@ final class UserResource extends JsonResource
             }),
 
             'goal' => UserGoalResource::make($this->whenLoaded('goal')),
+
+            'team' => $this->whenLoaded('leader', function () {
+                if (!$this->leader) {
+                    return null;
+                }
+
+                return [
+                    'leader_id'   => $this->leader->id,
+                    'leader_name' => $this->leader->name . ' ' . $this->leader->surname,
+                    'avatar'      => match (true) {
+                        empty($this->leader->avatar_path) => null,
+                        filter_var($this->leader->avatar_path, FILTER_VALIDATE_URL) => $this->leader->avatar_path,
+                        default => Storage::disk('public')->url($this->leader->avatar_path),
+                    },
+                ];
+            }),
 
             'last_activity_at' => $this->last_activity_at?->toIso8601String(),
             'created_at' => $this->created_at?->toIso8601String(),

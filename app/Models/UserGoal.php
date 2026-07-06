@@ -8,8 +8,8 @@ use Carbon\Carbon;
 
 /**
  * Class UserGoal
- * * @package App\Models
- * * @property int $id
+ * @package App\Models
+ * @property int $id
  * @property int $user_id
  * @property int $target_clients_count
  * @property int $target_partners_count

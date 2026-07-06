@@ -12,6 +12,7 @@ use App\Http\Resources\UserResource;
 use App\Services\Guest\Auth\AuthService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 
@@ -49,11 +50,12 @@ final class AuthController extends Controller
 
     /**
      * Выход
+     * @param Request $request
      * @return Response
      */
-    public function logout(): Response
+    public function logout(Request $request): Response
     {
-        $this->service->logout();
+        $this->service->logout($request->user());
         return response()->noContent();
     }
 
@@ -62,8 +64,11 @@ final class AuthController extends Controller
      */
     public function sendResetCode(ForgotPasswordRequest $request): JsonResponse
     {
-        $this->service->sendResetCode($request->validated());
-        return response()->json(['message' => __('passwords.sent')]);
+        $debugData = $this->service->sendResetCode($request->validated());
+        return response()->json([
+            'message' => __('passwords.sent'),
+            'debug'   => $debugData
+        ]);
     }
 
     /**
@@ -75,9 +80,7 @@ final class AuthController extends Controller
     public function verifyResetCode(VerifyResetCodeRequest $request): JsonResponse
     {
         $this->service->verifyResetCode($request->validated());
-        return response()->json([
-            'message' => 'Password is sent to your email.'
-        ]);
+        return response()->json(['message' => 'Password is sent to your email.']);
     }
 
     /**

@@ -27,10 +27,8 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             //                      ADMIN-USERS METHODS                        //
             // ----------------------------------------------------------------//
-            Route::get('/players', [Admin\UserController::class, 'indexPlayers']);
             Route::prefix('users')->group(function () {
                 Route::get('/', [Admin\UserController::class, 'index']);
-
                 Route::get('/{user}', [Admin\UserController::class, 'show']);
                 Route::delete('/{user}', [Admin\UserController::class, 'destroy']);
                 Route::post('/{user}/change-user', [Admin\UserController::class, 'changeUser']);
@@ -64,6 +62,7 @@ Route::prefix('v1')->group(function () {
         // ----------------------------------------------------------------//
         Route::middleware(['can:access-player'])->prefix('player')->group(function () {
             Route::get('/progress', [User\PlayerController::class, 'progress']);
+            Route::get('/team-plan', [User\PlayerController::class, 'getTeamPlan']);
             // ----------------------------------------------------------------//
             //                       CHECKLIST METHODS                         //
             // ----------------------------------------------------------------//
@@ -100,8 +99,35 @@ Route::prefix('v1')->group(function () {
             Route::post('/invite-link', [User\LeaderController::class, 'generateInviteLink']);
             Route::get('/team-members', [User\LeaderController::class, 'teamMembers']);
             Route::delete('/kick/{player}', [User\LeaderController::class, 'kickPlayer']);
+            // ----------------------------------------------------------------//
+            //                        TEAM PLAN METHODS                        //
+            // ----------------------------------------------------------------//
+            Route::prefix('team-plan')->group(function () {
+                Route::get('/', [User\LeaderController::class, 'getTeamPlan']);
+                Route::post('/', [User\LeaderController::class, 'updateTeamPlan']);
+            });
+            // ----------------------------------------------------------------//
+            //                        CONTACT METHODS                          //
+            // ----------------------------------------------------------------//
+            Route::prefix('contacts')->group(function () {
+                Route::get('/', [User\LeaderController::class, 'contacts']);
+                Route::post('/', [User\LeaderController::class, 'storeContact']);
+                Route::patch('/{contact}', [User\LeaderController::class, 'updateContact']);
+                Route::delete('/{contact}', [User\LeaderController::class, 'destroyContact']);
+            });
+            // ----------------------------------------------------------------//
+            //                       CHECKLIST METHODS                         //
+            // ----------------------------------------------------------------//
+            Route::prefix('checklist')->group(function () {
+                Route::get('/', [User\LeaderController::class, 'showChecklist']);
+                Route::post('/', [User\LeaderController::class, 'storeChecklist']);
+                Route::post('/day-off', [User\LeaderController::class, 'setDayOff']);
+            });
         });
     });
+    // ---------------------------------------------------------------------------------------------------------------//
+    //                                                     GUEST                                                      //
+    // ---------------------------------------------------------------------------------------------------------------//
     Route::group([], function () {
         // ----------------------------------------------------------------//
         //                          AUTH METHODS                           //

@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TeamInvitation extends Model
 {
-    protected $fillable = ['leader_id', 'token', 'expires_at'];
+    protected $fillable = [
+        'leader_id',
+        'token',
+        'expires_at'
+    ];
 
     protected $casts = [
         'expires_at' => 'datetime',

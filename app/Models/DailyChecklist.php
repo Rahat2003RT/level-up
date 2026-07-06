@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Class DailyChecklist
- *
  * @property int $id
  * @property int $user_id
  * @property Carbon $date

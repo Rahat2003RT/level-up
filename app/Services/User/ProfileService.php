@@ -73,7 +73,8 @@ final class ProfileService
     {
         return $user->load([
             'goal',
-            'deviceTokens'
+            'deviceTokens',
+            'leader'
         ]);
     }
 

@@ -83,22 +83,16 @@ final readonly class UserService
         $user->delete();
     }
 
-    /**
-     * @throws ValidationException
-     */
     public function restore(int $id): User
     {
         /** @var User|null $user */
         $user = User::withTrashed()->find($id);
-
         if (!$user) {
             throw ValidationException::withMessages([
                 'user' => ['User not found.']
             ]);
         }
-
         $user->restore();
-
         return $user;
     }
     public function forceDelete(User $user): void
@@ -106,18 +100,11 @@ final readonly class UserService
         $user->forceDelete();
     }
 
-    public function getPlayers(array $filters): LengthAwarePaginator
-    {
-        $query = User::query()->where('role', UserRole::PLAYER->value);
-        return $this->applyFiltersAndPaginate($query, $filters);
-    }
-
     private function applyFiltersAndPaginate(Builder $query, array $filters): LengthAwarePaginator
     {
         if (!empty($filters['country'])) {
             $query->where('country', $filters['country']);
         }
-
         if (!empty($filters['query'])) {
             $search = $filters['query'];
             $query->where(function (Builder $q) use ($search) {
@@ -126,16 +113,12 @@ final readonly class UserService
                     ->orWhere('account_id', 'ilike', "%$search%");
             });
         }
-
         $orderBy = $filters['order_by'] ?? 'created_at';
         $orderSort = $filters['order_sort'] ?? 'desc';
-
         if ($orderBy === 'date_register') {
             $orderBy = 'created_at';
         }
-
         $query->orderBy($orderBy, $orderSort);
-
         return $query->paginate($filters['limit'] ?? 20);
     }
 }

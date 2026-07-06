@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * Class Contact
- * * @package App\Models
+ * @package App\Models
  * @property int $id
  * @property int $user_id
  * @property string $name
@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
- * * @property-read User $user
+ * @property-read User $user
  */
 class Contact extends Model
 {

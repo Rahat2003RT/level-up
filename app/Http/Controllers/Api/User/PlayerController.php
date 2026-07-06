@@ -13,14 +13,17 @@ use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Resources\ContactResource;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\PlayerStatisticsResource;
+use App\Http\Resources\TeamPlanResource;
 use App\Http\Resources\UserResource;
 use App\Models\Contact;
+use App\Services\User\LeaderService;
 use App\Services\User\PlayerService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 #[Group('Пользователь / Player', weight: 250)]
 final class PlayerController extends Controller
@@ -70,7 +73,6 @@ final class PlayerController extends Controller
 
     /**
      * Установить для сегодняшнего дня статус "Выходной".
-     *
      * @param Request $request
      * @return DailyChecklistResource
      * @throws AuthorizationException
@@ -101,9 +103,7 @@ final class PlayerController extends Controller
     {
         $result = $this->service->getContactsByType($request->user(), $request->validated());
         return ContactResource::collection($result['contacts'])
-            ->additional([
-                'total_volume' => $result['total_volume']
-            ]);
+            ->additional(['total_volume' => $result['total_volume']]);
     }
 
     /**
@@ -133,25 +133,22 @@ final class PlayerController extends Controller
      * Удалить контакт
      * @param Request $request
      * @param Contact $contact
-     * @return JsonResponse
+     * @return Response
      * @throws AuthorizationException
      */
-    public function destroyContact(Request $request, Contact $contact): JsonResponse
+    public function destroyContact(Request $request, Contact $contact): Response
     {
-        if ($contact->user_id !== $request->user()->id) {
-            throw new AuthorizationException('You do not own this contact.');
-        }
-
+        if ($contact->user_id !== $request->user()->id) {throw new AuthorizationException('You do not own this contact.');}
         $this->service->deleteContact($contact);
-
-        return response()->json([
-            'message' => 'Contact deleted successfully.'
-        ]);
+        return response()->noContent();
     }
 
 
     /**
      * Принять или отклонить приглашение
+     * @param Request $request
+     * @param string $token
+     * @return JsonResponse
      */
     public function answerInvitation(Request $request, string $token): JsonResponse
     {
@@ -175,5 +172,15 @@ final class PlayerController extends Controller
     {
         $data = $this->service->getTeamDataByToken($request->user(), $token);
         return response()->json($data);
+    }
+
+
+    /**
+     * Получить командный план, установленный лидером.
+     */
+    public function getTeamPlan(Request $request, LeaderService $leaderService): TeamPlanResource
+    {
+        $plan = $leaderService->getTeamPlan($request->user());
+        return TeamPlanResource::make($plan);
     }
 }

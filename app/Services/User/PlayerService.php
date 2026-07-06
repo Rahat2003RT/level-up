@@ -167,15 +167,14 @@ class PlayerService
 
         $totals = DailyChecklist::where('user_id', $user->id)
             ->whereBetween('date', [$startDate, $endDate])
-            ->select([
-                DB::raw('SUM(completed_meetings) as total_meetings'),
-                DB::raw('SUM(new_clients) as total_clients'),
-                DB::raw('SUM(new_partners) as total_partners'),
-                DB::raw('SUM(sales) as total_sales'),
-                DB::raw('SUM(daily_income) as total_income'),
-                DB::raw('COUNT(CASE WHEN is_completed = true AND is_day_off = false THEN 1 END) as active_days_count')
-            ])
-            ->first();
+            ->selectRaw('
+            SUM(completed_meetings) as total_meetings,
+            SUM(new_clients) as total_clients,
+            SUM(new_partners) as total_partners,
+            SUM(sales) as total_sales,
+            SUM(daily_income) as total_income,
+            COUNT(*) FILTER (WHERE is_completed = true AND is_day_off = false) as active_days_count
+        ')->first();
 
         $totalMeetings = $totals->total_meetings ?? 0;
         $totalClients = $totals->total_clients ?? 0;
@@ -186,20 +185,20 @@ class PlayerService
 
         $activeDaysPercentage = $days > 0 ? ($activeDays / $days) * 100 : 0;
 
-        $totalVolume = $totalIncome;
+        $totalVolume = $user->contacts()->sum('volume');
 
         return [
             'period_days' => $days,
             'total_meetings' => $totalMeetings,
-            'avg_meetings' => $totalMeetings / $days,
+            'avg_meetings' => $days > 0 ? $totalMeetings / $days : 0,
             'total_clients' => $totalClients,
-            'avg_clients' => $totalClients / $days,
+            'avg_clients' => $days > 0 ? $totalClients / $days : 0,
             'total_partners' => $totalPartners,
-            'avg_partners' => $totalPartners / $days,
+            'avg_partners' => $days > 0 ? $totalPartners / $days : 0,
             'total_sales' => $totalSales,
-            'avg_sales' => $totalSales / $days,
+            'avg_sales' => $days > 0 ? $totalSales / $days : 0,
             'total_income' => $totalIncome,
-            'avg_income' => $totalIncome / $days,
+            'avg_income' => $days > 0 ? $totalIncome / $days : 0,
             'active_days_count' => $activeDays,
             'active_days_percentage' => $activeDaysPercentage,
             'total_volume' => $totalVolume,
@@ -345,6 +344,10 @@ class PlayerService
             throw ValidationException::withMessages(['token' => 'You cannot join your own team.']);
         }
 
+        if (!is_null($user->leader_id)) {
+            throw ValidationException::withMessages(['token' => 'You are already in a team. Leave your current team first.']);
+        }
+
         if ($accept) {
             $user->update(['leader_id' => $invitation->leader_id]);
             return ['status' => 'accepted', 'message' => 'You have successfully joined the team.'];
@@ -377,10 +380,18 @@ class PlayerService
             throw ValidationException::withMessages(['team' => 'You are already a member of this team.']);
         }
 
+        if (!is_null($user->leader_id)) {
+            throw ValidationException::withMessages(['team' => 'You are already a member of a team.']);
+        }
+
         return [
             'leader_name' => $invitation->leader->name,
             'leader_avatar' => $invitation->leader->avatar_url ?? null,
             'token' => $token
         ];
     }
+
+
+
+
 }

@@ -3,10 +3,18 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Leader\Checklist\StoreLeadershipChecklistRequest;
+use App\Http\Requests\Leader\Contact\StoreLeaderContactRequest;
+use App\Http\Requests\Leader\Contact\UpdateLeaderContactRequest;
+use App\Http\Requests\Leader\Team\GetTeamMembersRequest;
+use App\Http\Requests\Leader\Team\UpdateTeamPlanRequest;
 use App\Http\Requests\User\Contact\GetContactsRequest;
 use App\Http\Requests\User\Contact\StoreContactRequest;
 use App\Http\Requests\User\Contact\UpdateContactRequest;
+use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Resources\ContactResource;
+use App\Http\Resources\LeadershipChecklistResource;
+use App\Http\Resources\TeamPlanResource;
 use App\Models\Contact;
 use App\Models\User;
 use App\Services\User\LeaderService;
@@ -29,34 +37,20 @@ final class LeaderController extends Controller
     public function generateInviteLink(Request $request): JsonResponse
     {
         $link = $this->service->generateInvitation($request->user());
-        return response()->json([
-            'data' => [
-                'invite_url' => $link
-            ]
-        ]);
+        return response()->json(['data' => ['invite_url' => $link]]);
     }
 
 
-
-
-
     /**
-     * Получить список участников команды
+     * Получить список участников команды (без пагинации, с поиском по имени).
+     *
+     * @param GetTeamMembersRequest $request
+     * @return JsonResponse
      */
-    public function teamMembers(Request $request): JsonResponse
+    public function teamMembers(GetTeamMembersRequest $request): JsonResponse
     {
-        if ($request->user()->role !== 'leader') {
-            return response()->json(['error' => 'Forbidden'], 403);
-        }
-
-        $filters = $request->validate([
-            'query' => 'nullable|string',
-            'limit' => 'nullable|integer|min:1|max:100',
-        ]);
-
-        $members = $this->service->getTeamMembers($request->user(), $filters);
-
-        return response()->json($members);
+        $members = $this->service->getTeamMembers($request->user(), $request->validated());
+        return response()->json(['data' => $members]);
     }
 
     /**
@@ -67,10 +61,8 @@ final class LeaderController extends Controller
         if ($request->user()->role !== 'leader') {
             return response()->json(['error' => 'Forbidden'], 403);
         }
-
         $this->service->removePlayerFromTeam($request->user(), $player);
-
-        return response()->json(['message' => 'Игрок успешно удален из команды.']);
+        return response()->json(['message' => 'The player has been successfully removed from the team.']);
     }
 
 
@@ -100,10 +92,10 @@ final class LeaderController extends Controller
 
     /**
      * Создать новый контакт.
-     * @param StoreContactRequest $request
+     * @param StoreLeaderContactRequest $request
      * @return ContactResource
      */
-    public function storeContact(StoreContactRequest $request): ContactResource
+    public function storeContact(StoreLeaderContactRequest $request): ContactResource
     {
         $contact = $this->service->createContact($request->user(), $request->validated());
         return ContactResource::make($contact);
@@ -111,11 +103,11 @@ final class LeaderController extends Controller
 
     /**
      * Редактировать контакт
-     * @param UpdateContactRequest $request
+     * @param UpdateLeaderContactRequest $request
      * @param Contact $contact
      * @return ContactResource
      */
-    public function updateContact(UpdateContactRequest $request, Contact $contact): ContactResource
+    public function updateContact(UpdateLeaderContactRequest $request, Contact $contact): ContactResource
     {
         $updatedContact = $this->service->updateContact($contact, $request->validated());
         return ContactResource::make($updatedContact);
@@ -133,11 +125,64 @@ final class LeaderController extends Controller
         if ($contact->user_id !== $request->user()->id) {
             throw new AuthorizationException('You do not own this contact.');
         }
-
         $this->service->deleteContact($contact);
+        return response()->json(['message' => 'Contact deleted successfully.']);
+    }
 
-        return response()->json([
-            'message' => 'Contact deleted successfully.'
-        ]);
+
+
+    /**
+     * Просмотр чек-листа лидера за выбранный день.
+     * @param ShowChecklistRequest $request
+     * @return LeadershipChecklistResource
+     */
+    public function showChecklist(ShowChecklistRequest $request): LeadershipChecklistResource
+    {
+        $result = $this->service->getOrCreateVirtual($request->user(), $request->validated());
+        return LeadershipChecklistResource::make($result);
+    }
+
+    /**
+     * Заполнение чек-листа лидера за сегодня.
+     * @param StoreLeadershipChecklistRequest $request
+     * @return LeadershipChecklistResource
+     * @throws AuthorizationException
+     */
+    public function storeChecklist(StoreLeadershipChecklistRequest $request): LeadershipChecklistResource
+    {
+        $checklist = $this->service->storeAndCompleteToday($request->user(), $request->validated());
+        return LeadershipChecklistResource::make($checklist);
+    }
+
+    /**
+     * Установить для сегодняшнего дня лидера статус "Выходной".
+     * @param Request $request
+     * @return LeadershipChecklistResource
+     * @throws AuthorizationException
+     */
+    public function setDayOff(Request $request): LeadershipChecklistResource
+    {
+        $checklist = $this->service->setDayOffToday($request->user());
+        return LeadershipChecklistResource::make($checklist);
+    }
+
+
+
+    /**
+     * Получить цели для команды.
+     */
+    public function getTeamPlan(Request $request): TeamPlanResource
+    {
+        $plan = $this->service->getTeamPlan($request->user());
+        return TeamPlanResource::make($plan);
+    }
+
+    /**
+     * Установить/обновить цели для команды.
+     */
+    public function updateTeamPlan(UpdateTeamPlanRequest $request): TeamPlanResource
+    {
+        $plan = $this->service->updateTeamPlan($request->user(), $request->validated());
+        return TeamPlanResource::make($plan);
     }
 }
