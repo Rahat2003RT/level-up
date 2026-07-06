@@ -166,8 +166,12 @@ class LeaderChecklistAndPlanTest extends TestCase
 
         $response = $this->getJson('/api/v1/player/team-invitation/' . $invitation->token);
 
+        // Проверяем ваш кастомный формат исключений
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['team']);
+            ->assertJson([
+                'status'  => 'error',
+                'message' => 'You are already a member of a team.',
+            ]);
     }
 
     public function test_get_team_members_returns_correct_data_without_pagination()

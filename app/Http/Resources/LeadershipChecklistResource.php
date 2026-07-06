@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\LeadershipChecklist;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -16,7 +17,9 @@ class LeadershipChecklistResource extends JsonResource
         return [
             'id'                          => $this->id ?? null,
             'user_id'                     => $this->user_id,
-            'date'                        => $this->date?->toDateString(),
+            'date' => $this->date instanceof Carbon
+                ? $this->date->toDateString()
+                : (is_string($this->date) ? $this->date : null),
             'day_number'                  => $this->day_number,
             'is_completed'                => $this->is_completed,
             'is_day_off'                  => $this->is_day_off,

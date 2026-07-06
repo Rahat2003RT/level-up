@@ -50,7 +50,7 @@ class LeadershipChecklist extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'date' => 'date:Y-m-d',
         'day_number' => 'integer',
         'is_completed' => 'boolean',
         'is_day_off' => 'boolean',
