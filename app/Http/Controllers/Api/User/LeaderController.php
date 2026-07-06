@@ -139,7 +139,7 @@ final class LeaderController extends Controller
     public function showChecklist(ShowChecklistRequest $request): LeadershipChecklistResource
     {
         $result = $this->service->getOrCreateVirtual($request->user(), $request->validated());
-        return LeadershipChecklistResource::make($result);
+        return LeadershipChecklistResource::make(is_array($result) ? (object)$result : $result);
     }
 
     /**

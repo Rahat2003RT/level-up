@@ -68,7 +68,7 @@ class LeaderChecklistAndPlanTest extends TestCase
 
         $response = $this->postJson('/api/v1/leader/checklist', $payload);
 
-        $response->assertStatus(200);
+        $response->assertStatus(201);
         $this->assertDatabaseHas('leadership_checklists', [
             'user_id' => $this->leader->id,
             'is_completed' => true,
@@ -119,7 +119,7 @@ class LeaderChecklistAndPlanTest extends TestCase
 
         $response = $this->postJson('/api/v1/leader/team-plan', $payload);
 
-        $response->assertStatus(200)
+        $response->assertStatus(201)
             ->assertJsonPath('data.daily_calls', 10);
 
         $this->assertDatabaseHas('team_plans', [

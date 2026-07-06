@@ -8,7 +8,7 @@ class GetTeamMembersRequest extends ApiBaseRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->role === 'leader';
+        return $this->user()->role?->value === 'leader';
     }
 
     public function rules(): array
