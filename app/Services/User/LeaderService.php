@@ -1,20 +1,18 @@
 <?php
+
 namespace App\Services\User;
 
-use App\Enums\UserRole;
 use App\Models\Contact;
 use App\Models\LeadershipChecklist;
 use App\Models\TeamInvitation;
 use App\Models\TeamPlan;
 use App\Models\User;
-use App\Models\DailyChecklist;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class LeaderService
 {
@@ -78,13 +76,13 @@ class LeaderService
                 $percentage = min(100, max(0, $percentage));
 
                 return [
-                    'id'                 => $player->id,
-                    'name'               => $player->name,
-                    'avatar'             => $player->avatar_url ?? null,
+                    'id' => $player->id,
+                    'name' => $player->name,
+                    'avatar' => $player->avatar_url ?? null,
                     'current_day_number' => $currentDayNumber,
-                    'progress_percent'   => $percentage,
-                    'clients_count'      => $player->clients_count,
-                    'partners_count'     => $player->partners_count,
+                    'progress_percent' => $percentage,
+                    'clients_count' => $player->clients_count,
+                    'partners_count' => $player->partners_count,
                     'is_completed_today' => $isCompletedToday,
                 ];
             });
@@ -97,7 +95,6 @@ class LeaderService
         }
         return $player->update(['leader_id' => null]);
     }
-
 
 
     /**
@@ -162,25 +159,6 @@ class LeaderService
     }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
      * Получить чек-лист лидера за день или вернуть структуру-заглушку.
      */
@@ -204,20 +182,22 @@ class LeaderService
             $nextDayNumber = LeadershipChecklist::where('user_id', $userId)->max('day_number') + 1;
 
             return [
-                'date'                        => $date,
-                'day_number'                  => $nextDayNumber,
-                'is_completed'                => false,
-                'is_day_off'                  => false,
-                'checked_team_activity'       => false,
-                'contacted_players'           => false,
-                'added_new_player'            => false,
-                'held_online_meeting'         => false,
+                'id'                          => null,
+                'user_id'                     => $userId,
+                'date' => $date,
+                'day_number' => $nextDayNumber,
+                'is_completed' => false,
+                'is_day_off' => false,
+                'checked_team_activity' => false,
+                'contacted_players' => false,
+                'added_new_player' => false,
+                'held_online_meeting' => false,
                 'posted_engaged_social_media' => false,
-                'attracted_new_client'        => false,
-                'brought_new_partner'         => false,
-                'sent_new_invitations'        => false,
-                'notes_for_the_day'           => '',
-                'is_editable'                 => true,
+                'attracted_new_client' => false,
+                'brought_new_partner' => false,
+                'sent_new_invitations' => false,
+                'notes_for_the_day' => '',
+                'is_editable' => true,
             ];
         }
 
@@ -237,11 +217,11 @@ class LeaderService
 
         /** @var LeadershipChecklist $checklist */
         $checklist = LeadershipChecklist::create(array_merge($data, [
-            'user_id'      => $user->id,
-            'date'         => Carbon::today()->toDateString(),
-            'day_number'   => $dayNumber,
+            'user_id' => $user->id,
+            'date' => Carbon::today()->toDateString(),
+            'day_number' => $dayNumber,
             'is_completed' => true,
-            'is_day_off'   => false,
+            'is_day_off' => false,
         ]));
 
         return $checklist;
@@ -260,19 +240,19 @@ class LeaderService
 
         /** @var LeadershipChecklist $checklist */
         $checklist = LeadershipChecklist::create([
-            'user_id'                     => $user->id,
-            'date'                        => Carbon::today()->toDateString(),
-            'day_number'                  => $dayNumber,
-            'is_completed'                => false,
-            'is_day_off'                  => true,
-            'checked_team_activity'       => false,
-            'contacted_players'           => false,
-            'added_new_player'            => false,
-            'held_online_meeting'         => false,
+            'user_id' => $user->id,
+            'date' => Carbon::today()->toDateString(),
+            'day_number' => $dayNumber,
+            'is_completed' => false,
+            'is_day_off' => true,
+            'checked_team_activity' => false,
+            'contacted_players' => false,
+            'added_new_player' => false,
+            'held_online_meeting' => false,
             'posted_engaged_social_media' => false,
-            'attracted_new_client'        => false,
-            'brought_new_partner'         => false,
-            'sent_new_invitations'        => false,
+            'attracted_new_client' => false,
+            'brought_new_partner' => false,
+            'sent_new_invitations' => false,
         ]);
 
         return $checklist;
@@ -300,28 +280,28 @@ class LeaderService
 
         if (!$leaderId) {
             return new TeamPlan([
-                'daily_calls'            => 0,
-                'daily_meetings'         => 0,
+                'daily_calls' => 0,
+                'daily_meetings' => 0,
                 'business_conversations' => 0,
-                'presentations'          => 0,
-                'social_media_posts'     => 0,
-                'new_clients_per_week'   => 0,
-                'new_partners_per_week'  => 0,
-                'daily_volume_points'    => 0,
+                'presentations' => 0,
+                'social_media_posts' => 0,
+                'new_clients_per_week' => 0,
+                'new_partners_per_week' => 0,
+                'daily_volume_points' => 0,
             ]);
         }
 
         return TeamPlan::firstOrCreate(
             ['user_id' => $leaderId],
             [
-                'daily_calls'            => 0,
-                'daily_meetings'         => 0,
+                'daily_calls' => 0,
+                'daily_meetings' => 0,
                 'business_conversations' => 0,
-                'presentations'          => 0,
-                'social_media_posts'     => 0,
-                'new_clients_per_week'   => 0,
-                'new_partners_per_week'  => 0,
-                'daily_volume_points'    => 0,
+                'presentations' => 0,
+                'social_media_posts' => 0,
+                'new_clients_per_week' => 0,
+                'new_partners_per_week' => 0,
+                'daily_volume_points' => 0,
             ]
         );
     }
