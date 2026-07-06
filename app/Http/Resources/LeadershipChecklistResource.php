@@ -14,7 +14,7 @@ class LeadershipChecklistResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'                          => $this->id,
+            'id'                          => $this->id ?? null,
             'user_id'                     => $this->user_id,
             'date'                        => $this->date?->toDateString(),
             'day_number'                  => $this->day_number,
