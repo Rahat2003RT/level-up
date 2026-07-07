@@ -63,6 +63,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['can:access-player'])->prefix('player')->group(function () {
             Route::get('/progress', [User\PlayerController::class, 'progress']);
             Route::get('/team-plan', [User\PlayerController::class, 'getTeamPlan']);
+            Route::post('/leave-team', [User\PlayerController::class, 'leaveTeam']);
             // ----------------------------------------------------------------//
             //                       CHECKLIST METHODS                         //
             // ----------------------------------------------------------------//

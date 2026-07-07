@@ -183,4 +183,13 @@ final class PlayerController extends Controller
         $plan = $leaderService->getTeamPlan($request->user());
         return TeamPlanResource::make($plan);
     }
+
+    /**
+     * Выйти из текущей команды.
+     */
+    public function leaveTeam(Request $request): Response
+    {
+        $this->service->leaveTeam($request->user());
+        return response()->noContent();
+    }
 }

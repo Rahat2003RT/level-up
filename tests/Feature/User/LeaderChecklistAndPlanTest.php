@@ -196,4 +196,39 @@ class LeaderChecklistAndPlanTest extends TestCase
                 ]
             ]);
     }
+
+    public function test_player_can_successfully_leave_their_team()
+    {
+        // Привязываем игрока к лидеру
+        $this->player->update(['leader_id' => $this->leader->id]);
+
+        $this->actingAs($this->player, 'sanctum');
+
+        $response = $this->postJson('/api/v1/player/leave-team');
+
+        $response->assertStatus(204);
+
+        // Проверяем, что в базе связь обнулилась
+        $this->assertDatabaseHas('users', [
+            'id'        => $this->player->id,
+            'leader_id' => null
+        ]);
+    }
+
+    public function test_player_cannot_leave_team_if_not_in_one()
+    {
+        // Убеждаемся, что лидер равен null
+        $this->player->update(['leader_id' => null]);
+
+        $this->actingAs($this->player, 'sanctum');
+
+        $response = $this->postJson('/api/v1/player/leave-team');
+
+        // Проверяем работу кастомного обработчика ошибок из bootstrap/app.php
+        $response->assertStatus(422)
+            ->assertJson([
+                'status'  => 'error',
+                'message' => 'You are not currently a member of any team.',
+            ]);
+    }
 }

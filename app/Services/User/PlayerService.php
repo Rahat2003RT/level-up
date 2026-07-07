@@ -391,7 +391,19 @@ class PlayerService
         ];
     }
 
+    /**
+     * Покинуть текущую команду.
+     */
+    public function leaveTeam(User $player): bool
+    {
+        if (is_null($player->leader_id)) {
+            throw ValidationException::withMessages([
+                'team' => 'You are not currently a member of any team.'
+            ]);
+        }
 
+        return $player->update(['leader_id' => null]);
+    }
 
 
 }
