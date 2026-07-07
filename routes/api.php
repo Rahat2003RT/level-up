@@ -30,12 +30,12 @@ Route::prefix('v1')->group(function () {
             Route::prefix('users')->group(function () {
                 Route::get('/', [Admin\UserController::class, 'index']);
                 Route::get('/{user}', [Admin\UserController::class, 'show']);
-                Route::delete('/{user}', [Admin\UserController::class, 'destroy']);
-                Route::post('/{user}/change-user', [Admin\UserController::class, 'changeUser']);
+                Route::patch('/{user}', [Admin\UserController::class, 'update']);
+                Route::patch('/{user}/role', [Admin\UserController::class, 'changeRole']);
                 Route::post('/{user}/block', [Admin\UserController::class, 'block']);
                 Route::post('/{user}/unblock', [Admin\UserController::class, 'unblock']);
-                Route::patch('/{user}/role', [Admin\UserController::class, 'changeRole']);
                 Route::post('/{user}/restore', [Admin\UserController::class, 'restore'])->withTrashed();
+                Route::delete('/{user}', [Admin\UserController::class, 'destroy']);
                 Route::delete('/{user}/force-delete', [Admin\UserController::class, 'forceDelete'])->withTrashed();
             });
         });

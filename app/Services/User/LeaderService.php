@@ -53,10 +53,8 @@ class LeaderService
                 }
             ])
             ->with(['checklists' => function ($query) use ($todayStr) {
-                // Подгружаем чек-лист на сегодня
                 $query->where('date', $todayStr);
             }])
-            ->with('checklists')
             ->latest()
             ->get()
             ->map(function ($player) use ($todayStr) {
@@ -196,7 +194,6 @@ class LeaderService
                 'attracted_new_client' => false,
                 'brought_new_partner' => false,
                 'sent_new_invitations' => false,
-                'notes_for_the_day' => '',
                 'is_editable' => true,
             ];
         }
@@ -276,7 +273,7 @@ class LeaderService
      */
     public function getTeamPlan(User $user): Model
     {
-        $leaderId = $user->role == 'leader' ? $user->id : $user->leader_id;
+        $leaderId = $user->isLeader() ? $user->id : $user->leader_id;
 
         if (!$leaderId) {
             return new TeamPlan([

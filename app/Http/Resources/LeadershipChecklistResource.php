@@ -31,7 +31,6 @@ class LeadershipChecklistResource extends JsonResource
             'attracted_new_client'        => $this->attracted_new_client,
             'brought_new_partner'         => $this->brought_new_partner,
             'sent_new_invitations'        => $this->sent_new_invitations,
-            'notes_for_the_day'           => $this->notes_for_the_day,
             'is_editable'                 => $this->is_editable ?? $this->isEditable(),
         ];
     }

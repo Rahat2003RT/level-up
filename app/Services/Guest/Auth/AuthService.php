@@ -4,11 +4,9 @@ namespace App\Services\Guest\Auth;
 
 use App\Models\User;
 use App\Notifications\CustomResetPasswordNotification;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -98,7 +96,9 @@ final class AuthService
         $email = $data['email'];
         $redisKey = "password_reset_attempts:$email";
         $currentAttempts = Redis::incr($redisKey);
-        if ($currentAttempts === 1) {Redis::expire($redisKey, 10800);}
+        if ($currentAttempts === 1) {
+            Redis::expire($redisKey, 10800);
+        }
         if ($currentAttempts > 4) {
             Log::channel('auth')->warning('Password reset throttled: max attempts reached', [
                 'email' => $email,
@@ -122,8 +122,8 @@ final class AuthService
         $user->notify(new CustomResetPasswordNotification($code, $locale));
         return [
             'current_attempts' => $currentAttempts,
-            'ttl_seconds'      => Redis::ttl($redisKey),
-            'redis_key'        => $redisKey
+            'ttl_seconds' => Redis::ttl($redisKey),
+            'redis_key' => $redisKey
         ];
     }
 

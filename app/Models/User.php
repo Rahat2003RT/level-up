@@ -21,7 +21,8 @@ use Laravel\Sanctum\HasApiTokens;
 
 /**
  * Class User
- * * @property int $id
+ *
+ * @property int $id
  * @property int|null $leader_id
  * @property string|null $account_id
  * @property string|null $name
@@ -50,11 +51,30 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property Carbon|null $deleted_at
- * * @property-read User|null $leader
+ *
+ * @property-read User|null $leader
  * @property-read Collection<int, User> $players
  * @property-read Collection<int, UserDevice> $deviceTokens
- * @mixin Builder
  * @property-read Collection<int, UserNotification> $notifications
+ * @property-read UserGoal|null $goal
+ * @property-read Collection<int, DailyChecklist> $checklists
+ * @property-read Collection<int, Contact> $contacts
+ *
+ * @method static Builder|User query()
+ * @method static Builder|User newModelQuery()
+ * @method static Builder|User newQuery()
+ * @method static Builder|User onlyTrashed()
+ * @method static Builder|User withTrashed()
+ * @method static User create(array $attributes = [])
+ * @method static User updateOrCreate(array $attributes, array $values = [])
+ * @method static Builder|User where($column, $operator = null, $value = null, $boolean = 'and')
+ * @method static User|null find($id, $columns = ['*'])
+ * @method static User|null first($columns = ['*'])
+ * @method static User firstOrFail($columns = ['*'])
+ * @method static Builder|User whereAccountId($value)
+ * @method static Builder|User whereEmail($value)
+ * @method static Builder|User whereId($value)
+ * @method static Builder|User whereRole($value)
  */
 class User extends Authenticatable implements MustVerifyEmail
 {

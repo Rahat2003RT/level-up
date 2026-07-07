@@ -19,7 +19,6 @@ class StoreLeadershipChecklistRequest extends ApiBaseRequest
             'attracted_new_client'        => ['required', 'boolean'],
             'brought_new_partner'         => ['required', 'boolean'],
             'sent_new_invitations'        => ['required', 'boolean'],
-            'notes_for_the_day'           => ['nullable', 'string'],
         ];
     }
 }

@@ -12,7 +12,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
 #[Group('Уведомления / Админка', weight: 0)]
-final class NotificationController extends Controller
+final class  NotificationController extends Controller
 {
     public function __construct(
         private readonly NotificationService $service

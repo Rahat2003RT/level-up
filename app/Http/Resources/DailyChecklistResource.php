@@ -14,13 +14,6 @@ final class DailyChecklistResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $progressData = data_get($this->resource, 'progress', [
-            'current_streak' => 0,
-            'wins' => 0,
-            'misses' => 0,
-            'percentage' => 0,
-        ]);
-
         return [
             'date'                       => $this['date'] ?? $this->date,
             'day_number'                 => (int) ($this['day_number'] ?? $this->day_number),
@@ -37,12 +30,6 @@ final class DailyChecklistResource extends JsonResource
             'social_media_activity'      => (bool) ($this['social_media_activity'] ?? $this->social_media_activity),
             'communication_with_sponsor' => (bool) ($this['communication_with_sponsor'] ?? $this->communication_with_sponsor),
             'notes_for_the_day'          => (string) ($this['notes_for_the_day'] ?? $this->notes_for_the_day ?? ''),
-            'progress' => [
-                'current_streak'   => (int) data_get($progressData, 'current_streak', 0),
-                'wins'             => (int) data_get($progressData, 'wins', 0),
-                'misses'            => (int) data_get($progressData, 'loses', 0),
-                'percentage'       => (float) data_get($progressData, 'percentage', 0.0),
-            ],
             'is_editable' => is_array($this->resource)
                 ? $this->resource['is_editable']
                 : $this->isEditable(),

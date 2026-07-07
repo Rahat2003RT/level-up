@@ -14,7 +14,6 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\Admin\UserService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
@@ -22,9 +21,9 @@ use Illuminate\Validation\ValidationException;
 #[Group('Пользователь / Админка', weight: 10)]
 final class UserController extends Controller
 {
-    public function __construct(
-        private readonly UserService $service
-    ) {}
+    public function __construct(private readonly UserService $service)
+    {
+    }
 
     /**
      * Список пользователей
@@ -38,7 +37,7 @@ final class UserController extends Controller
     }
 
     /**
-     * Создание нового пользователя администратором
+     * Создание нового пользователя
      * @param CreateUserRequest $request
      * @return UserResource
      */
@@ -49,7 +48,7 @@ final class UserController extends Controller
     }
 
     /**
-     * Показать пользователя
+     * О пользователе
      * @param User $user
      * @return UserResource
      */
@@ -77,7 +76,7 @@ final class UserController extends Controller
      * @param User $user
      * @return UserResource
      */
-    public function changeUser(ChangeUserRequest $request, User $user): UserResource
+    public function update(ChangeUserRequest $request, User $user): UserResource
     {
         $updatedUser = $this->service->changeUser($user, $request->validated());
         return UserResource::make($updatedUser);
@@ -129,7 +128,7 @@ final class UserController extends Controller
      */
     public function restore(User $user): UserResource
     {
-        $user = $this->service->restore($user->id);
+        $user = $this->service->restore($user);
         return UserResource::make($user);
     }
 
@@ -142,25 +141,5 @@ final class UserController extends Controller
     {
         $this->service->forceDelete($user);
         return response()->noContent();
-    }
-
-
-
-    /**
-     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!ВАЖНО!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     * Удалить данный метод
-     * @hideFromDocs
-     */
-    public function impersonate(User $user): JsonResponse
-    {
-        // Создаем токен для выбранного пользователя (например, для Sanctum)
-        // Имя токена можно указать любое, например 'impersonated-token'
-        $token = $user->createToken('admin-impersonation-token')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => UserResource::make($user),
-        ]);
     }
 }

@@ -29,9 +29,6 @@ return new class extends Migration
             $table->boolean('brought_new_partner')->default(false);
             $table->boolean('sent_new_invitations')->default(false);
 
-            // Текстовый блок (на случай, если кнопка Finish the day тоже открывает заметки)
-            $table->text('notes_for_the_day')->nullable();
-
             $table->timestamps();
 
             // Уникальный индекс, чтобы у юзера был только один чек-лист лидера за день

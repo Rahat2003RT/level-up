@@ -24,7 +24,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property bool $attracted_new_client
  * @property bool $brought_new_partner
  * @property bool $sent_new_invitations
- * @property string|null $notes_for_the_day
  * @mixin Builder
  * @property-read User $user
  * @property bool $is_editable
@@ -46,7 +45,6 @@ class LeadershipChecklist extends Model
         'attracted_new_client',
         'brought_new_partner',
         'sent_new_invitations',
-        'notes_for_the_day',
     ];
 
     protected $casts = [

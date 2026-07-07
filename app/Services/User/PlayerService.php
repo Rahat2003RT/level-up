@@ -12,7 +12,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class PlayerService
@@ -34,10 +33,8 @@ class PlayerService
             ->where('date', $date)
             ->first();
         /** @var DailyChecklist|null $checklist */
-        $progress = $this->getUserProgress($user->id);
 
         if ($checklist) {
-            $checklist->progress = $progress;
             $checklist->is_editable = $checklist->isEditable();
             return $checklist;
         }
@@ -63,7 +60,6 @@ class PlayerService
                 'plans_for_the_day' => '',
                 'results_for_the_day' => '',
                 'notes_for_the_day' => '',
-                'progress' => $progress,
                 'is_editable' => true,
             ];
         }
