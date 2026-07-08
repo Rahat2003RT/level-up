@@ -155,15 +155,16 @@ class EliteInvitationTest extends TestCase
         \App\Models\Contact::factory()->create(['user_id' => $inactivePlayer->id, 'volume' => 200]);
 
         // 4. Задаем чек-лист для самого Лидера (15-й день курса, выполнен)
-        \App\Models\DailyChecklist::create([
-            'user_id' => $activePlayer->id,
+        \App\Models\LeadershipChecklist::create([
+            'user_id' => $leader->id,
             'date' => \Carbon\Carbon::today()->toDateString(),
-            'day_number' => 1,
+            'day_number' => 15,
             'is_completed' => true,
             'is_day_off' => false
         ]);
 
-        \App\Models\LeadershipChecklist::create([
+        // 5. Задаем чек-лист для игрока (1 день курса)
+        \App\Models\DailyChecklist::create([
             'user_id' => $activePlayer->id,
             'date' => \Carbon\Carbon::today()->toDateString(),
             'day_number' => 1,

@@ -40,24 +40,24 @@ class EliteService
     public function getTeamLeaders(User $elite, array $data): LengthAwarePaginator
     {
         $todayStr = Carbon::today()->toDateString();
-        $perPage = $data['per_page'] ?? 15;
+        $perPage = $data['per_page'] ?? 20; // Твоя базовая пагинация на 20
 
-        // Получаем лидеров, привязанных к этой элите
         $leadersPaginator = $elite->players()
             ->where('role', 'leader')
-            ->with(['checklists' => fn($q) => $q->latest('date')])
+            // Подгружаем именно лидерские чек-листы!
+            ->with(['leadershipChecklists' => fn($q) => $q->latest('date')])
             ->latest('created_at')
             ->paginate($perPage);
 
-        // Трансформируем элементы (логика подсчета метрик остаётся прежней)
         $transformedItems = collect($leadersPaginator->items())->map(function ($leader) use ($todayStr) {
-            $lastLeaderChecklist = $leader->checklists->first();
-            $todayLeaderChecklist = $leader->checklists->first(fn($c) => $c->date->toDateString() === $todayStr);
+            // Читаем из правильной коллекции отношений
+            $lastLeaderChecklist = $leader->leadershipChecklists->first();
+            $todayLeaderChecklist = $leader->leadershipChecklists->first(fn($c) => $c->date->toDateString() === $todayStr);
 
             if ($todayLeaderChecklist) {
                 $currentDayNumber = $todayLeaderChecklist->day_number;
             } else {
-                $maxLeaderDay = $leader->checklists->max('day_number') ?? 0;
+                $maxLeaderDay = $leader->leadershipChecklists->max('day_number') ?? 0;
                 $currentDayNumber = $maxLeaderDay + 1;
             }
             $currentDayNumber = min(90, $currentDayNumber);
@@ -67,6 +67,7 @@ class EliteService
                 $leaderStatus = 'Active';
             }
 
+            // Статистика по игрокам лидера (они используют дефолтные checklists)
             $players = $leader->players()->with('checklists')->get();
             $totalPlayers = $players->count();
             $activePlayersCount = 0;

@@ -156,6 +156,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(DailyChecklist::class, 'user_id');
     }
 
+    public function leadershipChecklists(): HasMany
+    {
+        return $this->hasMany(LeadershipChecklist::class, 'user_id');
+    }
+
     public function contacts(): HasMany
     {
         return $this->hasMany(Contact::class);
