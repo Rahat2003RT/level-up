@@ -3,39 +3,26 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\TeamInvitation;
-use App\Enums\UserRole;
+use App\Services\User\EliteService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
+use Illuminate\Http\Request;
 
-#[Group('Пользователь / Elite', weight: 260)]
+#[Group('Пользователь / Elite', weight: 270)]
 final class EliteController extends Controller
 {
+    public function __construct(
+        protected EliteService $service
+    ) {}
+
     /**
-     * Приглашение в команду
+     * Генерация ссылки приглашения Лидеров в команду
      */
-    public function storeInvitation(Request $request): JsonResponse
+    public function generateInviteLink(Request $request): JsonResponse
     {
-        if ($request->user()->role !== UserRole::ELITE) {
-            return response()->json(['status' => 'error', 'message' => 'Access denied.'], 403);
-        }
-
-        $invitation = TeamInvitation::create([
-            'leader_id'  => $request->user()->id,
-            'token'      => Str::random(32),
-            'expires_at' => Carbon::now()->addDays(7),
-        ]);
-
-        return response()->json([
-            'status' => 'success',
-            'data'   => [
-                'token'      => $invitation->token,
-                'expires_at' => $invitation->expires_at->toIso8601String(),
-                'url'        => config('app.frontend_url') . '/join-team?token=' . $invitation->token
-            ]
-        ], 201);
+        $link = $this->service->generateInvitation($request->user());
+        return response()->json(['data' => ['invite_url' => $link]]);
     }
+
+
 }

@@ -182,4 +182,32 @@ final class LeaderController extends Controller
         $stats = $this->service->getDashboardStatistics($request->user());
         return response()->json(['data' => $stats]);
     }
+
+
+    /**
+     * Просмотр данных о приглашений
+     */
+    public function showInvitation(Request $request, string $token): JsonResponse
+    {
+        $data = $this->service->getEliteTeamDataByToken($request->user(), $token);
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Принять или отклонить приглашение
+     */
+    public function joinTeam(Request $request, string $token): JsonResponse
+    {
+        $request->validate([
+            'accept' => 'required|boolean'
+        ]);
+
+        $result = $this->service->handleInvitation(
+            $request->user(),
+            $token,
+            $request->input('accept')
+        );
+
+        return response()->json($result);
+    }
 }

@@ -125,6 +125,20 @@ Route::prefix('v1')->group(function () {
                 Route::post('/', [User\LeaderController::class, 'storeChecklist']);
                 Route::post('/day-off', [User\LeaderController::class, 'setDayOff']);
             });
+
+            // ----------------------------------------------------------------//
+            //                          TEAMS METHODS                          //
+            // ----------------------------------------------------------------//
+            Route::prefix('team-invitation')->group(function () {
+                Route::get('/{token}', [User\LeaderController::class, 'showInvitation']);
+                Route::post('/{token}/answer', [User\LeaderController::class, 'joinTeam']);
+            });
+        });
+        // ----------------------------------------------------------------//
+        //                        ELITE METHODS                            //
+        // ----------------------------------------------------------------//
+        Route::middleware(['can:access-elite'])->prefix('elite')->group(function () {
+            Route::post('/generate-invite', [User\EliteController::class, 'generateInviteLink']);
         });
     });
     // ---------------------------------------------------------------------------------------------------------------//

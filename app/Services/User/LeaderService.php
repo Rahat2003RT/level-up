@@ -370,4 +370,75 @@ class LeaderService
             'average_progress'   => min(100, $averageProgress),
         ];
     }
+
+    /**
+     * Получить информацию об Элите по токену ссылки (для экрана подтверждения).
+     */
+    public function getEliteTeamDataByToken(User $user, string $token): array
+    {
+        $invitation = TeamInvitation::where('token', $token)->first();
+
+        if (!$invitation) {
+            throw ValidationException::withMessages(['token' => 'Invitation not found.']);
+        }
+
+        if ($invitation->isExpired()) {
+            throw ValidationException::withMessages(['token' => 'Link has expired.']);
+        }
+
+        // КРИТИЧЕСКОЕ ПРАВИЛО: Только Лидер может вступать к Элите
+        if ($user->role?->value !== 'leader' && $user->role !== 'leader') {
+            throw ValidationException::withMessages(['role' => 'Only users with the Leader role can join an Elite team.']);
+        }
+
+        if ($invitation->leader_id === $user->id) {
+            throw ValidationException::withMessages(['team' => 'You cannot join your own team.']);
+        }
+
+        if ($user->leader_id === $invitation->leader_id) {
+            throw ValidationException::withMessages(['team' => 'You are already a member of this team.']);
+        }
+
+        if (!is_null($user->leader_id)) {
+            throw ValidationException::withMessages(['team' => 'You are already in an Elite team. Leave your current team first.']);
+        }
+
+        return [
+            'elite_name' => $invitation->leader->name, // Используем связь leader, так как в таблице это поле называется leader_id
+            'elite_avatar' => $invitation->leader->avatar_url ?? null,
+            'token' => $token
+        ];
+    }
+
+    /**
+     * Обработка принятия или отклонения инвайта Лидером.
+     */
+    public function handleInvitation(User $user, string $token, bool $accept): array
+    {
+        $invitation = TeamInvitation::where('token', $token)->first();
+
+        if (!$invitation || $invitation->isExpired()) {
+            throw ValidationException::withMessages(['token' => 'The link is invalid or expired.']);
+        }
+
+        if ($user->role?->value !== 'leader' && $user->role !== 'leader') {
+            throw ValidationException::withMessages(['role' => 'Only users with the Leader role can join an Elite team.']);
+        }
+
+        if ($invitation->leader_id === $user->id) {
+            throw ValidationException::withMessages(['token' => 'You cannot join your own team.']);
+        }
+
+        if (!is_null($user->leader_id)) {
+            throw ValidationException::withMessages(['token' => 'You are already in a team. Leave your current team first.']);
+        }
+
+        if ($accept) {
+            // Привязываем Лидера к Элите через то же поле leader_id
+            $user->update(['leader_id' => $invitation->leader_id]);
+            return ['status' => 'accepted', 'message' => 'You have successfully joined the Elite team.'];
+        }
+
+        return ['status' => 'declined', 'message' => 'You declined the invitation.'];
+    }
 }
