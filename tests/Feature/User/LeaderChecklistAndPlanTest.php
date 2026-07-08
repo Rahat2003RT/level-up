@@ -258,4 +258,38 @@ class LeaderChecklistAndPlanTest extends TestCase
                 ]
             ]);
     }
+
+    public function test_get_team_members_returns_correct_summed_volume_as_integer()
+    {
+        $this->actingAs($this->leader, 'sanctum');
+
+        // 1. Привязываем нашего игрока к лидеру
+        $this->player->update(['leader_id' => $this->leader->id]);
+
+        // 2. Создаем для этого игрока контакты с баллами volume (в виде целых чисел)
+        // Убедись, что фабрика или модель Contact импортированы вверху файла тестов
+        \App\Models\Contact::factory()->create([
+            'user_id' => $this->player->id,
+            'type'    => 'client',
+            'volume'  => 150,
+        ]);
+
+        \App\Models\Contact::factory()->create([
+            'user_id' => $this->player->id,
+            'type'    => 'partner',
+            'volume'  => 320,
+        ]);
+
+        // 3. Делаем запрос к эндпоинту получения списка участников
+        $response = $this->getJson('/api/v1/leader/team-members');
+
+        // 4. Проверяем статус и то, что сумма посчиталась верно (150 + 320 = 470)
+        $response->assertStatus(200)
+            ->assertJsonPath('data.0.id', $this->player->id)
+            ->assertJsonPath('data.0.volume', 470);
+
+        // 5. Дополнительная строгая проверка на тип данных (что это именно int, а не float/string)
+        $responseData = $response->json('data.0');
+        $this->assertIsInt($responseData['volume']);
+    }
 }

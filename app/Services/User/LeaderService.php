@@ -41,8 +41,10 @@ class LeaderService
         $todayStr = Carbon::today()->toDateString();
 
         return $leader->players()
+            // Поиск по имени в lowerCase
             ->when($filters['query'] ?? null, function ($query, $search) {
-                $query->where('name', 'like', "%$search%");
+                $searchLower = mb_strtolower($search, 'UTF-8');
+                $query->whereRaw('LOWER(name) LIKE ?', ["%$searchLower%"]);
             })
             ->withCount([
                 'contacts as clients_count' => function ($query) {
@@ -52,6 +54,7 @@ class LeaderService
                     $query->where('type', 'partner');
                 }
             ])
+            ->withSum('contacts as total_volume', 'volume')
             ->with(['checklists' => function ($query) use ($todayStr) {
                 $query->where('date', $todayStr);
             }])
@@ -74,13 +77,14 @@ class LeaderService
                 $percentage = min(100, max(0, $percentage));
 
                 return [
-                    'id' => $player->id,
-                    'name' => $player->name,
-                    'avatar' => $player->avatar_url ?? null,
+                    'id'                 => $player->id,
+                    'name'               => $player->name,
+                    'avatar'             => $player->avatar_url ?? null,
                     'current_day_number' => $currentDayNumber,
-                    'progress_percent' => $percentage,
-                    'clients_count' => $player->clients_count,
-                    'partners_count' => $player->partners_count,
+                    'progress_percent'   => $percentage,
+                    'volume'             => (int)($player->total_volume ?? 0),
+                    'clients_count'      => $player->clients_count,
+                    'partners_count'     => $player->partners_count,
                     'is_completed_today' => $isCompletedToday,
                 ];
             });
