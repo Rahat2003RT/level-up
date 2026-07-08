@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
+use App\Models\Contact;
 use App\Models\User;
 use App\Models\UserGoal;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ final class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $isLeader = $this->role?->value === 'leader' || $this->role === 'leader';
         return [
             'id' => $this->id,
             'account_id' => $this->account_id,
@@ -82,6 +84,19 @@ final class UserResource extends JsonResource
                         filter_var($this->leader->avatar_path, FILTER_VALIDATE_URL) => $this->leader->avatar_path,
                         default => Storage::disk('public')->url($this->leader->avatar_path),
                     },
+                ];
+            }),
+
+            $this->mergeWhen($isLeader, function () {
+                $leaderVolume = (int) $this->contacts()->sum('volume');
+                $teamVolume = (int) Contact::whereIn(
+                    'user_id',
+                    $this->players()->pluck('id')
+                )->sum('volume');
+
+                return [
+                    'total_volume' => $leaderVolume,
+                    'team_volume'  => $teamVolume,   // Очки всей команды игрока (430 pts)
                 ];
             }),
 
