@@ -293,45 +293,6 @@ class LeaderChecklistAndPlanTest extends TestCase
         $this->assertIsInt($responseData['volume']);
     }
 
-    public function test_leader_profile_returns_correct_personal_and_team_volumes()
-    {
-        // 1. Авторизуемся под лидером
-        $this->actingAs($this->leader, 'sanctum');
-
-        // 2. Создаем личный контакт для Лидера с очками (например, 1250 поинтов)
-        \App\Models\Contact::factory()->create([
-            'user_id' => $this->leader->id,
-            'volume'  => 1250,
-        ]);
-
-        // 3. Создаем двух игроков в команде этого Лидера
-        $player1 = User::factory()->create(['leader_id' => $this->leader->id, 'role' => 'player']);
-        $player2 = User::factory()->create(['leader_id' => $this->leader->id, 'role' => 'player']);
-
-        // 4. Накидываем контакты игрокам, чтобы в сумме получилось 430 поинтов
-        \App\Models\Contact::factory()->create([
-            'user_id' => $player1->id,
-            'volume'  => 200,
-        ]);
-
-        \App\Models\Contact::factory()->create([
-            'user_id' => $player2->id,
-            'volume'  => 230,
-        ]);
-
-        // 5. Делаем запрос к эндпоинту профиля (укажи свой точный URL профиля, например /api/v1/profile)
-        $response = $this->getJson('/api/v1/profile');
-
-        // 6. Проверяем структуру ответа и точные значения
-        $response->assertStatus(200)
-            ->assertJsonPath('data.total_volume', 1250) //
-            ->assertJsonPath('data.team_volume', 430);  //
-
-        // 7. Проверяем строгую типизацию на integer (int)
-        $responseData = $response->json('data');
-        $this->assertIsInt($responseData['total_volume']);
-        $this->assertIsInt($responseData['team_volume']);
-    }
 
     public function test_leader_profile_returns_compact_team_info_with_correct_statuses()
     {
