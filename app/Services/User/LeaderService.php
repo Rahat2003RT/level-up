@@ -404,7 +404,7 @@ class LeaderService
         }
 
         return [
-            'elite_name' => $invitation->leader->name, // Используем связь leader, так как в таблице это поле называется leader_id
+            'elite_name' => $invitation->leader->name,
             'elite_avatar' => $invitation->leader->avatar_url ?? null,
             'token' => $token
         ];
@@ -434,7 +434,6 @@ class LeaderService
         }
 
         if ($accept) {
-            // Привязываем Лидера к Элите через то же поле leader_id
             $user->update(['leader_id' => $invitation->leader_id]);
             return ['status' => 'accepted', 'message' => 'You have successfully joined the Elite team.'];
         }
