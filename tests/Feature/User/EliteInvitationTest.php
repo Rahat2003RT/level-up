@@ -163,13 +163,12 @@ class EliteInvitationTest extends TestCase
             'is_day_off' => false
         ]);
 
-        // 5. Задаем чек-листы для игроков:
-        // activePlayer — без пропусков (1 день курса = 1 чек-лист)
         \App\Models\DailyChecklist::create([
-            'user_id' => $activePlayer->id,
+            'user_id' => $leader->id,
             'date' => \Carbon\Carbon::today()->toDateString(),
-            'day_number' => 1,
-            'is_completed' => true
+            'day_number' => 15,
+            'is_completed' => true,
+            'is_day_off' => false
         ]);
 
         // inactivePlayer — пропустил день (в базе нет чек-листов, значит считается пропустившим)
