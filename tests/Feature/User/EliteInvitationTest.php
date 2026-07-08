@@ -128,4 +128,82 @@ class EliteInvitationTest extends TestCase
             'leader_id' => $this->elite->id
         ]);
     }
+
+    /**
+     * Тест получения пагинированного списка лидеров для Элиты со всеми метриками.
+     */
+    public function test_elite_can_receive_paginated_leaders_with_correct_metrics()
+    {
+        $eliteUser = User::factory()->create(['role' => 'elite']);
+        $this->actingAs($eliteUser, 'sanctum');
+
+        // 1. Создаем лидера, привязанного к этой Элите
+        $leader = User::factory()->create([
+            'leader_id' => $eliteUser->id,
+            'role' => 'leader',
+            'name' => 'Tatyana',
+            'surname' => 'Nikolayeva'
+        ]);
+
+        // 2. Создаем игроков для команды этого лидера (всего 2 игрока)
+        $activePlayer = User::factory()->create(['leader_id' => $leader->id, 'role' => 'player']);
+        $inactivePlayer = User::factory()->create(['leader_id' => $leader->id, 'role' => 'player']);
+
+        // 3. Заполняем контакты для проверки Monthly Volume (700 + 300 + 200 = 1200)
+        \App\Models\Contact::factory()->create(['user_id' => $leader->id, 'volume' => 700]);
+        \App\Models\Contact::factory()->create(['user_id' => $activePlayer->id, 'volume' => 300]);
+        \App\Models\Contact::factory()->create(['user_id' => $inactivePlayer->id, 'volume' => 200]);
+
+        // 4. Задаем чек-лист для самого Лидера (15-й день курса, выполнен)
+        \App\Models\LeadershipChecklist::create([
+            'user_id' => $leader->id,
+            'date' => \Carbon\Carbon::today()->toDateString(),
+            'day_number' => 15,
+            'is_completed' => true,
+            'is_day_off' => false
+        ]);
+
+        // 5. Задаем чек-листы для игроков:
+        // activePlayer — без пропусков (1 день курса = 1 чек-лист)
+        \App\Models\DailyChecklist::create([
+            'user_id' => $activePlayer->id,
+            'date' => \Carbon\Carbon::today()->toDateString(),
+            'day_number' => 1,
+            'is_completed' => true
+        ]);
+
+        // inactivePlayer — пропустил день (в базе нет чек-листов, значит считается пропустившим)
+
+        // 6. Выполняем запрос с явными параметрами пагинации
+        $response = $this->getJson('/api/v1/elite/team-members?page=1&per_page=5');
+
+        // 7. Проверяем структуру ответа, метаданные и точные расчеты по макету
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id',
+                        'name',
+                        'avatar',
+                        'current_day_number',
+                        'status',
+                        'total_players_count',
+                        'active_players_count',
+                        'monthly_volume'
+                    ]
+                ],
+                'meta' => ['current_page', 'last_page', 'per_page', 'total']
+            ])
+            ->assertJsonPath('meta.per_page', 5)
+            ->assertJsonPath('meta.current_page', 1)
+            ->assertJsonPath('meta.total', 1)
+            // Проверка данных первой карточки Лидера
+            ->assertJsonPath('data.0.id', $leader->id)
+            ->assertJsonPath('data.0.name', 'Tatyana Nikolayeva')
+            ->assertJsonPath('data.0.current_day_number', 15)
+            ->assertJsonPath('data.0.status', 'Active')
+            ->assertJsonPath('data.0.total_players_count', 2)   // Total Players: 2
+            ->assertJsonPath('data.0.active_players_count', 1)  // Active Players (без пропусков): 1
+            ->assertJsonPath('data.0.monthly_volume', 1200);   // Monthly Volume: 1200
+    }
 }

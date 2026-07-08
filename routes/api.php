@@ -139,6 +139,7 @@ Route::prefix('v1')->group(function () {
         // ----------------------------------------------------------------//
         Route::middleware(['can:access-elite'])->prefix('elite')->group(function () {
             Route::post('/generate-invite', [User\EliteController::class, 'generateInviteLink']);
+            Route::get('/team-members', [User\EliteController::class, 'teamMembers']);
         });
     });
     // ---------------------------------------------------------------------------------------------------------------//
