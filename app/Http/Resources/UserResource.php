@@ -7,6 +7,7 @@ namespace App\Http\Resources;
 use App\Models\Contact;
 use App\Models\User;
 use App\Models\UserGoal;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +23,8 @@ final class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $isLeader = $this->role?->value === 'leader' || $this->role === 'leader';
+        $isLeader = $this->role?->value === 'leader';
+        $todayStr = Carbon::today()->toDateString();
         return [
             'id' => $this->id,
             'account_id' => $this->account_id,
@@ -87,16 +89,45 @@ final class UserResource extends JsonResource
                 ];
             }),
 
-            $this->mergeWhen($isLeader, function () {
-                $leaderVolume = (int) $this->contacts()->sum('volume');
-                $teamVolume = (int) Contact::whereIn(
-                    'user_id',
-                    $this->players()->pluck('id')
-                )->sum('volume');
+            $this->mergeWhen($isLeader, function () use ($todayStr) {
+                $players = $this->players()
+                    ->withSum('contacts as total_volume', 'volume')
+                    ->with(['checklists' => fn($q) => $q->latest('date')])
+                    ->get();
+
+                $teamVolume = (int) $players->sum('total_volume');
+
+                $members = $players->map(function ($player) use ($todayStr) {
+                    $lastChecklist = $player->checklists->first();
+                    $todayChecklist = $player->checklists->first(fn($c) => $c->date->toDateString() === $todayStr);
+
+                    if ($todayChecklist) {
+                        $currentDayNumber = $todayChecklist->day_number;
+                    } else {
+                        $maxDay = $player->checklists->max('day_number') ?? 0;
+                        $currentDayNumber = $maxDay + 1;
+                    }
+
+                    $progressPercent = min(100, max(0, round(($currentDayNumber / 90) * 100)));
+
+                    $status = 'Inactive';
+                    if ($lastChecklist && $lastChecklist->is_completed && !($lastChecklist->is_day_off ?? false)) {
+                        $status = 'Active';
+                    }
+
+                    return [
+                        'id'                 => $player->id,
+                        'name'               => $player->name . ' ' . $player->surname,
+                        'avatar'             => $player->avatar_url ?? null,
+                        'current_day_number' => $currentDayNumber,
+                        'progress_percent'   => $progressPercent,
+                        'status'             => $status,
+                    ];
+                });
 
                 return [
-                    'total_volume' => $leaderVolume,
-                    'team_volume'  => $teamVolume,   // Очки всей команды игрока (430 pts)
+                    'team_volume' => $teamVolume,
+                    'team_members' => $members,
                 ];
             }),
 

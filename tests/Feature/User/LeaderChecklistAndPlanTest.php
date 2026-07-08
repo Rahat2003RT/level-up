@@ -332,4 +332,54 @@ class LeaderChecklistAndPlanTest extends TestCase
         $this->assertIsInt($responseData['total_volume']);
         $this->assertIsInt($responseData['team_volume']);
     }
+
+    public function test_leader_profile_returns_compact_team_info_with_correct_statuses()
+    {
+        $this->actingAs($this->leader, 'sanctum');
+
+        // Создаем двух игроков для команды нашего Лидера
+        $activePlayer = User::factory()->create(['leader_id' => $this->leader->id, 'role' => 'player']);
+        $inactivePlayer = User::factory()->create(['leader_id' => $this->leader->id, 'role' => 'player']);
+
+        // Накидываем им баллы через фабрику контактов (если у тебя настроена фабрика)
+        \App\Models\Contact::factory()->create(['user_id' => $activePlayer->id, 'volume' => 200]);
+        \App\Models\Contact::factory()->create(['user_id' => $inactivePlayer->id, 'volume' => 150]);
+
+        // Настраиваем чек-листы:
+        // ActivePlayer: последний заполненный день — успешный, не выходной
+        \App\Models\DailyChecklist::create([
+            'user_id' => $activePlayer->id,
+            'date' => \Carbon\Carbon::today()->toDateString(),
+            'day_number' => 5,
+            'is_completed' => true,
+            'is_day_off' => false,
+        ]);
+
+        // InactivePlayer: сегодня взял выходной (значит inactive)
+        \App\Models\DailyChecklist::create([
+            'user_id' => $inactivePlayer->id,
+            'date' => \Carbon\Carbon::today()->toDateString(),
+            'day_number' => 3,
+            'is_completed' => false,
+            'is_day_off' => true,
+        ]);
+
+        // Делаем запрос к профилю
+        $response = $this->getJson('/api/v1/profile');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('data.team_volume', 350) // 200 + 150
+            ->assertJsonCount(2, 'data.team_members')
+            // Проверяем выборочно поля первого игрока в списке
+            ->assertJsonPath('data.team_members.0.id', $activePlayer->id)
+            ->assertJsonPath('data.team_members.0.current_day_number', 5)
+            ->assertJsonPath('data.team_members.0.progress_percent', 6) // round((5/90)*100) = 6%
+            ->assertJsonPath('data.team_members.0.status', 'Active')
+            // Проверяем статус неактивного игрока
+            ->assertJsonPath('data.team_members.1.status', 'Inactive');
+
+        // Проверяем, что лишние поля (типа контактов, планов и т.д.) не утекли в список team_members
+        $response->assertJsonMissingPath('data.team_members.0.clients_count');
+        $response->assertJsonMissingPath('data.team_members.0.volume');
+    }
 }
