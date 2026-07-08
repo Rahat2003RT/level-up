@@ -313,4 +313,57 @@ class LeaderService
             $data
         );
     }
+
+    /**
+     * Получить агрегированную статистику для главной страницы лидера.
+     */
+    public function getDashboardStatistics(User $leader): array
+    {
+        $todayStr = Carbon::today()->toDateString();
+
+        $leaderTodayChecklist = LeadershipChecklist::where('user_id', $leader->id)
+            ->where('date', $todayStr)
+            ->first();
+
+        if ($leaderTodayChecklist) {
+            $currentDayNumber = $leaderTodayChecklist->day_number;
+        } else {
+            $maxLeaderDay = LeadershipChecklist::where('user_id', $leader->id)->max('day_number') ?? 0;
+            $currentDayNumber = $maxLeaderDay + 1;
+        }
+        $currentDayNumber = min(90, $currentDayNumber);
+        $players = $leader->players()->with('checklists')->get();
+        $totalPlayers = $players->count();
+
+        $activePlayersCount = 0;
+        $totalProgressPercentage = 0;
+
+        foreach ($players as $player) {
+            $playerChecklistsCount = $player->checklists->count();
+
+            $playerTodayChecklist = $player->checklists->first(fn($c) => $c->date->toDateString() === $todayStr);
+            if ($playerTodayChecklist) {
+                $pDay = $playerTodayChecklist->day_number;
+            } else {
+                $pDay = $player->checklists->max('day_number') ?? 0;
+            }
+
+            $playerProgress = $pDay > 0 ? round(($pDay / 90) * 100) : 0;
+            $totalProgressPercentage += min(100, $playerProgress);
+
+            if ($playerChecklistsCount > 0 && $playerChecklistsCount >= $pDay) {
+                $activePlayersCount++;
+            }
+        }
+
+        $averageProgress = $totalPlayers > 0 ? round($totalProgressPercentage / $totalPlayers) : 0;
+
+        return [
+            'current_day_number' => $currentDayNumber,
+            'plan_start_date'    => $leader->created_at ? $leader->created_at->toDateString() : null,
+            'players_count'      => $totalPlayers,
+            'active_count'       => $activePlayersCount,
+            'average_progress'   => min(100, $averageProgress),
+        ];
+    }
 }

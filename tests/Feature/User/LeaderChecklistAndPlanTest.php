@@ -231,4 +231,31 @@ class LeaderChecklistAndPlanTest extends TestCase
                 'message' => 'You are not currently a member of any team.',
             ]);
     }
+
+    public function test_leader_can_receive_correct_aggregated_dashboard_statistics()
+    {
+        $this->actingAs($this->leader, 'sanctum');
+
+        // Создаем двух игроков в команде лидера
+        $player1 = User::factory()->create(['leader_id' => $this->leader->id, 'role' => 'player']);
+        $player2 = User::factory()->create(['leader_id' => $this->leader->id, 'role' => 'player']);
+
+        // Игрок 1 заполнил 2 дня без пропусков (Активный)
+        \App\Models\DailyChecklist::create(['user_id' => $player1->id, 'date' => Carbon::yesterday()->toDateString(), 'day_number' => 1, 'is_completed' => true]);
+        \App\Models\DailyChecklist::create(['user_id' => $player1->id, 'date' => Carbon::today()->toDateString(), 'day_number' => 2, 'is_completed' => true]);
+
+        // Игрок 2 имеет день 2, но заполнил всего 1 чек-лист (Был пропуск -> Не активный по ТЗ)
+        \App\Models\DailyChecklist::create(['user_id' => $player2->id, 'date' => Carbon::today()->toDateString(), 'day_number' => 2, 'is_completed' => true]);
+
+        $response = $this->getJson('/api/v1/leader/dashboard-statistics');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'data' => [
+                    'players_count'    => 2,
+                    'active_count'     => 1, // Только player1 прошел без пропусков дней
+                    'average_progress' => 2, // (2/90)*100 = 2.2%, в среднем 2%
+                ]
+            ]);
+    }
 }

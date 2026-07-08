@@ -76,6 +76,7 @@ final class UserResource extends JsonResource
                 return [
                     'leader_id'   => $this->leader->id,
                     'leader_name' => $this->leader->name . ' ' . $this->leader->surname,
+                    'role' => $this->leader->role?->value,
                     'avatar'      => match (true) {
                         empty($this->leader->avatar_path) => null,
                         filter_var($this->leader->avatar_path, FILTER_VALIDATE_URL) => $this->leader->avatar_path,

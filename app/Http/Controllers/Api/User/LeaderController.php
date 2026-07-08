@@ -9,8 +9,6 @@ use App\Http\Requests\Leader\Contact\UpdateLeaderContactRequest;
 use App\Http\Requests\Leader\Team\GetTeamMembersRequest;
 use App\Http\Requests\Leader\Team\UpdateTeamPlanRequest;
 use App\Http\Requests\User\Contact\GetContactsRequest;
-use App\Http\Requests\User\Contact\StoreContactRequest;
-use App\Http\Requests\User\Contact\UpdateContactRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Resources\ContactResource;
 use App\Http\Resources\LeadershipChecklistResource;
@@ -29,7 +27,9 @@ final class LeaderController extends Controller
 {
     public function __construct(
         protected LeaderService $service
-    ) {}
+    )
+    {
+    }
 
     /**
      * Генерация ссылки приглашения
@@ -64,16 +64,6 @@ final class LeaderController extends Controller
         $this->service->removePlayerFromTeam($request->user(), $player);
         return response()->json(['message' => 'The player has been successfully removed from the team.']);
     }
-
-
-
-
-
-
-
-
-
-
 
 
     /**
@@ -130,7 +120,6 @@ final class LeaderController extends Controller
     }
 
 
-
     /**
      * Просмотр чек-листа лидера за выбранный день.
      * @param ShowChecklistRequest $request
@@ -167,7 +156,6 @@ final class LeaderController extends Controller
     }
 
 
-
     /**
      * Получить цели для команды.
      */
@@ -184,5 +172,14 @@ final class LeaderController extends Controller
     {
         $plan = $this->service->updateTeamPlan($request->user(), $request->validated());
         return TeamPlanResource::make($plan);
+    }
+
+    /**
+     * Статистика для главной
+     */
+    public function dashboardStatistics(Request $request): JsonResponse
+    {
+        $stats = $this->service->getDashboardStatistics($request->user());
+        return response()->json(['data' => $stats]);
     }
 }

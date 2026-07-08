@@ -100,6 +100,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/invite-link', [User\LeaderController::class, 'generateInviteLink']);
             Route::get('/team-members', [User\LeaderController::class, 'teamMembers']);
             Route::delete('/kick/{player}', [User\LeaderController::class, 'kickPlayer']);
+            Route::get('/dashboard-statistics', [User\LeaderController::class, 'dashboardStatistics']);
             // ----------------------------------------------------------------//
             //                        TEAM PLAN METHODS                        //
             // ----------------------------------------------------------------//
