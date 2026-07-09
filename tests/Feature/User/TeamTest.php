@@ -1,186 +1,207 @@
 <?php
 
+namespace Tests\Feature\User;
+
 use App\Models\User;
 use App\Models\TeamInvitation;
 use App\Models\TeamPlan;
 use App\Enums\UserRole;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
-uses(RefreshDatabase::class);
+class TeamTest extends TestCase
+{
+    use RefreshDatabase;
 
-/*
-|--------------------------------------------------------------------------
-| ГЕНЕРАЦИЯ ИНВАЙТОВ (POST /api/v1/team/invitations)
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | ГЕНЕРАЦИЯ ИНВАЙТОВ (POST /api/v1/team/invitations)
+    |--------------------------------------------------------------------------
+    */
 
-test('лидер и элита могут генерировать ссылки приглашения', function (UserRole $role) {
-    $user = User::factory()->create(['role' => $role]);
-    Sanctum::actingAs($user);
+    public function test_leader_and_elite_can_generate_invite_links(): void
+    {
+        foreach ([UserRole::LEADER, UserRole::ELITE] as $role) {
+            $user = User::factory()->create(['role' => $role]);
+            Sanctum::actingAs($user);
 
-    $response = $this->postJson('/api/v1/team/invitations');
+            $response = $this->postJson('/api/v1/team/invitations');
 
-    $response->assertStatus(200)
-        ->assertJsonStructure(['data' => ['invite_url']]);
+            $response->assertStatus(200)
+                ->assertJsonStructure(['data' => ['invite_url']]);
 
-    $this->assertDatabaseHas('team_invitations', ['leader_id' => $user->id]);
-})->with([UserRole::LEADER, UserRole::ELITE]);
+            $this->assertDatabaseHas('team_invitations', ['leader_id' => $user->id]);
+        }
+    }
 
-test('обычный игрок не может генерировать ссылки приглашения', function () {
-    $user = User::factory()->create(['role' => UserRole::PLAYER]);
-    Sanctum::actingAs($user);
+    public function test_regular_player_cannot_generate_invite_links(): void
+    {
+        $user = User::factory()->create(['role' => UserRole::PLAYER]);
+        Sanctum::actingAs($user);
 
-    $response = $this->postJson('/api/v1/team/invitations');
+        $response = $this->postJson('/api/v1/team/invitations');
 
-    $response->assertStatus(403);
-});
+        $response->assertStatus(403);
+    }
 
-/*
-|--------------------------------------------------------------------------
-| ПРАВИЛА ВСТУПЛЕНИЯ В КОМАНДУ (POST /api/v1/team/invitations/{token}/respond)
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | ПРАВИЛА ВСТУПЛЕНИЯ В КОМАНДУ (POST /api/v1/team/invitations/{token}/respond)
+    |--------------------------------------------------------------------------
+    */
 
-test('игрок может успешно вступить в команду к лидеру', function () {
-    $leader = User::factory()->create(['role' => UserRole::LEADER]);
-    $player = User::factory()->create(['role' => UserRole::PLAYER]);
-    $invitation = TeamInvitation::factory()->create(['leader_id' => $leader->id]);
+    public function test_player_can_successfully_join_leader_team(): void
+    {
+        $leader = User::factory()->create(['role' => UserRole::LEADER]);
+        $player = User::factory()->create(['role' => UserRole::PLAYER]);
+        $invitation = TeamInvitation::factory()->create(['leader_id' => $leader->id]);
 
-    Sanctum::actingAs($player);
+        Sanctum::actingAs($player);
 
-    $response = $this->postJson("/api/v1/team/invitations/{$invitation->token}/respond", [
-        'accept' => true
-    ]);
-
-    $response->assertStatus(200)->assertJsonPath('data.status', 'accepted');
-    $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => $leader->id]);
-});
-
-test('лидер может успешно вступить в команду к элите', function () {
-    $elite = User::factory()->create(['role' => UserRole::ELITE]);
-    $leader = User::factory()->create(['role' => UserRole::LEADER]);
-    $invitation = TeamInvitation::factory()->create(['leader_id' => $elite->id]);
-
-    Sanctum::actingAs($leader);
-
-    $response = $this->postJson("/api/v1/team/invitations/{$invitation->token}/respond", [
-        'accept' => true
-    ]);
-
-    $response->assertStatus(200);
-    $this->assertDatabaseHas('users', ['id' => $leader->id, 'leader_id' => $elite->id]);
-});
-
-test('игрок не может вступить к элите, а лидер к лидеру', function (UserRole $userRole, UserRole $inviterRole) {
-    $inviter = User::factory()->create(['role' => $inviterRole]);
-    $user = User::factory()->create(['role' => $userRole]);
-    $invitation = TeamInvitation::factory()->create(['leader_id' => $inviter->id]);
-
-    Sanctum::actingAs($user);
-
-    $response = $this->postJson("/api/v1/team/invitations/{$invitation->token}/respond", [
-        'accept' => true
-    ]);
-
-    // Валидация правил иерархии возвращает 422 ValidationException
-    $response->assertStatus(422);
-})->with([
-    [UserRole::PLAYER, UserRole::ELITE],  // Игрок к Элите -> Мимо
-    [UserRole::LEADER, UserRole::LEADER], // Лидер к Лидеру -> Мимо
-    [UserRole::ELITE, UserRole::LEADER],  // Элита к Лидеру -> Мимо
-]);
-
-/*
-|--------------------------------------------------------------------------
-| СПИСОК ЧЛЕНОВ КОМАНДЫ (GET /api/v1/team/members)
-|--------------------------------------------------------------------------
-*/
-
-test('лидер видит унифицированный список своих игроков', function () {
-    $leader = User::factory()->create(['role' => UserRole::LEADER]);
-    User::factory()->count(3)->create([
-        'role' => UserRole::PLAYER,
-        'leader_id' => $leader->id
-    ]);
-
-    Sanctum::actingAs($leader);
-
-    $response = $this->getJson('/api/v1/team/members');
-
-    $response->assertStatus(200)
-        ->assertJsonStructure([
-            'data' => [
-                '*' => [
-                    'id', 'name', 'avatar', 'role', 'current_day_number',
-                    'progress_percent', 'status', 'total_players_count',
-                    'active_players_count', 'monthly_volume', 'clients_count', 'partners_count'
-                ]
-            ],
-            'meta' => ['current_page', 'total']
+        $response = $this->postJson("/api/v1/team/invitations/{$invitation->token}/respond", [
+            'accept' => true
         ]);
-});
 
-/*
-|--------------------------------------------------------------------------
-| КОМАНДНЫЙ ПЛАН (GET/PATCH /api/v1/team/plan)
-|--------------------------------------------------------------------------
-*/
+        $response->assertStatus(200)->assertJsonPath('data.status', 'accepted');
+        $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => $leader->id]);
+    }
 
-test('лидер может обновлять командный план, а игрок — нет', function () {
-    $leader = User::factory()->create(['role' => UserRole::LEADER]);
-    $player = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leader->id]);
+    public function test_leader_can_successfully_join_elite_team(): void
+    {
+        $elite = User::factory()->create(['role' => UserRole::ELITE]);
+        $leader = User::factory()->create(['role' => UserRole::LEADER]);
+        $invitation = TeamInvitation::factory()->create(['leader_id' => $elite->id]);
 
-    $planData = ['daily_calls' => 10, 'daily_meetings' => 5];
+        Sanctum::actingAs($leader);
 
-    // 1. Проверяем лидера
-    Sanctum::actingAs($leader);
-    $this->patchJson('/api/v1/team/plan', $planData)->assertStatus(200);
-    $this->assertDatabaseHas('team_plans', ['user_id' => $leader->id, 'daily_calls' => 10]);
+        $response = $this->postJson("/api/v1/team/invitations/{$invitation->token}/respond", [
+            'accept' => true
+        ]);
 
-    // 2. Проверяем игрока (должен получить 403)
-    Sanctum::actingAs($player);
-    $this->patchJson('/api/v1/team/plan', $planData)->assertStatus(403);
-})->skip(fn() => !class_exists(\App\Http\Requests\Api\User\UpdateTeamPlanRequest::class), 'UpdateTeamPlanRequest missing');
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('users', ['id' => $leader->id, 'leader_id' => $elite->id]);
+    }
 
-/*
-|--------------------------------------------------------------------------
-| ИСКЛЮЧЕНИЕ И ВЫХОД (DELETE /members/{id}, POST /leave)
-|--------------------------------------------------------------------------
-*/
+    public function test_invalid_hierarchy_joins_are_blocked(): void
+    {
+        $scenarios = [
+            ['user' => UserRole::PLAYER, 'inviter' => UserRole::ELITE],
+            ['user' => UserRole::LEADER, 'inviter' => UserRole::LEADER],
+            ['user' => UserRole::ELITE, 'inviter' => UserRole::LEADER],
+        ];
 
-test('лидер может исключить игрока из своей команды', function () {
-    $leader = User::factory()->create(['role' => UserRole::LEADER]);
-    $player = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leader->id]);
+        foreach ($scenarios as $scenario) {
+            $inviter = User::factory()->create(['role' => $scenario['inviter']]);
+            $user = User::factory()->create(['role' => $scenario['user']]);
+            $invitation = TeamInvitation::factory()->create(['leader_id' => $inviter->id]);
 
-    Sanctum::actingAs($leader);
+            Sanctum::actingAs($user);
 
-    $response = $this->deleteJson("/api/v1/team/members/{$player->id}");
+            $response = $this->postJson("/api/v1/team/invitations/{$invitation->token}/respond", [
+                'accept' => true
+            ]);
 
-    $response->assertStatus(200);
-    $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => null]);
-});
+            $response->assertStatus(422);
+        }
+    }
 
-test('лидер не может исключить чужого игрока', function () {
-    $leaderA = User::factory()->create(['role' => UserRole::LEADER]);
-    $leaderB = User::factory()->create(['role' => UserRole::LEADER]);
-    $playerB = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leaderB->id]);
+    /*
+    |--------------------------------------------------------------------------
+    | СПИСОК ЧЛЕНОВ КОМАНДЫ (GET /api/v1/team/members)
+    |--------------------------------------------------------------------------
+    */
 
-    Sanctum::actingAs($leaderA);
+    public function test_leader_sees_unified_list_of_players(): void
+    {
+        $leader = User::factory()->create(['role' => UserRole::LEADER]);
+        User::factory()->count(3)->create([
+            'role' => UserRole::PLAYER,
+            'leader_id' => $leader->id
+        ]);
 
-    $response = $this->deleteJson("/api/v1/team/members/{$playerB->id}");
+        Sanctum::actingAs($leader);
 
-    $response->assertStatus(422); // Возвращает ошибку "This user is not on your team."
-});
+        $response = $this->getJson('/api/v1/team/members');
 
-test('пользователь может добровольно покинуть команду', function () {
-    $leader = User::factory()->create(['role' => UserRole::LEADER]);
-    $player = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leader->id]);
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'data' => [
+                    '*' => [
+                        'id', 'name', 'avatar', 'role', 'current_day_number',
+                        'progress_percent', 'status', 'total_players_count',
+                        'active_players_count', 'monthly_volume', 'clients_count', 'partners_count'
+                    ]
+                ],
+                'meta' => ['current_page', 'total']
+            ]);
+    }
 
-    Sanctum::actingAs($player);
+    /*
+    |--------------------------------------------------------------------------
+    | КОМАНДНЫЙ ПЛАН (GET/PATCH /api/v1/team/plan)
+    |--------------------------------------------------------------------------
+    */
 
-    $response = $this->postJson('/api/v1/team/leave');
+    public function test_leader_can_update_plan_but_player_cannot(): void
+    {
+        $leader = User::factory()->create(['role' => UserRole::LEADER]);
+        $player = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leader->id]);
 
-    $response->assertStatus(200);
-    $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => null]);
-});
+        $planData = ['daily_calls' => 10, 'daily_meetings' => 5];
+
+        // 1. Лидер
+        Sanctum::actingAs($leader);
+        $this->patchJson('/api/v1/team/plan', $planData)->assertStatus(200);
+        $this->assertDatabaseHas('team_plans', ['user_id' => $leader->id, 'daily_calls' => 10]);
+
+        // 2. Игрок
+        Sanctum::actingAs($player);
+        $this->patchJson('/api/v1/team/plan', $planData)->assertStatus(403);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ИСКЛЮЧЕНИЕ И ВЫХОД (DELETE /members/{id}, POST /leave)
+    |--------------------------------------------------------------------------
+    */
+
+    public function test_leader_can_kick_player_from_team(): void
+    {
+        $leader = User::factory()->create(['role' => UserRole::LEADER]);
+        $player = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leader->id]);
+
+        Sanctum::actingAs($leader);
+
+        $response = $this->deleteJson("/api/v1/team/members/{$player->id}");
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => null]);
+    }
+
+    public function test_leader_cannot_kick_foreign_player(): void
+    {
+        $leaderA = User::factory()->create(['role' => UserRole::LEADER]);
+        $leaderB = User::factory()->create(['role' => UserRole::LEADER]);
+        $playerB = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leaderB->id]);
+
+        Sanctum::actingAs($leaderA);
+
+        $response = $this->deleteJson("/api/v1/team/members/{$playerB->id}");
+
+        $response->assertStatus(422);
+    }
+
+    public function test_user_can_voluntarily_leave_team(): void
+    {
+        $leader = User::factory()->create(['role' => UserRole::LEADER]);
+        $player = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leader->id]);
+
+        Sanctum::actingAs($player);
+
+        $response = $this->postJson('/api/v1/team/actions/leave'); // С учетом нового префикса actions/leave
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => null]);
+    }
+}
