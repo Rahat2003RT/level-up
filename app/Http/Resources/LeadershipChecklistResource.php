@@ -10,7 +10,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * @mixin LeadershipChecklist
  */
-class LeadershipChecklistResource extends JsonResource
+final class LeadershipChecklistResource extends JsonResource
 {
     public function toArray(Request $request): array
     {

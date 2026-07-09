@@ -35,11 +35,11 @@ final class PlayerStatisticsResource extends JsonResource
             ],
             'income' => [
                 'total' => (float) $this['total_income'],
-                'avg'   => round($this['avg_income'], 0),
+                'avg'   => round($this['avg_income']),
             ],
             'active_days' => [
                 'total' => (int) $this['active_days_count'],
-                'percentage' => round($this['active_days_percentage'], 0),
+                'percentage' => round($this['active_days_percentage']),
             ],
             'total_volume' => (float) $this['total_volume'],
         ];

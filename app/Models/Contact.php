@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property string|null $volume
  * @property string|null $comment
  * @property string|null $date_of_birth
- * @property string|null $type
+ * @property ContactType|null $type
  * @property Carbon|null $reminder_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at

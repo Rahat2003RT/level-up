@@ -14,7 +14,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 
-class PlayerService
+final class PlayerService
 {
     /**
      * Получить существующий чек-лист или подготовить данные для нового.

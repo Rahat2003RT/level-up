@@ -176,7 +176,7 @@ final class TeamService
                 'total_players_count'  => 0,
                 'active_players_count' => 0,
 
-                'monthly_volume'       => (int)($player->total_volume ?? 0),
+                'monthly_volume'       => $player->total_volume ?? 0,
                 'clients_count'        => $player->clients_count,
                 'partners_count'       => $player->partners_count,
             ];

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Resources;
 
-use App\Models\Contact;
 use App\Models\User;
 use App\Models\UserGoal;
 use Carbon\Carbon;
@@ -78,10 +77,10 @@ final class UserResource extends JsonResource
                 }
 
                 return [
-                    'leader_id'   => $this->leader->id,
-                    'leader_name' => $this->leader->name . ' ' . $this->leader->surname,
+                    'id' => $this->leader->id,
+                    'name' => $this->leader->name . ' ' . $this->leader->surname,
                     'role' => $this->leader->role?->value,
-                    'avatar'      => match (true) {
+                    'avatar' => match (true) {
                         empty($this->leader->avatar_path) => null,
                         filter_var($this->leader->avatar_path, FILTER_VALIDATE_URL) => $this->leader->avatar_path,
                         default => Storage::disk('public')->url($this->leader->avatar_path),
@@ -95,7 +94,7 @@ final class UserResource extends JsonResource
                     ->with(['checklists' => fn($q) => $q->latest('date')])
                     ->get();
 
-                $teamVolume = (int) $players->sum('total_volume');
+                $teamVolume = (int)$players->sum('total_volume');
 
                 $members = $players->map(function ($player) use ($todayStr) {
                     $lastChecklist = $player->checklists->first();
@@ -116,12 +115,12 @@ final class UserResource extends JsonResource
                     }
 
                     return [
-                        'id'                 => $player->id,
-                        'name'               => $player->name . ' ' . $player->surname,
-                        'avatar'             => $player->avatar_url ?? null,
+                        'id' => $player->id,
+                        'name' => $player->name . ' ' . $player->surname,
+                        'avatar' => $player->avatar_url ?? null,
                         'current_day_number' => $currentDayNumber,
-                        'progress_percent'   => $progressPercent,
-                        'status'             => $status,
+                        'progress' => $progressPercent,
+                        'status' => $status,
                     ];
                 });
 

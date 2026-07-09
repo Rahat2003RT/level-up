@@ -14,20 +14,9 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
-class LeaderService
+final class LeaderService
 {
-    public function removePlayerFromTeam(User $leader, User $player): bool
-    {
-        if ($player->leader_id !== $leader->id) {
-            throw ValidationException::withMessages(['player' => 'This player is not on your team.']);
-        }
-        return $player->update(['leader_id' => null]);
-    }
-
-
     /**
-     * Получить контакты пользователя по определенному типу.
-     *
      * @param User $user
      * @param array $data
      * @return array
@@ -51,8 +40,6 @@ class LeaderService
     }
 
     /**
-     * Создать новый контакт.
-     *
      * @param User $user
      * @param array $data
      * @return Contact
@@ -63,8 +50,6 @@ class LeaderService
     }
 
     /**
-     * Обновить данные существующего контакта.
-     *
      * @param Contact $contact
      * @param array $data
      * @return Contact
@@ -76,8 +61,6 @@ class LeaderService
     }
 
     /**
-     * Удалить контакт.
-     *
      * @param Contact $contact
      * @return bool|null
      */
@@ -87,9 +70,6 @@ class LeaderService
     }
 
 
-    /**
-     * Получить чек-лист лидера за день или вернуть структуру-заглушку.
-     */
     public function getOrCreateVirtual(User $user, array $data): LeadershipChecklist|array|null
     {
         $date = $data['date'];
@@ -197,53 +177,6 @@ class LeaderService
         return LeadershipChecklist::where('user_id', $userId)->max('day_number') + 1;
     }
 
-
-    /**
-     * Получить командный план для пользователя (лидера или игрока этой команды).
-     */
-    public function getTeamPlan(User $user): Model
-    {
-        $leaderId = $user->isLeader() ? $user->id : $user->leader_id;
-
-        if (!$leaderId) {
-            return new TeamPlan([
-                'daily_calls' => 0,
-                'daily_meetings' => 0,
-                'business_conversations' => 0,
-                'presentations' => 0,
-                'social_media_posts' => 0,
-                'new_clients_per_week' => 0,
-                'new_partners_per_week' => 0,
-                'daily_volume_points' => 0,
-            ]);
-        }
-
-        return TeamPlan::firstOrCreate(
-            ['user_id' => $leaderId],
-            [
-                'daily_calls' => 0,
-                'daily_meetings' => 0,
-                'business_conversations' => 0,
-                'presentations' => 0,
-                'social_media_posts' => 0,
-                'new_clients_per_week' => 0,
-                'new_partners_per_week' => 0,
-                'daily_volume_points' => 0,
-            ]
-        );
-    }
-
-    /**
-     * Обновить или создать командный план.
-     */
-    public function updateTeamPlan(User $leader, array $data): Model
-    {
-        return TeamPlan::updateOrCreate(
-            ['user_id' => $leader->id],
-            $data
-        );
-    }
-
     /**
      * Получить агрегированную статистику для главной страницы лидера.
      */
@@ -295,75 +228,5 @@ class LeaderService
             'active_count'       => $activePlayersCount,
             'average_progress'   => min(100, $averageProgress),
         ];
-    }
-
-    /**
-     * Получить информацию об Элите по токену ссылки (для экрана подтверждения).
-     */
-    public function getEliteTeamDataByToken(User $user, string $token): array
-    {
-        $invitation = TeamInvitation::where('token', $token)->first();
-
-        if (!$invitation) {
-            throw ValidationException::withMessages(['token' => 'Invitation not found.']);
-        }
-
-        if ($invitation->isExpired()) {
-            throw ValidationException::withMessages(['token' => 'Link has expired.']);
-        }
-
-        // КРИТИЧЕСКОЕ ПРАВИЛО: Только Лидер может вступать к Элите
-        if ($user->role?->value !== 'leader' && $user->role !== 'leader') {
-            throw ValidationException::withMessages(['role' => 'Only users with the Leader role can join an Elite team.']);
-        }
-
-        if ($invitation->leader_id === $user->id) {
-            throw ValidationException::withMessages(['team' => 'You cannot join your own team.']);
-        }
-
-        if ($user->leader_id === $invitation->leader_id) {
-            throw ValidationException::withMessages(['team' => 'You are already a member of this team.']);
-        }
-
-        if (!is_null($user->leader_id)) {
-            throw ValidationException::withMessages(['team' => 'You are already in an Elite team. Leave your current team first.']);
-        }
-
-        return [
-            'elite_name' => $invitation->leader->name,
-            'elite_avatar' => $invitation->leader->avatar_url ?? null,
-            'token' => $token
-        ];
-    }
-
-    /**
-     * Обработка принятия или отклонения инвайта Лидером.
-     */
-    public function handleInvitation(User $user, string $token, bool $accept): array
-    {
-        $invitation = TeamInvitation::where('token', $token)->first();
-
-        if (!$invitation || $invitation->isExpired()) {
-            throw ValidationException::withMessages(['token' => 'The link is invalid or expired.']);
-        }
-
-        if ($user->role?->value !== 'leader' && $user->role !== 'leader') {
-            throw ValidationException::withMessages(['role' => 'Only users with the Leader role can join an Elite team.']);
-        }
-
-        if ($invitation->leader_id === $user->id) {
-            throw ValidationException::withMessages(['token' => 'You cannot join your own team.']);
-        }
-
-        if (!is_null($user->leader_id)) {
-            throw ValidationException::withMessages(['token' => 'You are already in a team. Leave your current team first.']);
-        }
-
-        if ($accept) {
-            $user->update(['leader_id' => $invitation->leader_id]);
-            return ['status' => 'accepted', 'message' => 'You have successfully joined the Elite team.'];
-        }
-
-        return ['status' => 'declined', 'message' => 'You declined the invitation.'];
     }
 }
