@@ -352,41 +352,6 @@ class PlayerService
         return ['status' => 'declined', 'message' => 'You declined the invitation.'];
     }
 
-    public function getTeamDataByToken(User $user, string $token): array
-    {
-        $invitation = TeamInvitation::where('token', $token)->first();
-
-        if (!$invitation) {
-            throw ValidationException::withMessages(['token' => 'Invitation not found.']);
-        }
-
-        if ($invitation->isExpired()) {
-            throw ValidationException::withMessages(['token' => 'Link has expired.']);
-        }
-
-        if ($user->role != UserRole::PLAYER) {
-            throw ValidationException::withMessages(['role' => 'Only users with the Player role can join a team.']);
-        }
-
-        if ($invitation->leader_id === $user->id) {
-            throw ValidationException::withMessages(['team' => 'You cannot join your own team.']);
-        }
-
-        if ($user->leader_id === $invitation->leader_id) {
-            throw ValidationException::withMessages(['team' => 'You are already a member of this team.']);
-        }
-
-        if (!is_null($user->leader_id)) {
-            throw ValidationException::withMessages(['team' => 'You are already a member of a team.']);
-        }
-
-        return [
-            'leader_name' => $invitation->leader->name,
-            'leader_avatar' => $invitation->leader->avatar_url ?? null,
-            'token' => $token
-        ];
-    }
-
     /**
      * Покинуть текущую команду.
      */
@@ -400,6 +365,4 @@ class PlayerService
 
         return $player->update(['leader_id' => null]);
     }
-
-
 }

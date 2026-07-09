@@ -6,21 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Leader\Checklist\StoreLeadershipChecklistRequest;
 use App\Http\Requests\Leader\Contact\StoreLeaderContactRequest;
 use App\Http\Requests\Leader\Contact\UpdateLeaderContactRequest;
-use App\Http\Requests\Leader\Team\GetTeamMembersRequest;
-use App\Http\Requests\Leader\Team\UpdateTeamPlanRequest;
 use App\Http\Requests\User\Contact\GetContactsRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Resources\ContactResource;
 use App\Http\Resources\LeadershipChecklistResource;
-use App\Http\Resources\TeamPlanResource;
 use App\Models\Contact;
-use App\Models\User;
 use App\Services\User\LeaderService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 #[Group('Пользователь / Leader', weight: 260)]
 final class LeaderController extends Controller
@@ -32,41 +29,6 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Генерация ссылки приглашения
-     */
-    public function generateInviteLink(Request $request): JsonResponse
-    {
-        $link = $this->service->generateInvitation($request->user());
-        return response()->json(['data' => ['invite_url' => $link]]);
-    }
-
-
-    /**
-     * Получить список участников команды (без пагинации, с поиском по имени).
-     *
-     * @param GetTeamMembersRequest $request
-     * @return JsonResponse
-     */
-    public function teamMembers(GetTeamMembersRequest $request): JsonResponse
-    {
-        $members = $this->service->getTeamMembers($request->user(), $request->validated());
-        return response()->json(['data' => $members]);
-    }
-
-    /**
-     * Удалить пользователя из команды
-     */
-    public function kickPlayer(Request $request, User $player): JsonResponse
-    {
-        if ($request->user()->role !== 'leader') {
-            return response()->json(['error' => 'Forbidden'], 403);
-        }
-        $this->service->removePlayerFromTeam($request->user(), $player);
-        return response()->json(['message' => 'The player has been successfully removed from the team.']);
-    }
-
-
-    /**
      * Список контактов
      * @param GetContactsRequest $request
      * @return AnonymousResourceCollection
@@ -74,10 +36,7 @@ final class LeaderController extends Controller
     public function contacts(GetContactsRequest $request): AnonymousResourceCollection
     {
         $result = $this->service->getContacts($request->user(), $request->validated());
-        return ContactResource::collection($result['contacts'])
-            ->additional([
-                'total_volume' => $result['total_volume']
-            ]);
+        return ContactResource::collection($result['contacts'])->additional(['total_volume' => $result['total_volume']]);
     }
 
     /**
@@ -107,16 +66,16 @@ final class LeaderController extends Controller
      * Удалить контакт
      * @param Request $request
      * @param Contact $contact
-     * @return JsonResponse
+     * @return Response
      * @throws AuthorizationException
      */
-    public function destroyContact(Request $request, Contact $contact): JsonResponse
+    public function destroyContact(Request $request, Contact $contact): Response
     {
         if ($contact->user_id !== $request->user()->id) {
             throw new AuthorizationException('You do not own this contact.');
         }
         $this->service->deleteContact($contact);
-        return response()->json(['message' => 'Contact deleted successfully.']);
+        return response()->noContent();
     }
 
 
@@ -157,25 +116,9 @@ final class LeaderController extends Controller
 
 
     /**
-     * Получить цели для команды.
-     */
-    public function getTeamPlan(Request $request): TeamPlanResource
-    {
-        $plan = $this->service->getTeamPlan($request->user());
-        return TeamPlanResource::make($plan);
-    }
-
-    /**
-     * Установить/обновить цели для команды.
-     */
-    public function updateTeamPlan(UpdateTeamPlanRequest $request): TeamPlanResource
-    {
-        $plan = $this->service->updateTeamPlan($request->user(), $request->validated());
-        return TeamPlanResource::make($plan);
-    }
-
-    /**
      * Статистика для главной
+     * @param Request $request
+     * @return JsonResponse
      */
     public function dashboardStatistics(Request $request): JsonResponse
     {
@@ -183,31 +126,4 @@ final class LeaderController extends Controller
         return response()->json(['data' => $stats]);
     }
 
-
-    /**
-     * Просмотр данных о приглашений
-     */
-    public function showInvitation(Request $request, string $token): JsonResponse
-    {
-        $data = $this->service->getEliteTeamDataByToken($request->user(), $token);
-        return response()->json(['data' => $data]);
-    }
-
-    /**
-     * Принять или отклонить приглашение
-     */
-    public function joinTeam(Request $request, string $token): JsonResponse
-    {
-        $request->validate([
-            'accept' => 'required|boolean'
-        ]);
-
-        $result = $this->service->handleInvitation(
-            $request->user(),
-            $token,
-            $request->input('accept')
-        );
-
-        return response()->json($result);
-    }
 }

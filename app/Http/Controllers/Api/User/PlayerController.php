@@ -43,10 +43,7 @@ final class PlayerController extends Controller
     public function progress(Request $request): JsonResponse
     {
         $progress = $this->service->getProgress($request->user());
-
-        return response()->json([
-            'progress' => $progress
-        ]);
+        return response()->json(['progress' => $progress]);
     }
     /**
      * Просмотр чек-листа за выбранный день.
@@ -140,56 +137,6 @@ final class PlayerController extends Controller
     {
         if ($contact->user_id !== $request->user()->id) {throw new AuthorizationException('You do not own this contact.');}
         $this->service->deleteContact($contact);
-        return response()->noContent();
-    }
-
-
-    /**
-     * Принять или отклонить приглашение
-     * @param Request $request
-     * @param string $token
-     * @return JsonResponse
-     */
-    public function answerInvitation(Request $request, string $token): JsonResponse
-    {
-        $request->validate([
-            'accept' => 'required|boolean'
-        ]);
-
-        $result = $this->service->handleInvitation(
-            $request->user(),
-            $token,
-            (bool)$request->input('accept')
-        );
-
-        return response()->json($result);
-    }
-
-    /**
-     * Получить данные о команде
-     */
-    public function getTeamByToken(Request $request, string $token): JsonResponse
-    {
-        $data = $this->service->getTeamDataByToken($request->user(), $token);
-        return response()->json($data);
-    }
-
-
-    /**
-     * Получить командный план, установленный лидером.
-     */
-    public function getTeamPlan(Request $request, LeaderService $leaderService): TeamPlanResource
-    {
-        $plan = $leaderService->getTeamPlan($request->user());
-        return TeamPlanResource::make($plan);
-    }
-
-    /**
-     * Выйти из текущей команды.
-     */
-    public function leaveTeam(Request $request): Response
-    {
-        $this->service->leaveTeam($request->user());
         return response()->noContent();
     }
 }

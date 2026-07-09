@@ -35,29 +35,6 @@ final class ProfileController extends Controller
     }
 
     /**
-     * Список уведомлений
-     */
-    public function notifications(Request $request): AnonymousResourceCollection
-    {
-        $notifications = $this->service->getNotifications($request->user());
-        return NotificationsResource::collection($notifications);
-    }
-
-    /**
-     * Количество непрочитанных уведомлений
-     */
-    public function unreadCount(Request $request): JsonResponse
-    {
-        $count = $this->service->getUnreadCount($request->user());
-
-        return response()->json([
-            'data' => [
-                'unread_count' => $count
-            ]
-        ]);
-    }
-
-    /**
      * Обновление пользователя
      */
     public function update(UpdateRequest $request): UserResource

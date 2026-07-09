@@ -13,7 +13,7 @@ Route::prefix('v1')->group(function () {
         // ----------------------------------------------------------------//
         //                          AUTH METHODS                           //
         // ----------------------------------------------------------------//
-        Route::post('/login', [Admin\AuthController::class, 'login']);
+        Route::post('/login', [Admin\AuthController::class, 'login'])->name('admin.login');
         // ----------------------------------------------------------------//
         //                          ADMIN METHODS                          //
         // ----------------------------------------------------------------//
@@ -22,21 +22,21 @@ Route::prefix('v1')->group(function () {
             //                  ADMIN-NOTIFICATIONS METHODS                    //
             // ----------------------------------------------------------------//
             Route::prefix('notifications')->group(function () {
-                Route::post('/send-all', [Admin\NotificationController::class, 'sendToAll']);
+                Route::post('/send-all',                [Admin\NotificationController::class, 'sendToAll']);
             });
             // ----------------------------------------------------------------//
             //                      ADMIN-USERS METHODS                        //
             // ----------------------------------------------------------------//
             Route::prefix('users')->group(function () {
-                Route::get('/', [Admin\UserController::class, 'index']);
-                Route::get('/{user}', [Admin\UserController::class, 'show']);
-                Route::patch('/{user}', [Admin\UserController::class, 'update']);
-                Route::patch('/{user}/role', [Admin\UserController::class, 'changeRole']);
-                Route::post('/{user}/block', [Admin\UserController::class, 'block']);
-                Route::post('/{user}/unblock', [Admin\UserController::class, 'unblock']);
-                Route::post('/{user}/restore', [Admin\UserController::class, 'restore'])->withTrashed();
-                Route::delete('/{user}', [Admin\UserController::class, 'destroy']);
-                Route::delete('/{user}/force-delete', [Admin\UserController::class, 'forceDelete'])->withTrashed();
+                Route::get('/',                         [Admin\UserController::class, 'index']);
+                Route::get('/{user}',                   [Admin\UserController::class, 'show']);
+                Route::patch('/{user}',                 [Admin\UserController::class, 'update']);
+                Route::patch('/{user}/role',            [Admin\UserController::class, 'changeRole']);
+                Route::post('/{user}/block',            [Admin\UserController::class, 'block']);
+                Route::post('/{user}/unblock',          [Admin\UserController::class, 'unblock']);
+                Route::post('/{user}/restore',          [Admin\UserController::class, 'restore'])->withTrashed();
+                Route::delete('/{user}',                [Admin\UserController::class, 'destroy']);
+                Route::delete('/{user}/force-delete',   [Admin\UserController::class, 'forceDelete'])->withTrashed();
             });
         });
     });
@@ -48,65 +48,62 @@ Route::prefix('v1')->group(function () {
         //                        PROFILE METHODS                          //
         // ----------------------------------------------------------------//
         Route::prefix('profile')->group(function () {
-            Route::get('/', [User\ProfileController::class, 'me']);
-            Route::get('/notifications', [User\ProfileController::class, 'notifications']);
-            Route::get('/unread-notifications-count', [User\ProfileController::class, 'unreadCount']);
-            Route::patch('/', [User\ProfileController::class, 'update']);
-            Route::patch('/goals', [User\ProfileController::class, 'storeGoal']);
-            Route::patch('/change-password', [User\ProfileController::class, 'changePassword']);
-            Route::delete('/', [User\ProfileController::class, 'destroy']);
+            Route::get('/',                 [User\ProfileController::class, 'me']);
+            Route::patch('/',               [User\ProfileController::class, 'update']);
+            Route::delete('/',              [User\ProfileController::class, 'destroy']);
+            Route::patch('/goal',           [User\ProfileController::class, 'storeGoal']);
+            Route::patch('/password',       [User\ProfileController::class, 'changePassword']);
         });
-
+        // ----------------------------------------------------------------//
+        //                     NOTIFICATIONS METHODS                       //
+        // ----------------------------------------------------------------//
+        Route::prefix('notifications')->group(function () {
+            Route::get('/',                 [User\NotificationController::class, 'notifications']);
+            Route::get('/unread-count',     [User\NotificationController::class, 'unreadCount']);
+        });
         // ----------------------------------------------------------------//
         //                        PLAYER METHODS                           //
         // ----------------------------------------------------------------//
         Route::middleware(['can:access-player'])->prefix('player')->group(function () {
-            Route::get('/progress', [User\PlayerController::class, 'progress']);
-            Route::get('/team-plan', [User\PlayerController::class, 'getTeamPlan']);
-            Route::post('/leave-team', [User\PlayerController::class, 'leaveTeam']);
+            // ----------------------------------------------------------------//
+            //                        PROGRESS METHODS                         //
+            // ----------------------------------------------------------------//
+            Route::prefix('progress')->group(function () {
+                Route::get('/',                             [User\PlayerController::class, 'progress']);
+            });
             // ----------------------------------------------------------------//
             //                       CHECKLIST METHODS                         //
             // ----------------------------------------------------------------//
             Route::prefix('checklist')->group(function () {
-                Route::get('/', [User\PlayerController::class, 'showChecklist']);
-                Route::post('/', [User\PlayerController::class, 'storeChecklist']);
-                Route::post('/day-off', [User\PlayerController::class, 'setDayOff']);
+                Route::get('/',                             [User\PlayerController::class, 'showChecklist']);
+                Route::post('/',                            [User\PlayerController::class, 'storeChecklist']);
+                Route::post('/day-off',                     [User\PlayerController::class, 'setDayOff']);
             });
             // ----------------------------------------------------------------//
             //                        CONTACT METHODS                          //
             // ----------------------------------------------------------------//
             Route::prefix('contacts')->group(function () {
-                Route::get('/', [User\PlayerController::class, 'contacts']);
-                Route::post('/', [User\PlayerController::class, 'storeContact']);
-                Route::patch('/{contact}', [User\PlayerController::class, 'updateContact']);
-                Route::delete('/{contact}', [User\PlayerController::class, 'destroyContact']);
+                Route::get('/',                             [User\PlayerController::class, 'contacts']);
+                Route::post('/',                            [User\PlayerController::class, 'storeContact']);
+                Route::patch('/{contact}',                  [User\PlayerController::class, 'updateContact']);
+                Route::delete('/{contact}',                 [User\PlayerController::class, 'destroyContact']);
             });
             // ----------------------------------------------------------------//
             //                       STATISTICS METHODS                        //
             // ----------------------------------------------------------------//
-            Route::get('/statistics', [User\PlayerController::class, 'statistics']);
-            // ----------------------------------------------------------------//
-            //                          TEAMS METHODS                          //
-            // ----------------------------------------------------------------//
-            Route::prefix('team-invitation')->group(function () {
-                Route::get('/{token}', [User\PlayerController::class, 'getTeamByToken']);
-                Route::post('/{token}/answer', [User\PlayerController::class, 'answerInvitation']);
+            Route::prefix('statistics')->group(function () {
+                Route::get('/',                             [User\PlayerController::class, 'statistics']);
             });
         });
         // ----------------------------------------------------------------//
         //                        LEADER METHODS                           //
         // ----------------------------------------------------------------//
         Route::middleware(['can:access-leader'])->prefix('leader')->group(function () {
-            Route::post('/invite-link', [User\LeaderController::class, 'generateInviteLink']);
-            Route::get('/team-members', [User\LeaderController::class, 'teamMembers']);
-            Route::delete('/kick/{player}', [User\LeaderController::class, 'kickPlayer']);
-            Route::get('/dashboard-statistics', [User\LeaderController::class, 'dashboardStatistics']);
             // ----------------------------------------------------------------//
-            //                        TEAM PLAN METHODS                        //
+            //                       STATISTICS METHODS                        //
             // ----------------------------------------------------------------//
-            Route::prefix('team-plan')->group(function () {
-                Route::get('/', [User\LeaderController::class, 'getTeamPlan']);
-                Route::post('/', [User\LeaderController::class, 'updateTeamPlan']);
+            Route::prefix('statistics')->group(function () {
+                Route::get('/', [User\LeaderController::class, 'dashboardStatistics']);
             });
             // ----------------------------------------------------------------//
             //                        CONTACT METHODS                          //
@@ -125,21 +122,39 @@ Route::prefix('v1')->group(function () {
                 Route::post('/', [User\LeaderController::class, 'storeChecklist']);
                 Route::post('/day-off', [User\LeaderController::class, 'setDayOff']);
             });
-
-            // ----------------------------------------------------------------//
-            //                          TEAMS METHODS                          //
-            // ----------------------------------------------------------------//
-            Route::prefix('team-invitation')->group(function () {
-                Route::get('/{token}', [User\LeaderController::class, 'showInvitation']);
-                Route::post('/{token}/answer', [User\LeaderController::class, 'joinTeam']);
-            });
         });
         // ----------------------------------------------------------------//
-        //                        ELITE METHODS                            //
+        //                          TEAMS METHODS                          //
         // ----------------------------------------------------------------//
-        Route::middleware(['can:access-elite'])->prefix('elite')->group(function () {
-            Route::post('/generate-invite', [User\EliteController::class, 'generateInviteLink']);
-            Route::get('/team-members', [User\EliteController::class, 'teamMembers']);
+        Route::prefix('team')->group(function () {
+            // ----------------------------------------------------------------//
+            //                         MEMBERS METHODS                         //
+            // ----------------------------------------------------------------//
+            Route::prefix('members')->group(function () {
+                Route::get('/',                 [User\TeamController::class, 'getMembers']);
+                Route::delete('/{member}',      [User\TeamController::class, 'kickMember']);
+            });
+            // ----------------------------------------------------------------//
+            //                           PLAN METHODS                          //
+            // ----------------------------------------------------------------//
+            Route::prefix('plan')->group(function () {
+                Route::get('/',                 [User\TeamController::class, 'getTeamPlan']);
+                Route::patch('/',               [User\TeamController::class, 'updateTeamPlan']);
+            });
+            // ----------------------------------------------------------------//
+            //                        INVITATIONS METHODS                      //
+            // ----------------------------------------------------------------//
+            Route::prefix('invitations')->group(function () {
+                Route::post('/',                [User\TeamController::class, 'generateInviteLink']);
+                Route::post('/{token}/respond', [User\TeamController::class, 'answerInvitation']);
+                Route::get('/{token}',          [User\TeamController::class, 'getTeamByToken']);
+            });
+            // ----------------------------------------------------------------//
+            //                         ACTIONS METHODS                         //
+            // ----------------------------------------------------------------//
+            Route::prefix('actions')->group(function () {
+                Route::post('/leave',           [User\TeamController::class, 'leaveTeam']);
+            });
         });
     });
     // ---------------------------------------------------------------------------------------------------------------//
@@ -151,7 +166,7 @@ Route::prefix('v1')->group(function () {
         // ----------------------------------------------------------------//
         Route::prefix('auth')->group(function () {
             Route::post('/register', [Guest\AuthController::class, 'register']);
-            Route::post('/login', [Guest\AuthController::class, 'login']);
+            Route::post('/login', [Guest\AuthController::class, 'login'])->name('login');
         });
         // ----------------------------------------------------------------//
         //                       PASSWORD METHODS                          //
