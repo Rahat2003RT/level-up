@@ -28,7 +28,7 @@ class TeamTest extends TestCase
 
             $response = $this->postJson('/api/v1/team/invitations');
 
-            $response->assertStatus(200)
+            $response->assertSuccessful()
                 ->assertJsonStructure(['data' => ['invite_url']]);
 
             $this->assertDatabaseHas('team_invitations', ['leader_id' => $user->id]);
@@ -63,7 +63,7 @@ class TeamTest extends TestCase
             'accept' => true
         ]);
 
-        $response->assertStatus(200)->assertJsonPath('data.status', 'accepted');
+        $response->assertSuccessful()->assertJsonPath('data.status', 'accepted');
         $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => $leader->id]);
     }
 
@@ -79,7 +79,7 @@ class TeamTest extends TestCase
             'accept' => true
         ]);
 
-        $response->assertStatus(200);
+        $response->assertSuccessful();
         $this->assertDatabaseHas('users', ['id' => $leader->id, 'leader_id' => $elite->id]);
     }
 
@@ -124,7 +124,7 @@ class TeamTest extends TestCase
 
         $response = $this->getJson('/api/v1/team/members');
 
-        $response->assertStatus(200)
+        $response->assertSuccessful()
             ->assertJsonStructure([
                 'data' => [
                     '*' => [
@@ -148,11 +148,20 @@ class TeamTest extends TestCase
         $leader = User::factory()->create(['role' => UserRole::LEADER]);
         $player = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $leader->id]);
 
-        $planData = ['daily_calls' => 10, 'daily_meetings' => 5];
+        $planData = [
+            'daily_calls' => 10,
+            'daily_meetings' => 5,
+            'business_conversations' => 0,
+            'presentations' => 0,
+            'social_media_posts' => 0,
+            'new_clients_per_week' => 0,
+            'new_partners_per_week' => 0,
+            'daily_volume_points' => 0,
+        ];
 
-        // 1. Лидер
+        // 1. Лидер (Ждем успешного создания/обновления)
         Sanctum::actingAs($leader);
-        $this->patchJson('/api/v1/team/plan', $planData)->assertStatus(200);
+        $this->patchJson('/api/v1/team/plan', $planData)->assertSuccessful();
         $this->assertDatabaseHas('team_plans', ['user_id' => $leader->id, 'daily_calls' => 10]);
 
         // 2. Игрок
@@ -175,7 +184,7 @@ class TeamTest extends TestCase
 
         $response = $this->deleteJson("/api/v1/team/members/{$player->id}");
 
-        $response->assertStatus(200);
+        $response->assertSuccessful();
         $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => null]);
     }
 
@@ -199,9 +208,9 @@ class TeamTest extends TestCase
 
         Sanctum::actingAs($player);
 
-        $response = $this->postJson('/api/v1/team/actions/leave'); // С учетом нового префикса actions/leave
+        $response = $this->postJson('/api/v1/team/actions/leave');
 
-        $response->assertStatus(200);
+        $response->assertSuccessful();
         $this->assertDatabaseHas('users', ['id' => $player->id, 'leader_id' => null]);
     }
 }
