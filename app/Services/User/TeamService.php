@@ -77,13 +77,13 @@ final class TeamService
             $user->update(['leader_id' => $invitation->leader_id]);
 
             return [
-                'status'  => 'accepted',
+                'status' => 'accepted',
                 'message' => 'You have successfully joined the team.'
             ];
         }
 
         return [
-            'status'  => 'declined',
+            'status' => 'declined',
             'message' => 'You declined the invitation.'
         ];
     }
@@ -123,9 +123,9 @@ final class TeamService
     public function getTeamMembers(User $user, array $filters): LengthAwarePaginator
     {
         return match ($user->role) {
-            UserRole::ELITE  => $this->getMembersForElite($user, $filters),
+            UserRole::ELITE => $this->getMembersForElite($user, $filters),
             UserRole::LEADER => $this->getMembersForLeader($user, $filters),
-            default          => throw new AccessDeniedHttpException('Forbidden.'),
+            default => throw new AccessDeniedHttpException('Forbidden.'),
         };
     }
 
@@ -165,20 +165,20 @@ final class TeamService
             $progressPercent = round(($currentDayNumber / 90) * 100);
 
             return [
-                'id'                   => $player->id,
-                'name'                 => $player->name . ' ' . $player->surname,
-                'avatar'               => $player->avatar_path ?? null,
-                'role'                 => UserRole::PLAYER->value,
-                'current_day_number'   => $currentDayNumber,
-                'progress_percent'     => $progressPercent,
-                'status'               => $isCompletedToday ? 'Active' : 'Inactive',
+                'id' => $player->id,
+                'name' => $player->name . ' ' . $player->surname,
+                'avatar' => $player->avatar_path ?? null,
+                'role' => UserRole::PLAYER->value,
+                'current_day_number' => $currentDayNumber,
+                'progress_percent' => $progressPercent,
+                'status' => $isCompletedToday ? 'Active' : 'Inactive',
 
-                'total_players_count'  => 0,
+                'total_players_count' => 0,
                 'active_players_count' => 0,
 
-                'monthly_volume'       => $player->total_volume ?? 0,
-                'clients_count'        => $player->clients_count,
-                'partners_count'       => $player->partners_count,
+                'monthly_volume' => $player->total_volume ?? 0,
+                'clients_count' => $player->clients_count,
+                'partners_count' => $player->partners_count,
             ];
         });
 
@@ -241,23 +241,23 @@ final class TeamService
 
             $leaderPlayerIds = $players->pluck('id')->toArray();
             $allTeamUserIds = array_merge([$leader->id], $leaderPlayerIds);
-            $monthlyVolume = (int) Contact::whereIn('user_id', $allTeamUserIds)->sum('volume');
+            $monthlyVolume = (int)Contact::whereIn('user_id', $allTeamUserIds)->sum('volume');
 
             return [
-                'id'                   => $leader->id,
-                'name'                 => $leader->name . ' ' . $leader->surname,
-                'avatar'               => $leader->avatar_path ?? null,
-                'role'                 => UserRole::LEADER->value,
-                'current_day_number'   => $currentDayNumber,
-                'progress_percent'     => $progressPercent,
-                'status'               => $leaderStatus,
+                'id' => $leader->id,
+                'name' => $leader->name . ' ' . $leader->surname,
+                'avatar' => $leader->avatar_path ?? null,
+                'role' => UserRole::LEADER->value,
+                'current_day_number' => $currentDayNumber,
+                'progress_percent' => $progressPercent,
+                'status' => $leaderStatus,
 
-                'total_players_count'  => $totalPlayers,
+                'total_players_count' => $totalPlayers,
                 'active_players_count' => $activePlayersCount,
 
-                'monthly_volume'       => $monthlyVolume,
-                'clients_count'        => 0,
-                'partners_count'       => 0,
+                'monthly_volume' => $monthlyVolume,
+                'clients_count' => 0,
+                'partners_count' => 0,
             ];
         });
 
@@ -275,14 +275,14 @@ final class TeamService
         $leaderId = $user->isLeader() ? $user->id : $user->leader_id;
 
         $defaultPlanValues = [
-            'daily_calls'            => 0,
-            'daily_meetings'         => 0,
+            'daily_calls' => 0,
+            'daily_meetings' => 0,
             'business_conversations' => 0,
-            'presentations'          => 0,
-            'social_media_posts'     => 0,
-            'new_clients_per_week'   => 0,
-            'new_partners_per_week'  => 0,
-            'daily_volume_points'    => 0,
+            'presentations' => 0,
+            'social_media_posts' => 0,
+            'new_clients_per_week' => 0,
+            'new_partners_per_week' => 0,
+            'daily_volume_points' => 0,
         ];
 
         if (!$leaderId) {

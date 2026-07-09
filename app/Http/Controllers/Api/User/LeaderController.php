@@ -71,16 +71,13 @@ final class LeaderController extends Controller
      */
     public function destroyContact(Request $request, Contact $contact): Response
     {
-        if ($contact->user_id !== $request->user()->id) {
-            throw new AuthorizationException('You do not own this contact.');
-        }
-        $this->service->deleteContact($contact);
+        $this->service->deleteContact($request->user(), $contact);
         return response()->noContent();
     }
 
 
     /**
-     * Просмотр чек-листа лидера за выбранный день.
+     * Просмотр чек-листа за выбранный день.
      * @param ShowChecklistRequest $request
      * @return LeadershipChecklistResource
      */
@@ -91,7 +88,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Заполнение чек-листа лидера за сегодня.
+     * Заполнение чек-листа за сегодня.
      * @param StoreLeadershipChecklistRequest $request
      * @return LeadershipChecklistResource
      * @throws AuthorizationException
@@ -103,7 +100,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Установить для сегодняшнего дня лидера статус "Выходной".
+     * Установить для сегодняшнего дня статус "Выходной".
      * @param Request $request
      * @return LeadershipChecklistResource
      * @throws AuthorizationException

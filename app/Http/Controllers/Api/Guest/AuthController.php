@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Api\Guest;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Guest\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Guest\Auth\LoginRequest;
 use App\Http\Requests\Guest\Auth\RegisterRequest;
-use App\Http\Requests\Guest\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Guest\Auth\ResetPasswordRequest;
 use App\Http\Requests\Guest\Auth\VerifyResetCodeRequest;
 use App\Http\Resources\UserResource;
-use App\Services\Guest\Auth\AuthService;
+use App\Services\Guest\AuthService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

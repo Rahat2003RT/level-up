@@ -8,8 +8,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 final class PlayerStatisticsResource extends JsonResource
 {
     /**
-     * Преобразовать ресурс в массив.
-     *
      * @param Request $request
      * @return array
      */

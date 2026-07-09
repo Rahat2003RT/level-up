@@ -26,6 +26,7 @@ final readonly class UserService
 
         return $this->applyFiltersAndPaginate($query, $filters);
     }
+
     public function createUser(array $data): User
     {
         $data['password'] = bcrypt($data['password']);
@@ -33,6 +34,9 @@ final readonly class UserService
         return User::create($data);
     }
 
+    /**
+     * @throws ValidationException
+     */
     public function changeRole(User $user, string $roleValue): User
     {
         $role = UserRole::tryFrom($roleValue);
@@ -85,6 +89,7 @@ final readonly class UserService
         $user->restore();
         return $user;
     }
+
     public function forceDelete(User $user): void
     {
         $user->forceDelete();

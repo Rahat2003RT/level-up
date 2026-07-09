@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Auth\LoginRequest;
 use App\Http\Resources\UserResource;
-use App\Services\Admin\Auth\AuthService;
+use App\Services\Admin\AuthService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Validation\ValidationException;
 

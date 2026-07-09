@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
-use App\Enums\UserRole;
 use App\Models\Contact;
 use App\Models\DailyChecklist;
 use App\Models\TeamInvitation;

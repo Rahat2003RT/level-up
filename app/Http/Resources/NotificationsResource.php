@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
  * Class NotificationsResource
- * * @package App\Http\Resources
+ * @package App\Http\Resources
  * @mixin UserNotification
  */
 final class NotificationsResource extends JsonResource

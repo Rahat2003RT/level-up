@@ -3,8 +3,6 @@
 namespace App\Http\Requests\Leader\Checklist;
 
 use App\Http\Requests\ApiBaseRequest;
-use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Foundation\Http\FormRequest;
 
 class StoreLeadershipChecklistRequest extends ApiBaseRequest
 {

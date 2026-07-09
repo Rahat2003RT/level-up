@@ -15,7 +15,9 @@ final readonly class NotificationService
 {
     public function __construct(
         private Messaging $messaging
-    ) {}
+    )
+    {
+    }
 
     public function sendMassPush(array $data): void
     {

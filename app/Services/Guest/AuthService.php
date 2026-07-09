@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Guest\Auth;
+namespace App\Services\Guest;
 
 use App\Models\User;
 use App\Notifications\CustomResetPasswordNotification;
@@ -28,7 +28,6 @@ final class AuthService
      */
     public function register(array $data): User
     {
-        /** @var User $user */
         $user = User::create([
             'email' => $data['email'],
             'password' => $data['password'],

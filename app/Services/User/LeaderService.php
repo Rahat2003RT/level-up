@@ -4,15 +4,9 @@ namespace App\Services\User;
 
 use App\Models\Contact;
 use App\Models\LeadershipChecklist;
-use App\Models\TeamInvitation;
-use App\Models\TeamPlan;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 final class LeaderService
 {
@@ -61,11 +55,16 @@ final class LeaderService
     }
 
     /**
+     * @param User $user
      * @param Contact $contact
      * @return bool|null
+     * @throws AuthorizationException
      */
-    public function deleteContact(Contact $contact): ?bool
+    public function deleteContact(User $user, Contact $contact): ?bool
     {
+        if ($contact->user_id !== $user->id) {
+            throw new AuthorizationException('You do not own this contact.');
+        }
         return $contact->delete();
     }
 
@@ -90,8 +89,8 @@ final class LeaderService
             $nextDayNumber = LeadershipChecklist::where('user_id', $userId)->max('day_number') + 1;
 
             return [
-                'id'                          => null,
-                'user_id'                     => $userId,
+                'id' => null,
+                'user_id' => $userId,
                 'date' => $date,
                 'day_number' => $nextDayNumber,
                 'is_completed' => false,
@@ -113,6 +112,7 @@ final class LeaderService
 
     /**
      * Сохранить чек-лист лидера на сегодня.
+     * @throws AuthorizationException
      */
     public function storeAndCompleteToday(User $user, array $data): LeadershipChecklist
     {
@@ -136,6 +136,7 @@ final class LeaderService
 
     /**
      * Установить лидера статус "Выходной" на сегодня.
+     * @throws AuthorizationException
      */
     public function setDayOffToday(User $user): LeadershipChecklist
     {
@@ -223,10 +224,10 @@ final class LeaderService
 
         return [
             'current_day_number' => $currentDayNumber,
-            'plan_start_date'    => $leader->created_at ? $leader->created_at->toDateString() : null,
-            'players_count'      => $totalPlayers,
-            'active_count'       => $activePlayersCount,
-            'average_progress'   => min(100, $averageProgress),
+            'plan_start_date' => $leader->created_at ? $leader->created_at->toDateString() : null,
+            'players_count' => $totalPlayers,
+            'active_count' => $activePlayersCount,
+            'average_progress' => min(100, $averageProgress),
         ];
     }
 }

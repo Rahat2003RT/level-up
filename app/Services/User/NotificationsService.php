@@ -3,13 +3,7 @@
 namespace App\Services\User;
 
 use App\Models\User;
-use App\Models\UserDevice;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 
 final class NotificationsService
 {
