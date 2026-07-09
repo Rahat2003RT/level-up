@@ -45,7 +45,9 @@ final class TeamController extends Controller
     public function getTeamByToken(Request $request, string $token): JsonResponse
     {
         $data = $this->service->getTeamDataByToken($request->user(), $token);
-        return response()->json($data);
+        return response()->json([
+            'data' => $data,
+        ]);
     }
 
     /**

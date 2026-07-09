@@ -43,7 +43,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Просмотр чек-листа за выбранный день.
+     * Чек-лист / Просмотр чек-листа за выбранный день.
      * @param ShowChecklistRequest $request
      * @return DailyChecklistResource
      */
@@ -54,7 +54,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Заполнение чек-листа за сегодня.
+     * Чек-лист / Заполнение чек-листа за сегодня.
      * @param StoreDailyChecklistRequest $request
      * @return DailyChecklistResource
      * @throws AuthorizationException
@@ -66,7 +66,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Установить для сегодняшнего дня статус "Выходной".
+     * Чек-лист / Установить для сегодняшнего дня статус "Выходной".
      * @param Request $request
      * @return DailyChecklistResource
      * @throws AuthorizationException
@@ -78,7 +78,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Получить статистику игрока за выбранный период.
+     * Статистика.
      * @param StatisticsRequest $request
      * @return PlayerStatisticsResource
      */
@@ -89,7 +89,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Список контактов
+     * Контакты / Список контактов
      * @param GetContactsRequest $request
      * @return AnonymousResourceCollection
      */
@@ -101,7 +101,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Создать новый контакт.
+     * Контакты / Создать новый контакт.
      * @param StoreContactRequest $request
      * @return ContactResource
      */
@@ -112,7 +112,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Редактировать контакт
+     * Контакты / Редактировать контакт
      * @param UpdateContactRequest $request
      * @param Contact $contact
      * @return ContactResource
@@ -124,7 +124,7 @@ final class PlayerController extends Controller
     }
 
     /**
-     * Удалить контакт
+     * Контакты / Удалить контакт
      * @param Request $request
      * @param Contact $contact
      * @return Response

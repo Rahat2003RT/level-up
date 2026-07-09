@@ -29,7 +29,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Список контактов
+     * Контакты / Список контактов
      * @param GetContactsRequest $request
      * @return AnonymousResourceCollection
      */
@@ -40,7 +40,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Создать новый контакт.
+     * Контакты / Создать новый контакт.
      * @param StoreLeaderContactRequest $request
      * @return ContactResource
      */
@@ -51,7 +51,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Редактировать контакт
+     * Контакты / Редактировать контакт
      * @param UpdateLeaderContactRequest $request
      * @param Contact $contact
      * @return ContactResource
@@ -63,7 +63,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Удалить контакт
+     * Контакты / Удалить контакт
      * @param Request $request
      * @param Contact $contact
      * @return Response
@@ -77,7 +77,7 @@ final class LeaderController extends Controller
 
 
     /**
-     * Просмотр чек-листа за выбранный день.
+     * Чек-лист / Просмотр чек-листа за выбранный день.
      * @param ShowChecklistRequest $request
      * @return LeadershipChecklistResource
      */
@@ -88,7 +88,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Заполнение чек-листа за сегодня.
+     * Чек-лист / Заполнение чек-листа за сегодня.
      * @param StoreLeadershipChecklistRequest $request
      * @return LeadershipChecklistResource
      * @throws AuthorizationException
@@ -100,7 +100,7 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Установить для сегодняшнего дня статус "Выходной".
+     * Чек-лист / Установить для сегодняшнего дня статус "Выходной".
      * @param Request $request
      * @return LeadershipChecklistResource
      * @throws AuthorizationException
@@ -113,7 +113,7 @@ final class LeaderController extends Controller
 
 
     /**
-     * Статистика для главной
+     * Статистика / Статистика для главной
      * @param Request $request
      * @return JsonResponse
      */
