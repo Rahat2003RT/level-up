@@ -314,11 +314,16 @@ final class PlayerService
     /**
      * Удалить контакт.
      *
+     * @param User $user
      * @param Contact $contact
      * @return bool|null
+     * @throws AuthorizationException
      */
-    public function deleteContact(Contact $contact): ?bool
+    public function deleteContact(User $user, Contact $contact): ?bool
     {
+        if ($contact->user_id !== $user->id) {
+            throw new AuthorizationException('You do not own this contact.');
+        }
         return $contact->delete();
     }
 

@@ -36,22 +36,7 @@ final class TeamController extends Controller
     }
 
     /**
-     * Приглашения / Информация о команде по ссылке
-     * @param Request $request
-     * @param string $token
-     * @return JsonResponse
-     * @throws ValidationException
-     */
-    public function getTeamByToken(Request $request, string $token): JsonResponse
-    {
-        $data = $this->service->getTeamDataByToken($request->user(), $token);
-        return response()->json([
-            'data' => $data,
-        ]);
-    }
-
-    /**
-     * Приглашения / Принять или отклонить приглашение в команду
+     * Приглашения / Принять или отклонить
      * @param AnswerInvitationRequest $request
      * @param string $token
      * @return JsonResponse
@@ -68,6 +53,20 @@ final class TeamController extends Controller
         return response()->json(['data' => $result]);
     }
 
+    /**
+     * Приглашения / Информация о команде
+     * @param Request $request
+     * @param string $token
+     * @return JsonResponse
+     * @throws ValidationException
+     */
+    public function getTeamByToken(Request $request, string $token): JsonResponse
+    {
+        $data = $this->service->getTeamDataByToken($request->user(), $token);
+        return response()->json([
+            'data' => $data,
+        ]);
+    }
 
     /**
      * Команда / Получение членов команды текущего пользователя

@@ -170,8 +170,8 @@ final class TeamService
                 'avatar' => $player->avatar_path ?? null,
                 'role' => UserRole::PLAYER->value,
                 'current_day_number' => $currentDayNumber,
-                'progress_percent' => $progressPercent,
-                'status' => $isCompletedToday ? 'Active' : 'Inactive',
+                'progress' => $progressPercent,
+                'is_active'            => $isCompletedToday,
 
                 'total_players_count' => 0,
                 'active_players_count' => 0,
@@ -220,10 +220,7 @@ final class TeamService
             $currentDayNumber = min(90, $currentDayNumber);
             $progressPercent = round(($currentDayNumber / 90) * 100);
 
-            $leaderStatus = 'Inactive';
-            if ($lastLeaderChecklist && $lastLeaderChecklist->is_completed && !($lastLeaderChecklist->is_day_off ?? false)) {
-                $leaderStatus = 'Active';
-            }
+            $isActiveLeader = $lastLeaderChecklist && $lastLeaderChecklist->is_completed && !($lastLeaderChecklist->is_day_off ?? false);
 
             $players = $leader->players;
             $totalPlayers = $players->count();
@@ -249,8 +246,8 @@ final class TeamService
                 'avatar' => $leader->avatar_path ?? null,
                 'role' => UserRole::LEADER->value,
                 'current_day_number' => $currentDayNumber,
-                'progress_percent' => $progressPercent,
-                'status' => $leaderStatus,
+                'progress' => $progressPercent,
+                'is_active'            => $isActiveLeader,
 
                 'total_players_count' => $totalPlayers,
                 'active_players_count' => $activePlayersCount,

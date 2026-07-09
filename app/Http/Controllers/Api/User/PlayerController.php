@@ -39,7 +39,7 @@ final class PlayerController extends Controller
     public function progress(Request $request): JsonResponse
     {
         $progress = $this->service->getProgress($request->user());
-        return response()->json(['progress' => $progress]);
+        return response()->json(['data' => $progress]);
     }
 
     /**
@@ -96,8 +96,7 @@ final class PlayerController extends Controller
     public function contacts(GetContactsRequest $request): AnonymousResourceCollection
     {
         $result = $this->service->getContactsByType($request->user(), $request->validated());
-        return ContactResource::collection($result['contacts'])
-            ->additional(['total_volume' => $result['total_volume']]);
+        return ContactResource::collection($result['contacts'])->additional(['total_volume' => $result['total_volume']]);
     }
 
     /**
@@ -132,10 +131,7 @@ final class PlayerController extends Controller
      */
     public function destroyContact(Request $request, Contact $contact): Response
     {
-        if ($contact->user_id !== $request->user()->id) {
-            throw new AuthorizationException('You do not own this contact.');
-        }
-        $this->service->deleteContact($contact);
+        $this->service->deleteContact($request->user(), $contact);
         return response()->noContent();
     }
 }

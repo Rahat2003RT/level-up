@@ -29,8 +29,6 @@ final readonly class UserService
 
     public function createUser(array $data): User
     {
-        $data['password'] = bcrypt($data['password']);
-
         return User::create($data);
     }
 
