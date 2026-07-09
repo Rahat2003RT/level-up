@@ -125,5 +125,4 @@ final class LeaderController extends Controller
         $stats = $this->service->getDashboardStatistics($request->user());
         return response()->json(['data' => $stats]);
     }
-
 }

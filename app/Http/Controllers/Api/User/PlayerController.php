@@ -7,16 +7,12 @@ use App\Http\Requests\User\Checklist\StoreDailyChecklistRequest;
 use App\Http\Requests\User\Contact\GetContactsRequest;
 use App\Http\Requests\User\Contact\StoreContactRequest;
 use App\Http\Requests\User\Contact\UpdateContactRequest;
-use App\Http\Requests\User\Goal\StoreUserGoalRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Resources\ContactResource;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\PlayerStatisticsResource;
-use App\Http\Resources\TeamPlanResource;
-use App\Http\Resources\UserResource;
 use App\Models\Contact;
-use App\Services\User\LeaderService;
 use App\Services\User\PlayerService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -45,6 +41,7 @@ final class PlayerController extends Controller
         $progress = $this->service->getProgress($request->user());
         return response()->json(['progress' => $progress]);
     }
+
     /**
      * Просмотр чек-листа за выбранный день.
      * @param ShowChecklistRequest $request
@@ -135,7 +132,9 @@ final class PlayerController extends Controller
      */
     public function destroyContact(Request $request, Contact $contact): Response
     {
-        if ($contact->user_id !== $request->user()->id) {throw new AuthorizationException('You do not own this contact.');}
+        if ($contact->user_id !== $request->user()->id) {
+            throw new AuthorizationException('You do not own this contact.');
+        }
         $this->service->deleteContact($contact);
         return response()->noContent();
     }

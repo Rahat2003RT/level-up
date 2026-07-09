@@ -6,13 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Goal\StoreUserGoalRequest;
 use App\Http\Requests\User\Profile\ChangePasswordRequest;
 use App\Http\Requests\User\Profile\UpdateRequest;
-use App\Http\Resources\NotificationsResource;
 use App\Http\Resources\UserResource;
 use App\Services\User\ProfileService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 

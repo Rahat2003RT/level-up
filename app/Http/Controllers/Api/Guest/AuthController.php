@@ -61,6 +61,9 @@ final class AuthController extends Controller
 
     /**
      * Запрос кода на сброс пароля
+     * @param ForgotPasswordRequest $request
+     * @return JsonResponse
+     * @throws ValidationException
      */
     public function sendResetCode(ForgotPasswordRequest $request): JsonResponse
     {

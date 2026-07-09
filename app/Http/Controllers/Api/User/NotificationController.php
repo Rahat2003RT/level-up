@@ -3,19 +3,12 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\User\Goal\StoreUserGoalRequest;
-use App\Http\Requests\User\Profile\ChangePasswordRequest;
-use App\Http\Requests\User\Profile\UpdateRequest;
 use App\Http\Resources\NotificationsResource;
-use App\Http\Resources\UserResource;
 use App\Services\User\NotificationsService;
-use App\Services\User\ProfileService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Http\Response;
-use Illuminate\Validation\ValidationException;
 
 #[Group('Пользователь', weight: 200)]
 final class NotificationController extends Controller
@@ -25,8 +18,11 @@ final class NotificationController extends Controller
     )
     {
     }
+
     /**
      * Уведомления / Список уведомлений
+     * @param Request $request
+     * @return AnonymousResourceCollection
      */
     public function notifications(Request $request): AnonymousResourceCollection
     {
@@ -36,6 +32,8 @@ final class NotificationController extends Controller
 
     /**
      * Уведомления / Количество непрочитанных уведомлений
+     * @param Request $request
+     * @return JsonResponse
      */
     public function unreadCount(Request $request): JsonResponse
     {

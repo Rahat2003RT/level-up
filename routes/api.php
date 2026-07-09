@@ -142,18 +142,18 @@ Route::prefix('v1')->group(function () {
                 Route::patch('/',               [User\TeamController::class, 'updateTeamPlan']);
             });
             // ----------------------------------------------------------------//
+            //                         ACTIONS METHODS                         //
+            // ----------------------------------------------------------------//
+            Route::prefix('actions')->group(function () {
+                Route::post('/leave',           [User\TeamController::class, 'leaveTeam']);
+            });
+            // ----------------------------------------------------------------//
             //                        INVITATIONS METHODS                      //
             // ----------------------------------------------------------------//
             Route::prefix('invitations')->group(function () {
                 Route::post('/',                [User\TeamController::class, 'generateInviteLink']);
                 Route::post('/{token}/respond', [User\TeamController::class, 'answerInvitation']);
                 Route::get('/{token}',          [User\TeamController::class, 'getTeamByToken']);
-            });
-            // ----------------------------------------------------------------//
-            //                         ACTIONS METHODS                         //
-            // ----------------------------------------------------------------//
-            Route::prefix('actions')->group(function () {
-                Route::post('/leave',           [User\TeamController::class, 'leaveTeam']);
             });
         });
     });
