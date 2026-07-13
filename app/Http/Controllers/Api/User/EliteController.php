@@ -20,10 +20,6 @@ final class EliteController extends Controller
 
     /**
      * Статистика / Общая статистика Elite
-     *
-     * Возвращает общее количество лидеров, количество активных лидеров за сегодня
-     * и суммарный объем (volume) всей команды.
-     *
      * @param Request $request
      * @return EliteStatisticsResource
      */

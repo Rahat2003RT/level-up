@@ -21,10 +21,8 @@ final class EliteService
     {
         $todayStr = Carbon::today()->toDateString();
 
-        // 1. Получаем ID всех лидеров, привязанных к этому Elite
-        // (Предполагаем связь $elite->leaders() или по полю leader_id / parent_id.
-        // Если у тебя связь называется иначе, например, через роли — адаптируй под свой проект)
-        $leaderIds = $elite->leaders()->pluck('id')->toArray();
+        // 1. Получаем ID всех лидеров, привязанных к этому Elite (через отношение players)
+        $leaderIds = $elite->players()->pluck('id')->toArray();
         $totalLeaders = count($leaderIds);
 
         if ($totalLeaders === 0) {
@@ -36,7 +34,6 @@ final class EliteService
         }
 
         // 2. Считаем активных лидеров за сегодня
-        // Активным считается лидер, у которого есть заполненный чек-лист за сегодня (выполнен или выходной)
         $activeLeadersCount = LeadershipChecklist::whereIn('user_id', $leaderIds)
             ->where('date', $todayStr)
             ->where(function ($query) {
@@ -45,8 +42,7 @@ final class EliteService
             })
             ->count();
 
-        // 3. Считаем общий объем (volume) всей структуры
-        // Сюда входят контакты самих лидеров + контакты всех их игроков
+        // 3. Считаем общий объем (volume) всей структуры (лидеры + их игроки)
         $playerIds = User::whereIn('leader_id', $leaderIds)->pluck('id')->toArray();
         $allTeamUserIds = array_merge($leaderIds, $playerIds);
 
