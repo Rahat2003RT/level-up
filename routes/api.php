@@ -104,6 +104,7 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             Route::prefix('statistics')->group(function () {
                 Route::get('/', [User\LeaderController::class, 'dashboardStatistics']);
+                Route::get('/team', [User\LeaderController::class, 'teamStatistics']);
             });
             // ----------------------------------------------------------------//
             //                        CONTACT METHODS                          //

@@ -8,8 +8,10 @@ use App\Http\Requests\Leader\Contact\StoreLeaderContactRequest;
 use App\Http\Requests\Leader\Contact\UpdateLeaderContactRequest;
 use App\Http\Requests\User\Contact\GetContactsRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
+use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Resources\ContactResource;
 use App\Http\Resources\LeadershipChecklistResource;
+use App\Http\Resources\LeaderTeamStatisticsResource;
 use App\Models\Contact;
 use App\Services\User\LeaderService;
 use Dedoc\Scramble\Attributes\Group;
@@ -121,5 +123,16 @@ final class LeaderController extends Controller
     {
         $stats = $this->service->getDashboardStatistics($request->user());
         return response()->json(['data' => $stats]);
+    }
+
+    /**
+     * Статистика / Командная статистика за период
+     * @param StatisticsRequest $request
+     * @return LeaderTeamStatisticsResource
+     */
+    public function teamStatistics(StatisticsRequest $request): LeaderTeamStatisticsResource
+    {
+        $stats = $this->service->getTeamStatistics($request->user(), $request->validated());
+        return LeaderTeamStatisticsResource::make($stats);
     }
 }
