@@ -125,6 +125,14 @@ Route::prefix('v1')->group(function () {
             });
         });
         // ----------------------------------------------------------------//
+        //                        ELITE METHODS                            //
+        // ----------------------------------------------------------------//
+        Route::middleware(['can:access-elite'])->prefix('elite')->group(function () {
+            Route::prefix('statistics')->group(function () {
+                Route::get('/', [User\EliteController::class, 'statistics']);
+            });
+        });
+        // ----------------------------------------------------------------//
         //                          TEAMS METHODS                          //
         // ----------------------------------------------------------------//
         Route::prefix('team')->group(function () {
