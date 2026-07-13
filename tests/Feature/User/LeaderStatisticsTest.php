@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Api\User;
+namespace Tests\Feature\User;
 
 use App\Models\Contact;
 use App\Models\DailyChecklist;
