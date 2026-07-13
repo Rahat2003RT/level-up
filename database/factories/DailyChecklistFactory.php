@@ -38,9 +38,6 @@ final class DailyChecklistFactory extends Factory
             'daily_income' => $this->faker->randomFloat(2, 0, 1000),
             'social_media_activity' => $this->faker->boolean(),
             'communication_with_sponsor' => $this->faker->boolean(),
-            'plans_for_the_day' => $this->faker->sentence(),
-            'results_for_the_day' => $this->faker->sentence(),
-            'notes_for_the_day' => $this->faker->sentence(),
         ];
     }
 }
