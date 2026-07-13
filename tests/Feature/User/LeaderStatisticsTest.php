@@ -40,8 +40,7 @@ final class LeaderStatisticsTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function leader_can_get_team_statistics_for_valid_period(): void
+    public function test_leader_can_get_team_statistics_for_valid_period(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-07-14'));
 
