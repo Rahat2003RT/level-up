@@ -72,7 +72,7 @@ final class LeaderStatisticsTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('data.players_count', 2)
             ->assertJsonPath('data.active_players_count', 1) // Только activePlayer активен, у второго — пропуск
-            ->assertJsonPath('data.total_volume', 7290.0)
+            ->assertJsonPath('data.total_volume', 7290)
             ->assertJsonPath('data.period_days', 30);
 
         Carbon::setTestNow(); // Сбрасываем фиксированное время
