@@ -194,6 +194,16 @@ class User extends Authenticatable implements MustVerifyEmail
             if ($user->isDirty('role') && !empty($user->getOriginal('role'))) {
                 $user->role = $user->getOriginal('role');
             }
+            if ($user->isDirty('leader_id') && $user->isLeader() && $user->leader_id) {
+                $newLeaderBoss = User::find($user->leader_id);
+
+                if ($newLeaderBoss && $newLeaderBoss->isElite()) {
+                    Chat::firstOrCreate([
+                        'elite_id'  => $newLeaderBoss->id,
+                        'leader_id' => $user->id,
+                    ]);
+                }
+            }
         });
         static::creating(function ($user) {
             if (!$user->account_id) {
