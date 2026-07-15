@@ -62,15 +62,24 @@ Route::prefix('v1')->group(function () {
             Route::get('/unread-count',     [User\NotificationController::class, 'unreadCount']);
         });
         // ----------------------------------------------------------------//
+        //                        PROGRESS METHODS                         //
+        // ----------------------------------------------------------------//
+        Route::prefix('plan')->group(function () {
+            Route::prefix('progress')->group(function () {
+                Route::get('/', [User\PlanController::class, 'progress']);
+            });
+            Route::prefix('checklist')->group(function () {
+
+            });
+            Route::prefix('statistics')->group(function () {
+
+            });
+
+        });
+        // ----------------------------------------------------------------//
         //                        PLAYER METHODS                           //
         // ----------------------------------------------------------------//
         Route::middleware(['can:access-player'])->prefix('player')->group(function () {
-            // ----------------------------------------------------------------//
-            //                        PROGRESS METHODS                         //
-            // ----------------------------------------------------------------//
-            Route::prefix('progress')->group(function () {
-                Route::get('/',                             [User\PlayerController::class, 'progress']);
-            });
             // ----------------------------------------------------------------//
             //                       CHECKLIST METHODS                         //
             // ----------------------------------------------------------------//
@@ -103,7 +112,6 @@ Route::prefix('v1')->group(function () {
             //                       STATISTICS METHODS                        //
             // ----------------------------------------------------------------//
             Route::prefix('statistics')->group(function () {
-                Route::get('/', [User\LeaderController::class, 'dashboardStatistics']);
                 Route::get('/team', [User\LeaderController::class, 'teamStatistics']);
             });
             // ----------------------------------------------------------------//
@@ -141,7 +149,9 @@ Route::prefix('v1')->group(function () {
             //                         MESSAGE METHODS                         //
             // ----------------------------------------------------------------//
             Route::prefix('{chat}')->group(function () {
-                Route::get('/messages', [User\MessageController::class, 'index']);
+                Route::get('/messages',          [User\MessageController::class, 'index']);
+                Route::post('/messages',         [User\MessageController::class, 'store']);
+                Route::patch('/messages/{message}', [User\MessageController::class, 'update']);
             });
         });
         // ----------------------------------------------------------------//

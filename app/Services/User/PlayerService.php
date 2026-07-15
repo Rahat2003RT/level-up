@@ -201,8 +201,6 @@ final class PlayerService
     }
 
     /**
-     * Прогресс игрока.
-     *
      * @param int $userId
      * @return array
      */

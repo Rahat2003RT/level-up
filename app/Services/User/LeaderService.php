@@ -179,10 +179,7 @@ final class LeaderService
         return LeadershipChecklist::where('user_id', $userId)->max('day_number') + 1;
     }
 
-    /**
-     * Получить агрегированную статистику для главной страницы лидера.
-     */
-    public function getDashboardStatistics(User $leader): array
+    public function getLeaderProgress(User $leader): array
     {
         $todayStr = Carbon::today()->toDateString();
 

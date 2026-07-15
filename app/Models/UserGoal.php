@@ -16,7 +16,7 @@ use Carbon\Carbon;
  * @property int $target_sales_volume
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * * @property-read User $user
+ * @property-read User $user
  */
 class UserGoal extends Model
 {
@@ -37,9 +37,6 @@ class UserGoal extends Model
         ];
     }
 
-    /**
-     * Пользователь, которому принадлежат цели.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -6,8 +6,10 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\ChatAccessRequest;
+use App\Http\Resources\ChatResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
+use App\Models\Message;
 use App\Services\User\MessageService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -38,4 +40,17 @@ final class MessageController extends Controller
             ]
         ]);
     }
+
+    public function store( $request, Chat $chat): ChatResource
+    {
+        $message = $this->service->storeMessage($chat, $request->user(), $request->validated());
+        return ChatResource::make($message);
+    }
+
+    public function update( $request, Message $message): ChatResource
+    {
+        $message = $this->service->updateMessage($message, $request->validated());
+        return ChatResource::make($message);
+    }
+
 }

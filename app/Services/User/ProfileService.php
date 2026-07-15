@@ -38,7 +38,7 @@ final class ProfileService
             );
         }
 
-        return $user->fresh(['deviceTokens']);
+        return $user->fresh(['goal', 'deviceTokens', 'leader']);
     }
 
     public function deleteAccount(User $user): void

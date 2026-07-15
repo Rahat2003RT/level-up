@@ -119,9 +119,9 @@ final class LeaderController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function dashboardStatistics(Request $request): JsonResponse
+    public function progress(Request $request): JsonResponse
     {
-        $stats = $this->service->getDashboardStatistics($request->user());
+        $stats = $this->service->getProgress($request->user());
         return response()->json(['data' => $stats]);
     }
 

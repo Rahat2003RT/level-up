@@ -4,11 +4,29 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
+/**
+ * Class Message
+ *
+ * --- Свойства (Поля в БД) ---
+ * @property string $id
+ * @property int $chat_id
+ * @property int $sender_id
+ * @property string $text
+ * @property Carbon|null $read_at
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property Carbon|null $deleted_at
+ *
+ * --- Отношения (Relations) ---
+ * @property-read Chat $chat
+ * @property-read User $sender
+ */
 final class Message extends Model
 {
     use SoftDeletes;
@@ -34,7 +52,7 @@ final class Message extends Model
 
     protected static function booted(): void
     {
-        static::creating(function (Message $message) {
+        Message::creating(function (Message $message) {
             if (empty($message->id)) {
                 $message->id = (string) Str::uuid();
             }

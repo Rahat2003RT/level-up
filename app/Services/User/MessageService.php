@@ -4,11 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
+use App\Events\MessageSent;
+use App\Events\MessagesRead;
+use App\Events\MessageUpdated;
+use App\Jobs\SendChatMessageNotification;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 final class MessageService
 {
@@ -46,22 +52,51 @@ final class MessageService
         return $query->orderBy('created_at', 'desc')->cursorPaginate(30);
     }
 
-    /**
-     * Отметить входящие сообщения прочитанными.
-     */
     public function markAsRead(Chat $chat, User $user): int
     {
         $unreadQuery = $chat->messages()
-            ->where('sender_id', '!=', $user->id)
             ->whereNull('read_at');
-
-        $unreadCount = $unreadQuery->count();
-
+        $unreadMessageIds = $unreadQuery->pluck('id')->toArray();
+        $unreadCount = count($unreadMessageIds);
         if ($unreadCount > 0) {
             $unreadQuery->update(['read_at' => now()]);
-            // broadcast(new MessagesRead($chat->id, $user->id))->toOthers();
+            broadcast(new MessagesRead($chat->id, $user->id, $unreadMessageIds))->toOthers();
         }
-
         return $unreadCount;
+    }
+
+    /**
+     * Создать новое сообщение (Отправка).
+     */
+    public function storeMessage(Chat $chat, User $user, array $data): Message
+    {
+        $redisKey = "chat_online:$chat->id";
+        $onlineUserIds = Redis::zrangebyscore($redisKey, (string)(time() - 30), '+inf');
+        $otherOnlineUsers = array_diff($onlineUserIds, [(string)$user->id]);
+        $readAt = !empty($otherOnlineUsers) ? now() : null;
+        $message = $chat->messages()->create([
+            'sender_id' => $user->id,
+            'text'      => $data['text'] ?? null,
+            'read_at'   => $readAt,
+        ]);
+
+        $message->load(['sender.role']);
+
+        broadcast(new MessageSent($message))->toOthers();
+        SendChatMessageNotification::dispatch($message);
+        return $message;
+    }
+
+    public function updateMessage(Message $message, array $data): Message
+    {
+        $message->update([
+            'text' => $data['text'] ?? $message->text,
+        ]);
+
+        $message->load(['sender.role']);
+
+        broadcast(new MessageUpdated($message))->toOthers();
+
+        return $message;
     }
 }

@@ -37,7 +37,7 @@ final class ProfileController extends Controller
     public function update(UpdateRequest $request): UserResource
     {
         $user = $this->service->updateProfile($request->user(), $request->validated());
-        return UserResource::make($user->load(['goal', 'deviceTokens', 'leader']));
+        return UserResource::make($user);
     }
 
     /**
