@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Channels\Chat\Message\UpdateMessageRequest;
 use App\Http\Requests\Chat\ChatAccessRequest;
 use App\Http\Requests\User\Chat\StoreMessageRequest;
+use App\Http\Requests\User\Chat\UpdateMessageRequest;
 use App\Http\Resources\ChatResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
