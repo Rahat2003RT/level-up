@@ -12,6 +12,7 @@ use App\Models\Chat;
 use App\Models\Message;
 use App\Services\User\MessageService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 #[Group('Сообщения', weight: 290)]
@@ -41,13 +42,13 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function store( $request, Chat $chat): ChatResource
+    public function store(Request $request, Chat $chat): ChatResource
     {
         $message = $this->service->storeMessage($chat, $request->user(), $request->validated());
         return ChatResource::make($message);
     }
 
-    public function update( $request, Message $message): ChatResource
+    public function update(Request $request, Message $message): ChatResource
     {
         $message = $this->service->updateMessage($message, $request->validated());
         return ChatResource::make($message);
