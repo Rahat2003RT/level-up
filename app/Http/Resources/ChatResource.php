@@ -18,9 +18,9 @@ final class ChatResource extends JsonResource
         return [
             'id'           => $this->id,
             'leader'       => [
-                'id'         => $this->leader->id,
-                'name'       => $this->leader->name,
-                'avatar'=> $this->leader->avatar_path,
+                'id'         => $this->leader?->id,
+                'name'       => $this->leader?->name,
+                'avatar'     => $this->leader?->avatar_path,
             ],
             'last_message' => MessageResource::make($this->whenLoaded('lastMessage')),
             'created_at'   => $this->created_at?->toIso8601String(),
