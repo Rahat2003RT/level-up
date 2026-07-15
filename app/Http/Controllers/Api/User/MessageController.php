@@ -14,6 +14,7 @@ use App\Models\Chat;
 use App\Models\Message;
 use App\Services\User\MessageService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 #[Group('Сообщения', weight: 290)]
@@ -51,10 +52,17 @@ final class MessageController extends Controller
         return MessageResource::make($message);
     }
 
-    public function update(UpdateMessageRequest $request, Message $message): ChatResource
+    public function update(UpdateMessageRequest $request, Chat $chat, Message $message): ChatResource
     {
         $message = $this->service->updateMessage($message, $request->validated());
         return MessageResource::make($message);
     }
+    public function read(Chat $chat): JsonResponse
+    {
+        $readCount = $this->service->markAsRead($chat, request()->user());
 
+        return response()->json([
+            'read_count' => $readCount,
+        ]);
+    }
 }
