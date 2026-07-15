@@ -49,7 +49,7 @@ final class MessageUpdated implements ShouldBroadcast
     public function broadcastWith(): array
     {
         $this->message->loadMissing([
-            'sender.role',
+            'sender',
         ]);
 
         return [

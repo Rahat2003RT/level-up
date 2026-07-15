@@ -80,7 +80,7 @@ final class MessageService
             'read_at'   => $readAt,
         ]);
 
-        $message->load(['sender.role']);
+        $message->load(['sender']);
 
         broadcast(new MessageSent($message))->toOthers();
         SendChatMessageNotification::dispatch($message);
@@ -93,7 +93,7 @@ final class MessageService
             'text' => $data['text'] ?? $message->text,
         ]);
 
-        $message->load(['sender.role']);
+        $message->load(['sender']);
 
         broadcast(new MessageUpdated($message))->toOthers();
 
