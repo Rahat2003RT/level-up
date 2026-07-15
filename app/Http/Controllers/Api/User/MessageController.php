@@ -44,16 +44,17 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function store(StoreMessageRequest $request, Chat $chat): ChatResource
+    public function store(StoreMessageRequest $request, Chat $chat): MessageResource
     {
         $message = $this->service->storeMessage($chat, $request->user(), $request->validated());
-        return ChatResource::make($message);
+
+        return MessageResource::make($message);
     }
 
     public function update(UpdateMessageRequest $request, Message $message): ChatResource
     {
         $message = $this->service->updateMessage($message, $request->validated());
-        return ChatResource::make($message);
+        return MessageResource::make($message);
     }
 
 }
