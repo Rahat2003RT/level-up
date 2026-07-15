@@ -12,18 +12,26 @@ final class UpdateMessageRequest extends ApiBaseRequest
 {
     public function authorize(): bool
     {
-        /** @var Message|null $message */
         $message = $this->route('message');
-
-        /** @var Chat|null $chat */
         $chat = $this->route('chat');
 
+        // Если прилетели ID вместо моделей, принудительно достаем их из БД
+        if (!$message instanceof Message) {
+            $message = Message::find($message);
+        }
+
+        if (!$chat instanceof Chat) {
+            $chat = Chat::find($chat);
+        }
+
+        // Если какую-то из моделей не нашли — доступ закрыт
         if (!$message || !$chat) {
             return false;
         }
 
+        // Сверяем принадлежность сообщения к чату и автора сообщения
         return $message->chat_id === $chat->id
-            && $message->sender_id === (int) $this->user()->id;
+            && $message->sender_id === (int) $this->user()?->id;
     }
 
     /**
