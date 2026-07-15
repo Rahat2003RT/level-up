@@ -52,7 +52,7 @@ final class MessageController extends Controller
         return MessageResource::make($message);
     }
 
-    public function update(UpdateMessageRequest $request, Chat $chat, Message $message): ChatResource
+    public function update(UpdateMessageRequest $request, Chat $chat, Message $message): MessageResource
     {
         $message = $this->service->updateMessage($message, $request->validated());
         return MessageResource::make($message);
