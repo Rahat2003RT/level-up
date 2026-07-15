@@ -14,7 +14,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
-
+use Illuminate\Support\Facades\Queue;
 final class MessageControllerTest extends TestCase
 {
     use RefreshDatabase;
@@ -26,7 +26,7 @@ final class MessageControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
+        Queue::fake();
         // Создаем участников чата
         $this->elite = User::factory()->create();
         $this->leader = User::factory()->create();
