@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Channels\Chat\Message\UpdateMessageRequest;
 use App\Http\Requests\Chat\ChatAccessRequest;
+use App\Http\Requests\User\Chat\StoreMessageRequest;
 use App\Http\Resources\ChatResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
@@ -42,13 +44,13 @@ final class MessageController extends Controller
         ]);
     }
 
-    public function store(Request $request, Chat $chat): ChatResource
+    public function store(StoreMessageRequest $request, Chat $chat): ChatResource
     {
         $message = $this->service->storeMessage($chat, $request->user(), $request->validated());
         return ChatResource::make($message);
     }
 
-    public function update(Request $request, Message $message): ChatResource
+    public function update(UpdateMessageRequest $request, Message $message): ChatResource
     {
         $message = $this->service->updateMessage($message, $request->validated());
         return ChatResource::make($message);
