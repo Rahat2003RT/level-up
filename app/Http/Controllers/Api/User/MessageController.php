@@ -14,7 +14,6 @@ use App\Models\Chat;
 use App\Models\Message;
 use App\Services\User\MessageService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 #[Group('Сообщения', weight: 290)]
@@ -22,7 +21,8 @@ final class MessageController extends Controller
 {
     public function __construct(
         protected MessageService $service
-    ) {
+    )
+    {
     }
 
     /**

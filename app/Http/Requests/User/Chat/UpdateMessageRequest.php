@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Requests\Channels\Chat\Message;
+namespace App\Http\Requests\User\Chat;
 
 use App\Http\Requests\ApiBaseRequest;
 use App\Models\Chat;
