@@ -168,8 +168,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function leaderChat(): HasOne
     {
-        return $this->hasOne(Chat::class, 'elite_id', 'id')
-            ->where('leader_id', $this->leader_id);
+        return $this->hasOne(Chat::class, 'leader_id', 'id');
     }
 
     // --- МЕТОДЫ ПРОВЕРКИ РОЛЕЙ ---
