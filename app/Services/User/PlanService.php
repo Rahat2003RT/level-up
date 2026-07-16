@@ -420,7 +420,7 @@ final class PlanService
         $totalPlayers = count($playerIds);
 
         $activePlayersToday = DailyChecklist::whereIn('user_id', $playerIds)
-            ->where('date', $todayStr)
+            ->whereRaw("strftime('%Y-%m-%d', date) = ?", [$todayStr])
             ->where(fn($q) => $q->where('is_completed', true)->orWhere('is_day_off', true))
             ->count();
 
