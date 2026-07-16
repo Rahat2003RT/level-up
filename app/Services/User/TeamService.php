@@ -3,6 +3,7 @@
 namespace App\Services\User;
 
 use App\Enums\UserRole;
+use App\Models\Chat;
 use App\Models\Contact;
 use App\Models\TeamInvitation;
 use App\Models\TeamPlan;
@@ -75,6 +76,13 @@ final class TeamService
 
         if ($accept) {
             $user->update(['leader_id' => $invitation->leader_id]);
+
+            if ($user->role === UserRole::LEADER && $invitation->leader?->role === UserRole::ELITE) {
+                Chat::firstOrCreate([
+                    'elite_id'  => $invitation->leader_id,
+                    'leader_id' => $user->id,
+                ]);
+            }
 
             return [
                 'status' => 'accepted',
