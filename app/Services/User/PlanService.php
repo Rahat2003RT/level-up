@@ -369,10 +369,10 @@ final class PlanService
     private function getPersonalStatistics(User $user, array $data): array
     {
         $days = (int) $data['days'];
-        $startDate = Carbon::today()->subDays($days - 1)->toDateString();
-        $endDate = Carbon::today()->toDateString();
+        $startDate = Carbon::today()->subDays($days - 1)->format('Y-m-d');
+        $endDate = Carbon::today()->format('Y-m-d');
         $totals = DailyChecklist::where('user_id', $user->id)
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereRaw("date(date) BETWEEN ? AND ?", [$startDate, $endDate])
             ->selectRaw('
                 SUM(completed_meetings) as total_meetings,
                 SUM(new_clients) as total_clients,
