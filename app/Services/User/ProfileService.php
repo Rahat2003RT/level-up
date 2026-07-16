@@ -55,7 +55,8 @@ final class ProfileService
         return $user->load([
             'goal',
             'deviceTokens',
-            'leader'
+            'leader',
+            'leaderChat'
         ]);
     }
 

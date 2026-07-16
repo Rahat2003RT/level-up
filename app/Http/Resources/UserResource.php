@@ -85,6 +85,10 @@ final class UserResource extends JsonResource
                         filter_var($this->leader->avatar_path, FILTER_VALIDATE_URL) => $this->leader->avatar_path,
                         default => Storage::disk('public')->url($this->leader->avatar_path),
                     },
+
+                    'chat_id' => $this->relationLoaded('leaderChat') && $this->leaderChat
+                        ? $this->leaderChat->id
+                        : null,
                 ];
             }),
 
