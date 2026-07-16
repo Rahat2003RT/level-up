@@ -113,6 +113,7 @@ class TariffTest extends TestCase
         $response = $this->actingAs($this->admin, 'sanctum')
             ->postJson('/api/v1/admin/tariffs', $payload);
 
+        $response->dump();
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['period']);
     }
