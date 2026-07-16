@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Api\User;
 use App\Http\Controllers\Api\Guest;
+use App\Http\Controllers\Api\User\PlanController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -82,18 +83,18 @@ Route::prefix('v1')->group(function () {
             //                        PROGRESS METHODS                         //
             // ----------------------------------------------------------------//
             Route::prefix('progress')->group(function () {
-                Route::get('/', [User\PlanController::class, 'progress']);
+                Route::get('/', [PlanController::class, 'progress']);
             });
             // ----------------------------------------------------------------//
             //                       CHECKLIST METHODS                         //
             // ----------------------------------------------------------------//
             Route::prefix('checklist')->group(function () {
-                Route::get('/',         [User\PlanController::class, 'checklist']);
-                Route::post('/',        [User\PlanController::class, 'storeChecklist']);
-                Route::post('/day-off', [User\PlanController::class, 'setDayOff']);
+                Route::get('/',         [PlanController::class, 'checklist']);
+                Route::post('/',        [PlanController::class, 'storeChecklist']);
+                Route::post('/day-off', [PlanController::class, 'setDayOff']);
             });
             Route::prefix('statistics')->group(function () {
-
+                Route::get('/', [PlanController::class, 'statistics']);
             });
 
         });
