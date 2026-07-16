@@ -107,7 +107,6 @@ final class UserController extends Controller
     public function unblock(User $user): UserResource
     {
         $updatedUser = $this->service->unblock($user);
-
         return UserResource::make($updatedUser);
     }
 

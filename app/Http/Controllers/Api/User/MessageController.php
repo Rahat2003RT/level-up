@@ -16,6 +16,7 @@ use App\Services\User\MessageService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Http\Response;
 
 #[Group('Сообщения', weight: 290)]
 final class MessageController extends Controller
@@ -39,16 +40,13 @@ final class MessageController extends Controller
             default => 'history'
         };
         return MessageResource::collection($messages)->additional([
-            'meta' => [
-                'type' => $type
-            ]
+            'meta' => ['type' => $type]
         ]);
     }
 
     public function store(StoreMessageRequest $request, Chat $chat): MessageResource
     {
         $message = $this->service->storeMessage($chat, $request->user(), $request->validated());
-
         return MessageResource::make($message);
     }
 
@@ -57,12 +55,9 @@ final class MessageController extends Controller
         $message = $this->service->updateMessage($message, $request->validated());
         return MessageResource::make($message);
     }
-    public function read(Chat $chat): JsonResponse
+    public function read(Chat $chat): Response
     {
-        $readCount = $this->service->markAsRead($chat, request()->user());
-
-        return response()->json([
-            'read_count' => $readCount,
-        ]);
+        $this->service->markAsRead($chat, request()->user());
+        return response()->noContent();
     }
 }

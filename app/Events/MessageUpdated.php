@@ -52,8 +52,6 @@ final class MessageUpdated implements ShouldBroadcast
             'sender',
         ]);
 
-        return [
-            'data' => MessageResource::make($this->message)->resolve(),
-        ];
+        return MessageResource::make($this->message)->resolve();
     }
 }

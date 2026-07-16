@@ -38,7 +38,7 @@ final class MessageSent implements ShouldBroadcast
             new PresenceChannel("chat.{$this->message->chat_id}"),
         ];
 
-        $recipientId = ($this->message->sender_id === $chat->elite_id)
+        $recipientId = ($this->message->sender_id == $chat->elite_id)
             ? $chat->leader_id
             : $chat->elite_id;
 
@@ -62,10 +62,6 @@ final class MessageSent implements ShouldBroadcast
         $this->message->loadMissing([
             'sender.role',
         ]);
-        return [
-            'id' => $this->message->id,
-            'text' => $this->message->text,
-            'sender_id' => $this->message->sender_id,
-        ];
+        return MessageResource::make($this->message)->resolve();
     }
 }

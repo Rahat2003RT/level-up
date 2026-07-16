@@ -67,10 +67,9 @@ final class AuthController extends Controller
      */
     public function sendResetCode(ForgotPasswordRequest $request): JsonResponse
     {
-        $debugData = $this->service->sendResetCode($request->validated());
+        $this->service->sendResetCode($request->validated());
         return response()->json([
             'message' => __('passwords.sent'),
-            'debug'   => $debugData
         ]);
     }
 

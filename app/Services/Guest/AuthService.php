@@ -90,7 +90,7 @@ final class AuthService
     /**
      * @throws ValidationException
      */
-    public function sendResetCode(array $data): array
+    public function sendResetCode(array $data): void
     {
         $email = $data['email'];
         $redisKey = "password_reset_attempts:$email";
@@ -119,11 +119,6 @@ final class AuthService
             'created_at' => now(),
         ]);
         $user->notify(new CustomResetPasswordNotification($code, $locale));
-        return [
-            'current_attempts' => $currentAttempts,
-            'ttl_seconds' => Redis::ttl($redisKey),
-            'redis_key' => $redisKey
-        ];
     }
 
     /**

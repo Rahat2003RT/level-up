@@ -151,7 +151,7 @@ Route::prefix('v1')->group(function () {
             Route::prefix('{chat}')->group(function () {
                 Route::get('/messages',          [User\MessageController::class, 'index']);
                 Route::post('/messages',         [User\MessageController::class, 'store']);
-                Route::post('/messages/read',       [User\MessageController::class, 'read']); // <-- Добавь эту строчку!
+                Route::post('/messages/read',       [User\MessageController::class, 'read']);
                 Route::patch('/messages/{message}', [User\MessageController::class, 'update']);
                 // ----------------------------------------------------------------//
                 //                        PRESENCE METHODS                         //
