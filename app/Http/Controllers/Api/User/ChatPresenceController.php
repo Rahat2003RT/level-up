@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChatPresenceRequest;
+use App\Models\Chat;
 use App\Services\ChatPresenceService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
@@ -20,11 +21,11 @@ final class ChatPresenceController extends Controller
     /**
      * Пинг
      */
-    public function ping(int $chatId, Request $request): Response
+    public function ping(Chat $chat, Request $request): Response
     {
         $userId = $request->user()->id;
 
-        $this->presenceService->ping($chatId, $userId);
+        $this->presenceService->ping($chat->id, $userId);
 
         return response()->noContent();
     }
@@ -32,9 +33,9 @@ final class ChatPresenceController extends Controller
     /**
      * Выход из чата
      */
-    public function leave(int $chatId, Request $request): Response
+    public function leave(Chat $chat, Request $request): Response
     {
-        $this->presenceService->leave($chatId, $request->user()->id);
+        $this->presenceService->leave($chat->id, $request->user()->id);
         return response()->noContent();
     }
 }
