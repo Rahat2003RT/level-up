@@ -29,6 +29,12 @@ final class IndexUserRequest extends ApiBaseRequest
             'order_by'   => ['nullable', 'string', 'in:' . implode(',', $allowedSorts)],
             'order_sort' => ['nullable', 'string', 'in:asc,desc'],
             'country'    => ['nullable', 'string', 'max:100'],
+            'role' => [
+                'nullable',
+                'string',
+                'max:32',
+                Rule::in(collect(UserRole::cases())->reject(fn($role) => $role === UserRole::ADMIN)->pluck('value')->toArray())
+            ],
         ];
     }
 }
