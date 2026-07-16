@@ -17,7 +17,7 @@ final class LeadershipChecklistResource extends JsonResource
         return [
             'id'                          => $this->id ?? null,
             'user_id'                     => $this->user_id,
-            'date' => $this->date instanceof Carbon
+            'date'                        => $this->date instanceof Carbon
                 ? $this->date->toDateString()
                 : (is_string($this->date) ? $this->date : null),
             'day_number'                  => $this->day_number,
