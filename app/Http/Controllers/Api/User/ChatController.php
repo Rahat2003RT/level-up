@@ -31,7 +31,7 @@ final class ChatController extends Controller
 
     public function show(Chat $chat): ChatResource
     {
-        $chat = $this->getChatInfo($chat);
+        $chat = $this->service->showChat($chat);
         return ChatResource::make($chat);
     }
 }

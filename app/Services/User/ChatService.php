@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
+use App\Http\Resources\ChatResource;
 use App\Models\Chat;
 use App\Models\User;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -20,8 +21,8 @@ final class ChatService
     {
         $unreadCountRelation = [
             'messages as unread_count' => function ($query) use ($user) {
-                $query->whereNull('read_at') // или read_at IS NULL в зависимости от вашей БД
-                ->where('sender_id', '!=', $user->id); // не считаем свои же сообщения
+                $query->whereNull('read_at')
+                ->where('sender_id', '!=', $user->id);
             }
         ];
 
@@ -29,7 +30,7 @@ final class ChatService
             $chat = Chat::query()
                 ->where('leader_id', $user->id)
                 ->with(['elite', 'lastMessage'])
-                ->withCount($unreadCountRelation) // Добавляем подсчет здесь
+                ->withCount($unreadCountRelation)
                 ->first();
 
             return $chat ? collect([$chat]) : collect();
@@ -55,5 +56,10 @@ final class ChatService
         }
 
         return collect();
+    }
+
+    public function showChat(Chat $chat): ChatResource
+    {
+        return ChatResource::make($chat);
     }
 }

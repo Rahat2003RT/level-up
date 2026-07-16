@@ -31,54 +31,6 @@ final class LeaderController extends Controller
     }
 
     /**
-     * Контакты / Список контактов
-     * @param GetContactsRequest $request
-     * @return AnonymousResourceCollection
-     */
-    public function contacts(GetContactsRequest $request): AnonymousResourceCollection
-    {
-        $result = $this->service->getContacts($request->user(), $request->validated());
-        return ContactResource::collection($result['contacts'])->additional(['total_volume' => $result['total_volume']]);
-    }
-
-    /**
-     * Контакты / Создать новый контакт.
-     * @param StoreLeaderContactRequest $request
-     * @return ContactResource
-     */
-    public function storeContact(StoreLeaderContactRequest $request): ContactResource
-    {
-        $contact = $this->service->createContact($request->user(), $request->validated());
-        return ContactResource::make($contact);
-    }
-
-    /**
-     * Контакты / Редактировать контакт
-     * @param UpdateLeaderContactRequest $request
-     * @param Contact $contact
-     * @return ContactResource
-     */
-    public function updateContact(UpdateLeaderContactRequest $request, Contact $contact): ContactResource
-    {
-        $updatedContact = $this->service->updateContact($contact, $request->validated());
-        return ContactResource::make($updatedContact);
-    }
-
-    /**
-     * Контакты / Удалить контакт
-     * @param Request $request
-     * @param Contact $contact
-     * @return Response
-     * @throws AuthorizationException
-     */
-    public function destroyContact(Request $request, Contact $contact): Response
-    {
-        $this->service->deleteContact($request->user(), $contact);
-        return response()->noContent();
-    }
-
-
-    /**
      * Чек-лист / Просмотр чек-листа за выбранный день.
      * @param ShowChecklistRequest $request
      * @return LeadershipChecklistResource
@@ -113,17 +65,6 @@ final class LeaderController extends Controller
         return LeadershipChecklistResource::make($checklist);
     }
 
-
-    /**
-     * Статистика / Статистика для главной
-     * @param Request $request
-     * @return JsonResponse
-     */
-    public function progress(Request $request): JsonResponse
-    {
-        $stats = $this->service->getProgress($request->user());
-        return response()->json(['data' => $stats]);
-    }
 
     /**
      * Статистика / Командная статистика за период

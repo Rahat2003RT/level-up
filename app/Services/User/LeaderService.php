@@ -11,63 +11,6 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 final class LeaderService
 {
-    /**
-     * @param User $user
-     * @param array $data
-     * @return array
-     */
-    public function getContacts(User $user, array $data): array
-    {
-        $contactsQuery = $user->contacts();
-        $contactsPaginator = $contactsQuery
-            ->when($data['query'] ?? null, function ($query, $search) {
-                $query->where('name', 'like', "%$search%");
-            })
-            ->latest()
-            ->paginate($data['limit'] ?? 20);
-
-        $totalVolume = (float)$user->contacts()->sum('volume');
-
-        return [
-            'contacts' => $contactsPaginator,
-            'total_volume' => $totalVolume,
-        ];
-    }
-
-    /**
-     * @param User $user
-     * @param array $data
-     * @return Contact
-     */
-    public function createContact(User $user, array $data): Contact
-    {
-        return $user->contacts()->create($data);
-    }
-
-    /**
-     * @param Contact $contact
-     * @param array $data
-     * @return Contact
-     */
-    public function updateContact(Contact $contact, array $data): Contact
-    {
-        $contact->update($data);
-        return $contact;
-    }
-
-    /**
-     * @param User $user
-     * @param Contact $contact
-     * @return bool|null
-     * @throws AuthorizationException
-     */
-    public function deleteContact(User $user, Contact $contact): ?bool
-    {
-        if ($contact->user_id !== $user->id) {
-            throw new AuthorizationException('You do not own this contact.');
-        }
-        return $contact->delete();
-    }
 
 
     public function getOrCreateVirtual(User $user, array $data): LeadershipChecklist|array|null
@@ -177,56 +120,6 @@ final class LeaderService
     protected function getNextDayNumber(int $userId): int
     {
         return LeadershipChecklist::where('user_id', $userId)->max('day_number') + 1;
-    }
-
-    public function getLeaderProgress(User $leader): array
-    {
-        $todayStr = Carbon::today()->toDateString();
-
-        $leaderTodayChecklist = LeadershipChecklist::where('user_id', $leader->id)
-            ->where('date', $todayStr)
-            ->first();
-
-        if ($leaderTodayChecklist) {
-            $currentDayNumber = $leaderTodayChecklist->day_number;
-        } else {
-            $maxLeaderDay = LeadershipChecklist::where('user_id', $leader->id)->max('day_number') ?? 0;
-            $currentDayNumber = $maxLeaderDay + 1;
-        }
-        $currentDayNumber = min(90, $currentDayNumber);
-        $players = $leader->players()->with('checklists')->get();
-        $totalPlayers = $players->count();
-
-        $activePlayersCount = 0;
-        $totalProgressPercentage = 0;
-
-        foreach ($players as $player) {
-            $playerChecklistsCount = $player->checklists->count();
-
-            $playerTodayChecklist = $player->checklists->first(fn($c) => $c->date->toDateString() === $todayStr);
-            if ($playerTodayChecklist) {
-                $pDay = $playerTodayChecklist->day_number;
-            } else {
-                $pDay = $player->checklists->max('day_number') ?? 0;
-            }
-
-            $playerProgress = $pDay > 0 ? round(($pDay / 90) * 100) : 0;
-            $totalProgressPercentage += min(100, $playerProgress);
-
-            if ($playerChecklistsCount > 0 && $playerChecklistsCount >= $pDay) {
-                $activePlayersCount++;
-            }
-        }
-
-        $averageProgress = $totalPlayers > 0 ? round($totalProgressPercentage / $totalPlayers) : 0;
-
-        return [
-            'current_day_number' => $currentDayNumber,
-            'plan_start_date' => $leader->created_at ? $leader->created_at->toDateString() : null,
-            'players_count' => $totalPlayers,
-            'active_count' => $activePlayersCount,
-            'average_progress' => min(100, $averageProgress),
-        ];
     }
 
     /**
