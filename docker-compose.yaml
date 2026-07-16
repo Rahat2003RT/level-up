@@ -20,6 +20,7 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
+        user: "1000:1000"
         environment:
             - TMPDIR=/var/www/html/storage/framework/views
             - TEMP=/var/www/html/storage/framework/views
@@ -53,6 +54,7 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
+        user: "1000:1000"
         command: php artisan horizon
         volumes:
             - ./:/var/www/html
@@ -66,6 +68,7 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
+        user: "1000:1000"
         command: sh -c "while true; do php artisan schedule:run --no-interaction & sleep 60; done"
         volumes:
             - ./:/var/www/html
@@ -78,6 +81,7 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
+        user: "1000:1000"
         entrypoint: []
         command: php artisan reverb:start --host=0.0.0.0 --port=8080
         environment:
