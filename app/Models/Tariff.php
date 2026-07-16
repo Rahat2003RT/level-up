@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\Period;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -38,6 +39,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Tariff extends Model
 {
+    use HasFactory;
     /**
      * Атрибуты, для которых разрешено массовое заполнение.
      *
