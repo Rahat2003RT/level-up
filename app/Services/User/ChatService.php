@@ -20,7 +20,7 @@ final class ChatService
     {
         $unreadCountRelation = [
             'messages as unread_count' => function ($query) use ($user) {
-                $query->where('is_read', false) // или read_at IS NULL в зависимости от вашей БД
+                $query->whereNull('read_at') // или read_at IS NULL в зависимости от вашей БД
                 ->where('sender_id', '!=', $user->id); // не считаем свои же сообщения
             }
         ];
