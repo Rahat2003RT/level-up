@@ -62,6 +62,10 @@ final class MessageSent implements ShouldBroadcast
         $this->message->loadMissing([
             'sender.role',
         ]);
-        return MessageResource::make($this->message)->resolve();
+        return [
+            'id' => $this->message->id,
+            'text' => $this->message->text,
+            'sender_id' => $this->message->sender_id,
+        ];
     }
 }
