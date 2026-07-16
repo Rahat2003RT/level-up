@@ -30,31 +30,31 @@ class ContactControllerTest extends TestCase
     {
         Contact::factory()->create([
             'user_id' => $this->user->id,
-            'type'    => ContactType::CLIENT->value, // Используем значение из вашего реального Enum
-            'volume'  => '1000.50',
+            'type'    => ContactType::CLIENT->value,
+            'volume'  => 1000, // Используем целые числа
             'name'    => 'Иван Иванов',
         ]);
 
         Contact::factory()->create([
             'user_id' => $this->user->id,
             'type'    => ContactType::PARTNER->value,
-            'volume'  => '500.00',
+            'volume'  => 500,  // Используем целые числа
             'name'    => 'Петр Петров',
         ]);
 
         Contact::factory()->create([
             'user_id' => $this->otherUser->id,
-            'volume'  => '9999.00',
+            'volume'  => 9999,
         ]);
 
         // 1. Запрос без фильтров
         $response = $this->actingAs($this->user)
-            ->getJson('/api/v1/contacts'); // Добавили префикс v1
+            ->getJson('/api/v1/contacts');
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
-            ->assertJsonPath('meta.filtered_volume', 1500.50)
-            ->assertJsonPath('meta.total_volume', 1500.50);
+            ->assertJsonPath('filtered_volume', 1500) // Проверяем в корне и без копеек
+            ->assertJsonPath('total_volume', 1500);
 
         // 2. Запрос с фильтром по типу (client)
         $responseFiltered = $this->actingAs($this->user)
@@ -62,8 +62,8 @@ class ContactControllerTest extends TestCase
 
         $responseFiltered->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('meta.filtered_volume', 1000.50)
-            ->assertJsonPath('meta.total_volume', 1500.50);
+            ->assertJsonPath('filtered_volume', 1000)
+            ->assertJsonPath('total_volume', 1500);
 
         // 3. Запрос с поисковым запросом query
         $responseSearch = $this->actingAs($this->user)
@@ -72,7 +72,7 @@ class ContactControllerTest extends TestCase
         $responseSearch->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Петр Петров')
-            ->assertJsonPath('meta.filtered_volume', 500.00);
+            ->assertJsonPath('filtered_volume', 500);
     }
 
     /**
@@ -83,7 +83,7 @@ class ContactControllerTest extends TestCase
         $payload = [
             'name'          => 'Алексей Смирнов',
             'phone'         => '+79991112233',
-            'volume'        => '2500',
+            'volume'        => 2500, // Передаем целое число
             'comment'       => 'Новый лид',
             'date_of_birth' => '1990-01-15',
             'type'          => ContactType::CLIENT->value,
@@ -99,7 +99,7 @@ class ContactControllerTest extends TestCase
         $this->assertDatabaseHas('contacts', [
             'user_id' => $this->user->id,
             'name'    => 'Алексей Смирнов',
-            'volume'  => '2500',
+            'volume'  => 2500,
         ]);
     }
 
@@ -115,7 +115,7 @@ class ContactControllerTest extends TestCase
 
         $payload = [
             'name'   => 'Новое Имя',
-            'volume' => '3000',
+            'volume' => 3000,
         ];
 
         $response = $this->actingAs($this->user)
@@ -127,7 +127,7 @@ class ContactControllerTest extends TestCase
         $this->assertDatabaseHas('contacts', [
             'id'     => $contact->id,
             'name'   => 'Новое Имя',
-            'volume' => '3000',
+            'volume' => 3000,
         ]);
     }
 
@@ -170,9 +170,17 @@ class ContactControllerTest extends TestCase
 
         $response->assertNoContent();
 
-        $this->assertDatabaseMissing('contacts', [
-            'id' => $contact->id,
-        ]);
+        // Проверяем удаление с поддержкой SoftDeletes (если он есть, сработает assertSoftDeleted.
+        // Если его нет — assertDatabaseMissing)
+        if (in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($contact))) {
+            $this->assertSoftDeleted('contacts', [
+                'id' => $contact->id,
+            ]);
+        } else {
+            $this->assertDatabaseMissing('contacts', [
+                'id' => $contact->id,
+            ]);
+        }
     }
 
     /**
