@@ -61,7 +61,7 @@ final class Chat extends Model
         return $this->hasMany(Message::class);
     }
 
-    public function latestMessage()
+    public function lastMessage(): HasOne
     {
         return $this->hasOne(Message::class)->latestOfMany('created_at');
     }
