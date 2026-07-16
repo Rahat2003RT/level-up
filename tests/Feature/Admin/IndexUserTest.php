@@ -50,11 +50,8 @@ class IndexUserTest extends TestCase
         $response = $this->actingAs($this->admin)
             ->getJson('/api/v1/admin/users?role=' . UserRole::ADMIN->value);
 
-        // ВЫВОДИТ СТАТУС И ТЕЛО ОТВЕТА В КОНСОЛЬ ПРИ ОШИБКЕ
-        if ($response->status() !== 422) {
-            $this->fail('Ожидали 422, но получили: ' . $response->status() . '. Тело ответа: ' . $response->getContent());
-        }
-
-        $response->assertJsonValidationErrors(['role']);
+        $response->assertStatus(422)
+            ->assertJsonPath('status', 'error')
+            ->assertJsonPath('message', 'The selected role is invalid.'); // Проверяем сообщение
     }
 }
