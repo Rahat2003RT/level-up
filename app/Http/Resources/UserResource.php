@@ -86,9 +86,7 @@ final class UserResource extends JsonResource
                         default => Storage::disk('public')->url($this->leader->avatar_path),
                     },
 
-                    'chat_id' => $this->relationLoaded('leaderChat') && $this->leaderChat
-                        ? $this->leaderChat->id
-                        : null,
+                    'chat_id' => $this->leaderChat?->id,
                 ];
             }),
 
