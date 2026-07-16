@@ -153,6 +153,11 @@ Route::prefix('v1')->group(function () {
                 Route::post('/messages',         [User\MessageController::class, 'store']);
                 Route::post('/messages/read',       [User\MessageController::class, 'read']); // <-- Добавь эту строчку!
                 Route::patch('/messages/{message}', [User\MessageController::class, 'update']);
+                // ----------------------------------------------------------------//
+                //                        PRESENCE METHODS                         //
+                // ----------------------------------------------------------------//
+                Route::post('/ping',                [User\ChatPresenceController::class, 'ping']);
+                Route::post('/leave',               [User\ChatPresenceController::class, 'leave']);
             });
         });
         // ----------------------------------------------------------------//
