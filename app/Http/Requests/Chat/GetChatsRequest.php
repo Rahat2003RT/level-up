@@ -12,7 +12,8 @@ final class GetChatsRequest extends ApiBaseRequest
     public function rules(): array
     {
         return [
-            'search'   => ['nullable', 'string', 'max:255'],
+            'query'   =>  ['nullable', 'string', 'max:255'],
+            'page' =>     ['nullable', 'integer', 'min:1', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ];
     }
