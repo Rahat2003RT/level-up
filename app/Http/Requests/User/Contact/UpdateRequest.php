@@ -23,7 +23,7 @@ class UpdateRequest extends ApiBaseRequest
         return [
             'name'          => ['sometimes', 'required', 'string', 'max:255'],
             'phone'         => ['nullable', 'string', 'max:50'],
-            'volume'        => ['nullable', 'string', 'max:255'],
+            'volume'        => ['nullable', 'numeric', 'integer', 'min:0'],
             'comment'       => ['nullable', 'string'],
             'date_of_birth' => ['nullable', 'string', 'max:50'],
             'type'          => ['sometimes', 'nullable', new Enum(ContactType::class)],
