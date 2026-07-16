@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
 use Tests\TestCase;
 
-class PlanStatisticsTest extends TestCase
+class Plan2 extends TestCase
 {
     use RefreshDatabase;
 
