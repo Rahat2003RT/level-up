@@ -23,6 +23,7 @@ final class ChatResource extends JsonResource
                 'avatar'     => $this->leader?->avatar_path,
             ],
             'last_message' => MessageResource::make($this->whenLoaded('lastMessage')),
+            'unread_count' => (int) ($this->unread_count ?? 0),
             'created_at'   => $this->created_at?->toIso8601String(),
             'updated_at'   => $this->updated_at?->toIso8601String(),
         ];

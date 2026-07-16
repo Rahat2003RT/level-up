@@ -18,10 +18,18 @@ final class ChatService
      */
     public function getChatsForUser(User $user, array $filters = []): LengthAwarePaginator|Collection
     {
+        $unreadCountRelation = [
+            'messages as unread_count' => function ($query) use ($user) {
+                $query->where('is_read', false) // или read_at IS NULL в зависимости от вашей БД
+                ->where('sender_id', '!=', $user->id); // не считаем свои же сообщения
+            }
+        ];
+
         if ($user->isLeader()) {
             $chat = Chat::query()
                 ->where('leader_id', $user->id)
                 ->with(['elite', 'lastMessage'])
+                ->withCount($unreadCountRelation) // Добавляем подсчет здесь
                 ->first();
 
             return $chat ? collect([$chat]) : collect();
@@ -34,6 +42,7 @@ final class ChatService
             return Chat::query()
                 ->where('elite_id', $user->id)
                 ->with(['leader', 'lastMessage'])
+                ->withCount($unreadCountRelation) // И здесь
                 ->when($searchString, function ($query, string $search) {
                     $query->whereHas('leader', function ($q) use ($search) {
                         $q->where('name', 'like', "%$search%")
