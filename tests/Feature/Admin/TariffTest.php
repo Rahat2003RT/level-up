@@ -156,10 +156,7 @@ class TariffTest extends TestCase
         $response = $this->actingAs($this->admin, 'sanctum')
             ->deleteJson("/api/v1/admin/tariffs/{$tariff->id}");
 
-        $response->assertStatus(200)
-            ->assertJson([
-                'message' => 'Tariff successfully deleted.'
-            ]);
+        $response->assertStatus(204);
 
         $this->assertDatabaseMissing('tariffs', [
             'id' => $tariff->id,
