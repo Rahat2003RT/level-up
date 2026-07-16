@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Checklist\StoreRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
+use App\Http\Requests\User\Statistics\IndexRequest;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\LeadershipChecklistResource;
 use App\Http\Resources\ProgressResource;
 use App\Services\User\PlanService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 #[Group('90 дней план', weight: 200)]
@@ -34,13 +36,14 @@ final class PlanController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @return StatisticsResource
+     * Статистика
+     * @param IndexRequest $request
+     * @return JsonResponse
      */
-    public function statistics(Request $request): StatisticsResource
+    public function statistics(IndexRequest $request)
     {
-        $statistics = $this->service->getStatisctics($request->user());
-        return StatisticsResource::make($statistics);
+        $stats = $this->service->getStatistics($request->user(), $request->validated());
+        return response()->json(['data' => $stats]);
     }
 
     /**

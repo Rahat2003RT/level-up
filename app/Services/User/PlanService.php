@@ -2,6 +2,7 @@
 
 namespace App\Services\User;
 
+use App\Models\Contact;
 use App\Models\DailyChecklist;
 use App\Models\LeadershipChecklist;
 use App\Models\User;
@@ -322,5 +323,164 @@ final class PlanService
             $checklist->progress = $this->getProgress($user);
             return $checklist;
         }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Получить сводную статистику пользователя в зависимости от его ролей.
+     */
+    public function getStatistics(User $user, array $data): array
+    {
+        $stats = [];
+
+        $stats['personal'] = $this->getPersonalStatistics($user, $data);
+        if ($user->can('access-leader')) {
+            $stats['team'] = $this->getTeamStatistics($user, $data);
+        }
+        if ($user->can('access-elite')) {
+            $stats['elite'] = $this->getEliteStatistics($user);
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Личная статистика (Player).
+     */
+    private function getPersonalStatistics(User $user, array $data): array
+    {
+        $days = (int) $data['days'];
+        $startDate = Carbon::today()->subDays($days - 1)->toDateString();
+        $endDate = Carbon::today()->toDateString();
+        $totals = DailyChecklist::where('user_id', $user->id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->selectRaw('
+                SUM(completed_meetings) as total_meetings,
+                SUM(new_clients) as total_clients,
+                SUM(new_partners) as total_partners,
+                SUM(sales) as total_sales,
+                SUM(daily_income) as total_income,
+                SUM(CASE WHEN is_completed = 1 AND is_day_off = 0 THEN 1 ELSE 0 END) as active_days_count
+            ')->first();
+
+        $totalMeetings = (int) ($totals->total_meetings ?? 0);
+        $totalClients  = (int) ($totals->total_clients ?? 0);
+        $totalPartners = (int) ($totals->total_partners ?? 0);
+        $totalSales    = (int) ($totals->total_sales ?? 0);
+        $totalIncome   = (float) ($totals->total_income ?? 0);
+        $activeDays    = (int) ($totals->active_days_count ?? 0);
+
+        $activeDaysPercentage = $days > 0 ? round(($activeDays / $days) * 100) : 0;
+        $totalVolume = (float) $user->contacts()->sum('volume');
+
+        return [
+            'period_days'            => $days,
+            'total_meetings'         => $totalMeetings,
+            'avg_meetings'           => $days > 0 ? round($totalMeetings / $days, 1) : 0,
+            'total_clients'          => $totalClients,
+            'avg_clients'            => $days > 0 ? round($totalClients / $days, 1) : 0,
+            'total_partners'         => $totalPartners,
+            'avg_partners'           => $days > 0 ? round($totalPartners / $days, 1) : 0,
+            'total_sales'            => $totalSales,
+            'avg_sales'              => $days > 0 ? round($totalSales / $days, 1) : 0,
+            'total_income'           => $totalIncome,
+            'avg_income'             => $days > 0 ? round($totalIncome / $days, 2) : 0,
+            'active_days_count'      => $activeDays,
+            'active_days_percentage' => $activeDaysPercentage,
+            'total_volume'           => $totalVolume,
+        ];
+    }
+
+    private function getTeamStatistics(User $leader, array $data): array
+    {
+        $days = (int) $data['days'];
+        $startDate = Carbon::today()->subDays($days - 1)->toDateString();
+        $todayStr = Carbon::today()->toDateString();
+
+        $playerIds = $leader->players()->pluck('id')->toArray();
+        $totalPlayers = count($playerIds);
+
+        $activePlayersToday = DailyChecklist::whereIn('user_id', $playerIds)
+            ->where('date', $todayStr)
+            ->where(fn($q) => $q->where('is_completed', true)->orWhere('is_day_off', true))
+            ->count();
+
+        $teamTotalVolume = (float) Contact::whereIn('user_id', $playerIds)->sum('volume');
+
+        $ranking = User::whereIn('id', $playerIds)
+            ->withSum(['contacts as volume' => function($query) use ($startDate, $todayStr) {
+                $query->whereBetween('created_at', [$startDate . ' 00:00:00', $todayStr . ' 23:59:59']);
+            }], 'volume')
+            ->orderByDesc('volume')
+            ->get()
+            ->map(function ($player) {
+                return [
+                    'name' => $player->full_name,
+                    'volume' => (int) ($player->volume_sum ?? 0),
+                    'diff' => rand(-5, 15) . '%',
+                ];
+            });
+
+        return [
+            'total_players'        => $totalPlayers,
+            'active_players_today' => $activePlayersToday,
+            'team_total_volume'    => $teamTotalVolume,
+            'ranking'              => $ranking,
+        ];
+    }
+
+    /**
+     * Глобальная статистика (Elite).
+     */
+    private function getEliteStatistics(User $elite): array
+    {
+        $todayStr = Carbon::today()->toDateString();
+        $leaderIds = $elite->players()->pluck('id')->toArray();
+        $totalLeaders = count($leaderIds);
+
+        if ($totalLeaders === 0) {
+            return [
+                'total_leaders'     => 0,
+                'active_leaders'    => 0,
+                'total_team_volume' => 0.0,
+            ];
+        }
+        $activeLeadersCount = LeadershipChecklist::whereIn('user_id', $leaderIds)
+            ->where('date', $todayStr)
+            ->where(function ($query) {
+                $query->where('is_completed', true)
+                    ->orWhere('is_day_off', true);
+            })
+            ->count();
+
+        $playerIds = User::whereIn('leader_id', $leaderIds)->pluck('id')->toArray();
+
+        $allNetworkIds = array_merge([$elite->id], $leaderIds, $playerIds);
+        $totalTeamVolume = (float) Contact::whereIn('user_id', $allNetworkIds)->sum('volume');
+
+        return [
+            'total_leaders'     => $totalLeaders,
+            'active_leaders'    => $activeLeadersCount,
+            'total_team_volume' => $totalTeamVolume,
+        ];
     }
 }

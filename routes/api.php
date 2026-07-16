@@ -98,17 +98,6 @@ Route::prefix('v1')->group(function () {
 
         });
         // ----------------------------------------------------------------//
-        //                        PLAYER METHODS                           //
-        // ----------------------------------------------------------------//
-        Route::middleware(['can:access-player'])->prefix('player')->group(function () {
-            // ----------------------------------------------------------------//
-            //                       STATISTICS METHODS                        //
-            // ----------------------------------------------------------------//
-            Route::prefix('statistics')->group(function () {
-                Route::get('/',                             [User\PlayerController::class, 'statistics']);
-            });
-        });
-        // ----------------------------------------------------------------//
         //                        LEADER METHODS                           //
         // ----------------------------------------------------------------//
         Route::middleware(['can:access-leader'])->prefix('leader')->group(function () {
@@ -117,14 +106,6 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             Route::prefix('statistics')->group(function () {
                 Route::get('/team', [User\LeaderController::class, 'teamStatistics']);
-            });
-        });
-        // ----------------------------------------------------------------//
-        //                        ELITE METHODS                            //
-        // ----------------------------------------------------------------//
-        Route::middleware(['can:access-elite'])->prefix('elite')->group(function () {
-            Route::prefix('statistics')->group(function () {
-                Route::get('/', [User\EliteController::class, 'statistics']);
             });
         });
         // ----------------------------------------------------------------//
