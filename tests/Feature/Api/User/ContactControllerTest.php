@@ -19,7 +19,6 @@ class ContactControllerTest extends TestCase
     {
         parent::setUp();
 
-        // Создаем двух пользователей для проверки прав доступа
         $this->user = User::factory()->create();
         $this->otherUser = User::factory()->create();
     }
@@ -29,48 +28,46 @@ class ContactControllerTest extends TestCase
      */
     public function test_can_get_contacts_list_with_volumes(): void
     {
-        // Создаем контакты для нашего пользователя
         Contact::factory()->create([
             'user_id' => $this->user->id,
-            'type' => ContactType::Client, // Убедитесь, что у вас есть такой кейс в Enums\ContactType
-            'volume' => '1000.50',
-            'name' => 'Иван Иванов',
+            'type'    => ContactType::CLIENT->value, // Используем значение из вашего реального Enum
+            'volume'  => '1000.50',
+            'name'    => 'Иван Иванов',
         ]);
 
         Contact::factory()->create([
             'user_id' => $this->user->id,
-            'type' => ContactType::Partner,
-            'volume' => '500.00',
-            'name' => 'Петр Петров',
+            'type'    => ContactType::PARTNER->value,
+            'volume'  => '500.00',
+            'name'    => 'Петр Петров',
         ]);
 
-        // Создаем контакт чужого пользователя (он не должен влиять на наши объемы и список)
         Contact::factory()->create([
             'user_id' => $this->otherUser->id,
-            'volume' => '9999.00',
+            'volume'  => '9999.00',
         ]);
 
         // 1. Запрос без фильтров
         $response = $this->actingAs($this->user)
-            ->getJson(route('contacts.index'));
+            ->getJson('/api/v1/contacts'); // Добавили префикс v1
 
         $response->assertOk()
             ->assertJsonCount(2, 'data')
             ->assertJsonPath('meta.filtered_volume', 1500.50)
             ->assertJsonPath('meta.total_volume', 1500.50);
 
-        // 2. Запрос с фильтром по типу (например, только Client)
+        // 2. Запрос с фильтром по типу (client)
         $responseFiltered = $this->actingAs($this->user)
-            ->getJson(route('contacts.index', ['type' => ContactType::Client->value]));
+            ->getJson('/api/v1/contacts?type=client');
 
         $responseFiltered->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('meta.filtered_volume', 1000.50) // Объем только клиентов
-            ->assertJsonPath('meta.total_volume', 1500.50);   // Общий объем всех наших контактов
+            ->assertJsonPath('meta.filtered_volume', 1000.50)
+            ->assertJsonPath('meta.total_volume', 1500.50);
 
         // 3. Запрос с поисковым запросом query
         $responseSearch = $this->actingAs($this->user)
-            ->getJson(route('contacts.index', ['query' => 'Петр']));
+            ->getJson('/api/v1/contacts?query=Петр');
 
         $responseSearch->assertOk()
             ->assertJsonCount(1, 'data')
@@ -84,25 +81,25 @@ class ContactControllerTest extends TestCase
     public function test_can_create_contact(): void
     {
         $payload = [
-            'name' => 'Алексей Смирнов',
-            'phone' => '+79991112233',
-            'volume' => '2500',
-            'comment' => 'Новый лид',
+            'name'          => 'Алексей Смирнов',
+            'phone'         => '+79991112233',
+            'volume'        => '2500',
+            'comment'       => 'Новый лид',
             'date_of_birth' => '1990-01-15',
-            'type' => ContactType::Client->value,
-            'reminder_at' => now()->addDays(2)->toIso8601String(),
+            'type'          => ContactType::CLIENT->value,
+            'reminder_at'   => now()->addDays(2)->toIso8601String(),
         ];
 
         $response = $this->actingAs($this->user)
-            ->postJson(route('contacts.store'), $payload);
+            ->postJson('/api/v1/contacts', $payload);
 
         $response->assertCreated()
             ->assertJsonFragment(['name' => 'Алексей Смирнов']);
 
         $this->assertDatabaseHas('contacts', [
             'user_id' => $this->user->id,
-            'name' => 'Алексей Смирнов',
-            'volume' => '2500',
+            'name'    => 'Алексей Смирнов',
+            'volume'  => '2500',
         ]);
     }
 
@@ -113,23 +110,23 @@ class ContactControllerTest extends TestCase
     {
         $contact = Contact::factory()->create([
             'user_id' => $this->user->id,
-            'name' => 'Старое Имя',
+            'name'    => 'Старое Имя',
         ]);
 
         $payload = [
-            'name' => 'Новое Имя',
+            'name'   => 'Новое Имя',
             'volume' => '3000',
         ];
 
         $response = $this->actingAs($this->user)
-            ->putJson(route('contacts.update', $contact), $payload);
+            ->putJson("/api/v1/contacts/{$contact->id}", $payload);
 
         $response->assertOk()
             ->assertJsonFragment(['name' => 'Новое Имя']);
 
         $this->assertDatabaseHas('contacts', [
-            'id' => $contact->id,
-            'name' => 'Новое Имя',
+            'id'     => $contact->id,
+            'name'   => 'Новое Имя',
             'volume' => '3000',
         ]);
     }
@@ -141,7 +138,7 @@ class ContactControllerTest extends TestCase
     {
         $contactOfOtherUser = Contact::factory()->create([
             'user_id' => $this->otherUser->id,
-            'name' => 'Чужой Контакт',
+            'name'    => 'Чужой Контакт',
         ]);
 
         $payload = [
@@ -149,14 +146,13 @@ class ContactControllerTest extends TestCase
         ];
 
         $response = $this->actingAs($this->user)
-            ->putJson(route('contacts.update', $contactOfOtherUser), $payload);
+            ->putJson("/api/v1/contacts/{$contactOfOtherUser->id}", $payload);
 
-        // Ожидаем 403 Forbidden из-за проверки в UpdateRequest::authorize()
         $response->assertStatus(403);
 
         $this->assertDatabaseHas('contacts', [
-            'id' => $contactOfOtherUser->id,
-            'name' => 'Чужой Контакт', // Имя не изменилось
+            'id'   => $contactOfOtherUser->id,
+            'name' => 'Чужой Контакт',
         ]);
     }
 
@@ -170,7 +166,7 @@ class ContactControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->deleteJson(route('contacts.destroy', $contact));
+            ->deleteJson("/api/v1/contacts/{$contact->id}");
 
         $response->assertNoContent();
 
@@ -189,9 +185,8 @@ class ContactControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->deleteJson(route('contacts.destroy', $contactOfOtherUser));
+            ->deleteJson("/api/v1/contacts/{$contactOfOtherUser->id}");
 
-        // Ожидаем 403 Forbidden из-за проверки внутри ContactService::deleteContact()
         $response->assertStatus(403);
 
         $this->assertDatabaseHas('contacts', [

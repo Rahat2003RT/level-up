@@ -71,6 +71,10 @@ Route::prefix('v1')->group(function () {
             Route::get('/unread-count',     [User\NotificationController::class, 'unreadCount']);
         });
         // ----------------------------------------------------------------//
+        //                        CONTACT METHODS                          //
+        // ----------------------------------------------------------------//
+        Route::apiResource('contacts', User\ContactController::class)->except(['show']);
+        // ----------------------------------------------------------------//
         //                        PROGRESS METHODS                         //
         // ----------------------------------------------------------------//
         Route::prefix('plan')->group(function () {
@@ -98,15 +102,6 @@ Route::prefix('v1')->group(function () {
                 Route::post('/day-off',                     [User\PlayerController::class, 'setDayOff']);
             });
             // ----------------------------------------------------------------//
-            //                        CONTACT METHODS                          //
-            // ----------------------------------------------------------------//
-            Route::prefix('contacts')->group(function () {
-                Route::get('/',                             [User\PlayerController::class, 'contacts']);
-                Route::post('/',                            [User\PlayerController::class, 'storeContact']);
-                Route::patch('/{contact}',                  [User\PlayerController::class, 'updateContact']);
-                Route::delete('/{contact}',                 [User\PlayerController::class, 'destroyContact']);
-            });
-            // ----------------------------------------------------------------//
             //                       STATISTICS METHODS                        //
             // ----------------------------------------------------------------//
             Route::prefix('statistics')->group(function () {
@@ -122,15 +117,6 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             Route::prefix('statistics')->group(function () {
                 Route::get('/team', [User\LeaderController::class, 'teamStatistics']);
-            });
-            // ----------------------------------------------------------------//
-            //                        CONTACT METHODS                          //
-            // ----------------------------------------------------------------//
-            Route::prefix('contacts')->group(function () {
-                Route::get('/', [User\LeaderController::class, 'contacts']);
-                Route::post('/', [User\LeaderController::class, 'storeContact']);
-                Route::patch('/{contact}', [User\LeaderController::class, 'updateContact']);
-                Route::delete('/{contact}', [User\LeaderController::class, 'destroyContact']);
             });
             // ----------------------------------------------------------------//
             //                       CHECKLIST METHODS                         //
