@@ -32,11 +32,15 @@ final class IndexUserRequest extends ApiBaseRequest
             'role' => [
                 'nullable',
                 'string',
-                Rule::in(collect(UserRole::cases())
-                    ->reject(fn($role) => $role === UserRole::ADMIN)
-                    ->pluck('value')
-                    ->toArray()
-                ),
+                'max:32',
+                // Кастомное правило для явного запрета ADMIN
+                function ($attribute, $value, $fail) {
+                    if ($value === \App\Enums\UserRole::ADMIN->value) {
+                        $fail('The selected role is invalid.');
+                    }
+                },
+                // Правило IN для проверки того, что роль вообще существует в системе
+                Rule::in(collect(\App\Enums\UserRole::cases())->pluck('value')->toArray()),
             ],
         ];
     }
