@@ -33,7 +33,8 @@ final class IndexUserRequest extends ApiBaseRequest
                 'nullable',
                 'string',
                 'max:32',
-                Rule::in(collect(UserRole::cases())->reject(fn($role) => $role === UserRole::ADMIN)->pluck('value')->toArray())
+                Rule::in(collect(UserRole::cases())->pluck('value')->toArray()),
+                Rule::notIn([UserRole::ADMIN->value]),
             ],
         ];
     }
