@@ -228,7 +228,7 @@ final class PlanService
         $today = Carbon::today()->toDateString();
 
         if ($user->can('access-leader')) {
-            $exists = LeadershipChecklist::where('user_id', $user->id)->where('date', $today)->exists();
+            $exists = LeadershipChecklist::where('user_id', $user->id)->whereDate('date', $today)->exists();
             if ($exists) {
                 throw new AuthorizationException('The leadership checklist for today has already been completed.');
             }
@@ -243,7 +243,7 @@ final class PlanService
                 'is_day_off' => false,
             ]));
         } else {
-            $exists = DailyChecklist::where('user_id', $user->id)->where('date', $today)->exists();
+            $exists = DailyChecklist::where('user_id', $user->id)->whereDate('date', $today)->exists();
             if ($exists) {
                 throw new AuthorizationException('The checklist for today has already been completed and cannot be edited.');
             }
