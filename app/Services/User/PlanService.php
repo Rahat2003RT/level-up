@@ -6,6 +6,7 @@ use App\Models\DailyChecklist;
 use App\Models\LeadershipChecklist;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 
 final class PlanService
@@ -130,5 +131,196 @@ final class PlanService
     protected function getNextDayNumber(int $userId): int
     {
         return DailyChecklist::where('user_id', $userId)->max('day_number') + 1;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function getChecklist(User $user, array $data): array|object|null
+    {
+        $date = $data['date'];
+        $today = Carbon::today()->toDateString();
+
+        if ($user->can('access-leader')) {
+            $checklist = LeadershipChecklist::where('user_id', $user->id)
+                ->where('date', $date)
+                ->first();
+
+            if ($checklist) {
+                $checklist->is_editable = $checklist->isEditable();
+                return $checklist;
+            }
+
+            if ($date === $today) {
+                $nextDayNumber = LeadershipChecklist::where('user_id', $user->id)->max('day_number') + 1;
+                return [
+                    'id' => null,
+                    'user_id' => $user->id,
+                    'date' => $date,
+                    'day_number' => $nextDayNumber,
+                    'is_completed' => false,
+                    'is_day_off' => false,
+                    'checked_team_activity' => false,
+                    'contacted_players' => false,
+                    'added_new_player' => false,
+                    'held_online_meeting' => false,
+                    'posted_engaged_social_media' => false,
+                    'attracted_new_client' => false,
+                    'brought_new_partner' => false,
+                    'sent_new_invitations' => false,
+                    'is_editable' => true,
+                ];
+            }
+        } else {
+            $checklist = DailyChecklist::where('user_id', $user->id)
+                ->where('date', $date)
+                ->first();
+
+            if ($checklist) {
+                $checklist->is_editable = $checklist->isEditable();
+                return $checklist;
+            }
+
+            if ($date === $today) {
+                $nextDayNumber = DailyChecklist::where('user_id', $user->id)->max('day_number') + 1;
+                return [
+                    'date' => $date,
+                    'day_number' => $nextDayNumber,
+                    'is_completed' => false,
+                    'is_day_off' => false,
+                    'scheduled_meetings' => 0,
+                    'completed_meetings' => 0,
+                    'new_clients' => 0,
+                    'new_partners' => 0,
+                    'business_conversations' => 0,
+                    'presentations' => 0,
+                    'sales' => 0,
+                    'daily_income' => 0.0,
+                    'social_media_activity' => false,
+                    'communication_with_sponsor' => false,
+                    'plans_for_the_day' => '',
+                    'results_for_the_day' => '',
+                    'notes_for_the_day' => '',
+                    'is_editable' => true,
+                ];
+            }
+        }
+
+        return [];
+    }
+
+    /**
+     * Создать/заполнить чек-лист на сегодня.
+     */
+    public function storeChecklist(User $user, array $data): mixed
+    {
+        $today = Carbon::today()->toDateString();
+
+        if ($user->can('access-leader')) {
+            $exists = LeadershipChecklist::where('user_id', $user->id)->where('date', $today)->exists();
+            if ($exists) {
+                throw new AuthorizationException('The leadership checklist for today has already been completed.');
+            }
+
+            $dayNumber = LeadershipChecklist::where('user_id', $user->id)->max('day_number') + 1;
+
+            return LeadershipChecklist::create(array_merge($data, [
+                'user_id' => $user->id,
+                'date' => $today,
+                'day_number' => $dayNumber,
+                'is_completed' => true,
+                'is_day_off' => false,
+            ]));
+        } else {
+            $exists = DailyChecklist::where('user_id', $user->id)->where('date', $today)->exists();
+            if ($exists) {
+                throw new AuthorizationException('The checklist for today has already been completed and cannot be edited.');
+            }
+
+            $dayNumber = DailyChecklist::where('user_id', $user->id)->max('day_number') + 1;
+
+            $checklist = DailyChecklist::create(array_merge($data, [
+                'user_id' => $user->id,
+                'date' => $today,
+                'day_number' => $dayNumber,
+                'is_completed' => true,
+                'is_day_off' => false,
+            ]));
+
+            $checklist->progress = $this->getProgress($user);
+            return $checklist;
+        }
+    }
+
+    /**
+     * Установить выходной день на сегодня.
+     */
+    public function setDayOff(User $user): mixed
+    {
+        $today = Carbon::today()->toDateString();
+
+        if ($user->can('access-leader')) {
+            $exists = LeadershipChecklist::where('user_id', $user->id)->where('date', $today)->exists();
+            if ($exists) {
+                throw new AuthorizationException("Today's leadership checklist has already been recorded.");
+            }
+
+            $dayNumber = LeadershipChecklist::where('user_id', $user->id)->max('day_number') + 1;
+
+            return LeadershipChecklist::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'day_number' => $dayNumber,
+                'is_completed' => false,
+                'is_day_off' => true,
+                'checked_team_activity' => false,
+                'contacted_players' => false,
+                'added_new_player' => false,
+                'held_online_meeting' => false,
+                'posted_engaged_social_media' => false,
+                'attracted_new_client' => false,
+                'brought_new_partner' => false,
+                'sent_new_invitations' => false,
+            ]);
+        } else {
+            $exists = DailyChecklist::where('user_id', $user->id)->where('date', $today)->exists();
+            if ($exists) {
+                throw new AuthorizationException("Today's checklist has already been recorded.");
+            }
+
+            $dayNumber = DailyChecklist::where('user_id', $user->id)->max('day_number') + 1;
+
+            $checklist = DailyChecklist::create([
+                'user_id' => $user->id,
+                'date' => $today,
+                'day_number' => $dayNumber,
+                'is_completed' => false,
+                'is_day_off' => true,
+                'scheduled_meetings' => 0,
+                'completed_meetings' => 0,
+                'new_clients' => 0,
+                'new_partners' => 0,
+                'business_conversations' => 0,
+                'presentations' => 0,
+                'sales' => 0,
+                'daily_income' => 0,
+                'social_media_activity' => false,
+                'communication_with_sponsor' => false
+            ]);
+
+            $checklist->progress = $this->getProgress($user);
+            return $checklist;
+        }
     }
 }

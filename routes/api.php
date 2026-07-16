@@ -78,11 +78,19 @@ Route::prefix('v1')->group(function () {
         //                        PROGRESS METHODS                         //
         // ----------------------------------------------------------------//
         Route::prefix('plan')->group(function () {
+            // ----------------------------------------------------------------//
+            //                        PROGRESS METHODS                         //
+            // ----------------------------------------------------------------//
             Route::prefix('progress')->group(function () {
                 Route::get('/', [User\PlanController::class, 'progress']);
             });
+            // ----------------------------------------------------------------//
+            //                       CHECKLIST METHODS                         //
+            // ----------------------------------------------------------------//
             Route::prefix('checklist')->group(function () {
-
+                Route::get('/',         [User\PlanController::class, 'checklist']);
+                Route::post('/',        [User\PlanController::class, 'storeChecklist']);
+                Route::post('/day-off', [User\PlanController::class, 'setDayOff']);
             });
             Route::prefix('statistics')->group(function () {
 
@@ -93,14 +101,6 @@ Route::prefix('v1')->group(function () {
         //                        PLAYER METHODS                           //
         // ----------------------------------------------------------------//
         Route::middleware(['can:access-player'])->prefix('player')->group(function () {
-            // ----------------------------------------------------------------//
-            //                       CHECKLIST METHODS                         //
-            // ----------------------------------------------------------------//
-            Route::prefix('checklist')->group(function () {
-                Route::get('/',                             [User\PlayerController::class, 'showChecklist']);
-                Route::post('/',                            [User\PlayerController::class, 'storeChecklist']);
-                Route::post('/day-off',                     [User\PlayerController::class, 'setDayOff']);
-            });
             // ----------------------------------------------------------------//
             //                       STATISTICS METHODS                        //
             // ----------------------------------------------------------------//
@@ -117,14 +117,6 @@ Route::prefix('v1')->group(function () {
             // ----------------------------------------------------------------//
             Route::prefix('statistics')->group(function () {
                 Route::get('/team', [User\LeaderController::class, 'teamStatistics']);
-            });
-            // ----------------------------------------------------------------//
-            //                       CHECKLIST METHODS                         //
-            // ----------------------------------------------------------------//
-            Route::prefix('checklist')->group(function () {
-                Route::get('/', [User\LeaderController::class, 'showChecklist']);
-                Route::post('/', [User\LeaderController::class, 'storeChecklist']);
-                Route::post('/day-off', [User\LeaderController::class, 'setDayOff']);
             });
         });
         // ----------------------------------------------------------------//

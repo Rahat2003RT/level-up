@@ -3,6 +3,10 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\Checklist\StoreRequest;
+use App\Http\Requests\User\Player\ShowChecklistRequest;
+use App\Http\Resources\DailyChecklistResource;
+use App\Http\Resources\LeadershipChecklistResource;
 use App\Http\Resources\ProgressResource;
 use App\Services\User\PlanService;
 use Dedoc\Scramble\Attributes\Group;
@@ -39,18 +43,44 @@ final class PlanController extends Controller
         return StatisticsResource::make($statistics);
     }
 
-    public function checklist(Request $request)
+    /**
+     * Чек-лист / Просмотр чек-листа за выбранный день.
+     */
+    public function checklist(ShowChecklistRequest $request)
     {
+        $user = $request->user();
+        $result = $this->service->getChecklist($request->user(), $request->validated());
 
+        $data = is_array($result) ? (object) $result : $result;
+
+        return $user->can('access-leader')
+            ? LeadershipChecklistResource::make($data)
+            : DailyChecklistResource::make($data);
     }
 
-    public function storeChecklist(Request $request)
+    /**
+     * Чек-лист / Заполнение чек-листа за сегодня.
+     */
+    public function storeChecklist(StoreRequest $request)
     {
+        $user = $request->user();
+        $checklist = $this->service->storeChecklist($user, $request->validated());
 
+        return $user->can('access-leader')
+            ? LeadershipChecklistResource::make($checklist)
+            : DailyChecklistResource::make($checklist);
     }
 
+    /**
+     * Чек-лист / Установить для сегодняшнего дня статус "Выходной".
+     */
     public function setDayOff(Request $request)
     {
+        $user = $request->user();
+        $checklist = $this->service->setDayOff($user);
 
+        return $user->can('access-leader')
+            ? LeadershipChecklistResource::make($checklist)
+            : DailyChecklistResource::make($checklist);
     }
 }
