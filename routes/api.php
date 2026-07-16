@@ -19,6 +19,15 @@ Route::prefix('v1')->group(function () {
         // ----------------------------------------------------------------//
         Route::middleware(['auth:sanctum', 'can:access-admin', 'check.status'])->group(function () {
             // ----------------------------------------------------------------//
+            //                       ADMIN-TARIFFS METHODS                     //
+            // ----------------------------------------------------------------//
+            Route::prefix('tariffs')->group(function () {
+                Route::get('/',         [Admin\TariffController::class, 'index']);
+                Route::post('/',        [Admin\TariffController::class, 'store']);
+                Route::put('/{tariff}', [Admin\TariffController::class, 'update']);
+                Route::delete('/{tariff}', [Admin\TariffController::class, 'destroy']);
+            });
+            // ----------------------------------------------------------------//
             //                  ADMIN-NOTIFICATIONS METHODS                    //
             // ----------------------------------------------------------------//
             Route::prefix('notifications')->group(function () {
