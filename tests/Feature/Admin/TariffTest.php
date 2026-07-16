@@ -4,7 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Enums\Period;
 use App\Models\Tariff;
-use App\Models\User; // Предполагаем, что у тебя есть модель пользователя
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,14 +19,12 @@ class TariffTest extends TestCase
         parent::setUp();
 
         // Создаем администратора для прохождения middleware can:access-admin
-        // Настрой создание админа под реализацию своих сидеров/прав доступа
         $this->admin = User::factory()->create([
-            'role' => 'admin', // или через spatie/laravel-permission, если используешь его
+            'role' => 'admin',
         ]);
     }
 
-    /** @test */
-    public function admin_can_get_tariffs_list_with_default_sorting(): void
+    public function test_admin_can_get_tariffs_list_with_default_sorting(): void
     {
         // Создаем тарифы с конкретными ролями для проверки дефолтной сортировки
         Tariff::factory()->create(['role' => 'C_role']);
@@ -39,7 +37,17 @@ class TariffTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonStructure([
                 'data' => [
-                    '*' => ['id', 'role', 'name', 'description', 'price', 'period', 'is_active', 'created_at', 'updated_at']
+                    '*' => [
+                        'id',
+                        'role',
+                        'name',
+                        'description',
+                        'price',
+                        'period',
+                        'is_active',
+                        'created_at',
+                        'updated_at'
+                    ]
                 ]
             ]);
 
@@ -50,8 +58,7 @@ class TariffTest extends TestCase
         $this->assertEquals('C_role', $data[2]['role']);
     }
 
-    /** @test */
-    public function admin_can_sort_tariffs_by_price_descending(): void
+    public function test_admin_can_sort_tariffs_by_price_descending(): void
     {
         Tariff::factory()->create(['price' => 100.00]);
         Tariff::factory()->create(['price' => 500.00]);
@@ -68,8 +75,7 @@ class TariffTest extends TestCase
         $this->assertEquals(100.00, $data[2]['price']);
     }
 
-    /** @test */
-    public function admin_can_create_a_tariff(): void
+    public function test_admin_can_create_a_tariff(): void
     {
         $payload = [
             'role' => 'user',
@@ -86,7 +92,7 @@ class TariffTest extends TestCase
         $response->assertStatus(201)
             ->assertJsonFragment([
                 'name' => 'Premium Plan',
-                'price' => "1499.99", // decimal возвращается строкой
+                'price' => "1499.99", // decimal из БД возвращается строкой
                 'period' => 'month',
             ]);
 
@@ -96,8 +102,7 @@ class TariffTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function it_validates_incorrect_period_on_creation(): void
+    public function test_it_validates_incorrect_period_on_creation(): void
     {
         $payload = [
             'name' => 'Invalid Plan',
@@ -112,8 +117,7 @@ class TariffTest extends TestCase
             ->assertJsonValidationErrors(['period']);
     }
 
-    /** @test */
-    public function admin_can_update_a_tariff(): void
+    public function test_admin_can_update_a_tariff(): void
     {
         $tariff = Tariff::factory()->create([
             'name' => 'Old Name',
@@ -145,8 +149,7 @@ class TariffTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function admin_can_delete_a_tariff(): void
+    public function test_admin_can_delete_a_tariff(): void
     {
         $tariff = Tariff::factory()->create();
 
@@ -163,10 +166,8 @@ class TariffTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function guest_cannot_access_tariff_endpoints(): void
+    public function test_guest_cannot_access_tariff_endpoints(): void
     {
-        // Проверяем, что неавторизованные пользователи получают 401/403
         $this->getJson('/api/v1/admin/tariffs')->assertStatus(401);
         $this->postJson('/api/v1/admin/tariffs', [])->assertStatus(401);
     }
