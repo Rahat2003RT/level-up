@@ -47,11 +47,14 @@ class IndexUserTest extends TestCase
 
     public function test_admin_cannot_filter_by_admin_role(): void
     {
-        // Попытка передать роль ADMIN, которая запрещена в правилах валидации
         $response = $this->actingAs($this->admin)
             ->getJson('/api/v1/admin/users?role=' . UserRole::ADMIN->value);
 
-        $response->assertStatus(422) // Валидация должна вернуть ошибку
-        ->assertJsonValidationErrors(['role']);
+        // ВЫВОДИТ СТАТУС И ТЕЛО ОТВЕТА В КОНСОЛЬ ПРИ ОШИБКЕ
+        if ($response->status() !== 422) {
+            $this->fail('Ожидали 422, но получили: ' . $response->status() . '. Тело ответа: ' . $response->getContent());
+        }
+
+        $response->assertJsonValidationErrors(['role']);
     }
 }
