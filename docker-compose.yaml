@@ -78,6 +78,7 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
+        entrypoint: []
         command: php artisan reverb:start --host=0.0.0.0 --port=8080
         environment:
             - VIRTUAL_HOST=ws.level-up.test
