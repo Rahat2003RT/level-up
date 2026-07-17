@@ -379,7 +379,7 @@ final class PlanService
                 SUM(new_partners) as total_partners,
                 SUM(sales) as total_sales,
                 SUM(daily_income) as total_income,
-                SUM(CASE WHEN is_completed = 1 AND is_day_off = 0 THEN 1 ELSE 0 END) as active_days_count
+                SUM(CASE WHEN is_completed = true AND is_day_off = false THEN 1 ELSE 0 END) as active_days_count
             ')->first();
 
         $totalMeetings = (int) ($totals->total_meetings ?? 0);
