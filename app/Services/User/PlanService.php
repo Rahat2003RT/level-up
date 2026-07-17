@@ -350,14 +350,10 @@ final class PlanService
      */
     public function getStatistics(User $user, array $data): array
     {
-        $stats = [];
+        $stats = $this->getPersonalStatistics($user, $data);
 
-        $stats['personal'] = $this->getPersonalStatistics($user, $data);
-        if ($user->can('access-leader')) {
-            $stats['team'] = $this->getTeamStatistics($user, $data);
-        }
         if ($user->can('access-elite')) {
-            $stats['elite'] = $this->getEliteStatistics($user);
+            $stats = $this->getEliteStatistics($user);
         }
 
         return $stats;
@@ -407,44 +403,6 @@ final class PlanService
             'active_days_count'      => $activeDays,
             'active_days_percentage' => $activeDaysPercentage,
             'total_volume'           => $totalVolume,
-        ];
-    }
-
-    private function getTeamStatistics(User $leader, array $data): array
-    {
-        $days = (int) $data['days'];
-        $startDate = Carbon::today()->subDays($days - 1)->toDateString();
-        $todayStr = Carbon::today()->toDateString();
-
-        $playerIds = $leader->players()->pluck('id')->toArray();
-        $totalPlayers = count($playerIds);
-
-        $activePlayersToday = DailyChecklist::whereIn('user_id', $playerIds)
-            ->whereDate('date', $todayStr)
-            ->where(fn($q) => $q->where('is_completed', true)->orWhere('is_day_off', true))
-            ->count();
-
-        $teamTotalVolume = (float) Contact::whereIn('user_id', $playerIds)->sum('volume');
-
-        $ranking = User::whereIn('id', $playerIds)
-            ->withSum(['contacts as volume' => function($query) use ($startDate, $todayStr) {
-                $query->whereBetween('created_at', [$startDate . ' 00:00:00', $todayStr . ' 23:59:59']);
-            }], 'volume')
-            ->orderByDesc('volume')
-            ->get()
-            ->map(function ($player) {
-                return [
-                    'name' => $player->full_name,
-                    'volume' => (int) ($player->volume_sum ?? 0),
-                    'diff' => rand(-5, 15) . '%',
-                ];
-            });
-
-        return [
-            'total_players'        => $totalPlayers,
-            'active_players_today' => $activePlayersToday,
-            'team_total_volume'    => $teamTotalVolume,
-            'ranking'              => $ranking,
         ];
     }
 
