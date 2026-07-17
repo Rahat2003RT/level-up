@@ -94,7 +94,6 @@ return new class extends Migration
                 'password' => Hash::make('Kk1cFfUWnTSuxHh'),
                 'role' => UserRole::ADMIN,
                 'plan' => UserPlan::STARTER,
-                'is_onboarded' => true,
             ]
         );
     }

@@ -7,6 +7,7 @@ use App\Models\DailyChecklist;
 use App\Models\LeadershipChecklist;
 use App\Models\User;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -29,13 +30,16 @@ final class PlanService
             ->where('date', $todayStr)
             ->first();
 
-        if ($leaderTodayChecklist) {
+        if ($leaderTodayChecklist && !$leaderTodayChecklist->is_day_off) {
             $currentDayNumber = $leaderTodayChecklist->day_number;
         } else {
-            $maxLeaderDay = LeadershipChecklist::where('user_id', $leader->id)->max('day_number') ?? 0;
-            $currentDayNumber = $maxLeaderDay + 1;
+            $maxLeaderDay = LeadershipChecklist::where('user_id', $leader->id)
+                ->where('is_day_off', false)
+                ->max('day_number') ?? 0;
+            $currentDayNumber = $maxLeaderDay + (null ? 0 : 1);
         }
         $currentDayNumber = min(90, $currentDayNumber);
+
         $players = $leader->players()->with('checklists')->get();
         $totalPlayers = $players->count();
 
@@ -43,19 +47,19 @@ final class PlanService
         $totalProgressPercentage = 0;
 
         foreach ($players as $player) {
-            $playerChecklistsCount = $player->checklists->count();
+            $playerWorkChecklistsCount = $player->checklists->where('is_day_off', false)->count();
 
             $playerTodayChecklist = $player->checklists->first(fn($c) => $c->date->toDateString() === $todayStr);
-            if ($playerTodayChecklist) {
+            if ($playerTodayChecklist && !$playerTodayChecklist->is_day_off) {
                 $pDay = $playerTodayChecklist->day_number;
             } else {
-                $pDay = $player->checklists->max('day_number') ?? 0;
+                $pDay = $player->checklists->where('is_day_off', false)->max('day_number') ?? 0;
             }
 
             $playerProgress = $pDay > 0 ? round(($pDay / 90) * 100) : 0;
             $totalProgressPercentage += min(100, $playerProgress);
 
-            if ($playerChecklistsCount > 0 && $playerChecklistsCount >= $pDay) {
+            if ($playerWorkChecklistsCount > 0 && $playerWorkChecklistsCount >= $pDay) {
                 $activePlayersCount++;
             }
         }
@@ -73,18 +77,28 @@ final class PlanService
 
     protected function getUserProgress(int $userId): array
     {
+        // Wins — это заполненные выполненные рабочие дни
         $wins = DailyChecklist::where('user_id', $userId)
             ->where('is_completed', true)
+            ->where('is_day_off', false)
             ->count();
+
         $todayChecklist = $this->getTodayChecklist($userId);
-        $currentDayNumber = $todayChecklist ? $todayChecklist->day_number : $this->getNextDayNumber($userId);
+
+        if ($todayChecklist && $todayChecklist->is_day_off) {
+            $currentDayNumber = DailyChecklist::where('user_id', $userId)
+                ->where('is_day_off', false)
+                ->max('day_number') ?? 0;
+        } else {
+            $currentDayNumber = $todayChecklist ? $todayChecklist->day_number : $this->getNextDayNumber($userId);
+        }
 
         $totalCourseDays = 90;
         $percentage = ($currentDayNumber / $totalCourseDays) * 100;
         $percentage = round($percentage);
 
         $planStartDate = Carbon::parse(
-            DailyChecklist::where('user_id', $userId)->min('date') ?? Carbon::today()
+            DailyChecklist::where('user_id', $userId)->where('is_day_off', false)->min('date') ?? Carbon::today()
         )->startOfDay()->toIso8601String();
 
         $loses = DailyChecklist::where('user_id', $userId)
@@ -131,21 +145,10 @@ final class PlanService
 
     protected function getNextDayNumber(int $userId): int
     {
-        return DailyChecklist::where('user_id', $userId)->max('day_number') + 1;
+        return (int)DailyChecklist::where('user_id', $userId)
+                ->where('is_day_off', false)
+                ->max('day_number') + 1;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     public function getChecklist(User $user, array $data): array|object|null
@@ -222,127 +225,38 @@ final class PlanService
     }
 
     /**
-     * Создать/заполнить чек-лист на сегодня.
+     * Создать/заполнить чек-лист за сегодня.
      */
     public function storeChecklist(User $user, array $data): mixed
     {
         $today = Carbon::today()->toDateString();
+        $model = $user->can('access-leader') ? LeadershipChecklist::class : DailyChecklist::class;
 
-        if ($user->can('access-leader')) {
-            $exists = LeadershipChecklist::where('user_id', $user->id)->whereDate('date', $today)->exists();
-            if ($exists) {
-                throw new AuthorizationException('The leadership checklist for today has already been completed.');
+        $record = $model::where('user_id', $user->id)->whereDate('date', $today)->first();
+
+        if ($record) {
+            if ($record->is_day_off) {
+                throw new AuthorizationException('This day has been selected as a day off. First, remove the day off to fill out the checklist.');
             }
-
-            $dayNumber = LeadershipChecklist::where('user_id', $user->id)->max('day_number') + 1;
-
-            return LeadershipChecklist::create(array_merge($data, [
-                'user_id' => $user->id,
-                'date' => $today,
-                'day_number' => $dayNumber,
-                'is_completed' => true,
-                'is_day_off' => false,
-            ]));
-        } else {
-            $exists = DailyChecklist::where('user_id', $user->id)->whereDate('date', $today)->exists();
-            if ($exists) {
-                throw new AuthorizationException('The checklist for today has already been completed and cannot be edited.');
-            }
-
-            $dayNumber = DailyChecklist::where('user_id', $user->id)->max('day_number') + 1;
-
-            $checklist = DailyChecklist::create(array_merge($data, [
-                'user_id' => $user->id,
-                'date' => $today,
-                'day_number' => $dayNumber,
-                'is_completed' => true,
-                'is_day_off' => false,
-            ]));
-
-            $checklist->progress = $this->getProgress($user);
-            return $checklist;
+            throw new AuthorizationException('The checklist for today has already been filled out.');
         }
-    }
 
-    /**
-     * Установить выходной день на сегодня.
-     */
-    public function setDayOff(User $user): mixed
-    {
-        $today = Carbon::today()->toDateString();
+        $dayNumber = (int)$model::where('user_id', $user->id)->where('is_day_off', false)->max('day_number') + 1;
 
-        if ($user->can('access-leader')) {
-            $exists = LeadershipChecklist::where('user_id', $user->id)->where('date', $today)->exists();
-            if ($exists) {
-                throw new AuthorizationException("Today's leadership checklist has already been recorded.");
-            }
+        $checklist = $model::create(array_merge($data, [
+            'user_id' => $user->id,
+            'date' => $today,
+            'day_number' => $dayNumber,
+            'is_completed' => true,
+            'is_day_off' => false,
+        ]));
 
-            $dayNumber = LeadershipChecklist::where('user_id', $user->id)->max('day_number') + 1;
-
-            return LeadershipChecklist::create([
-                'user_id' => $user->id,
-                'date' => $today,
-                'day_number' => $dayNumber,
-                'is_completed' => false,
-                'is_day_off' => true,
-                'checked_team_activity' => false,
-                'contacted_players' => false,
-                'added_new_player' => false,
-                'held_online_meeting' => false,
-                'posted_engaged_social_media' => false,
-                'attracted_new_client' => false,
-                'brought_new_partner' => false,
-                'sent_new_invitations' => false,
-            ]);
-        } else {
-            $exists = DailyChecklist::where('user_id', $user->id)->where('date', $today)->exists();
-            if ($exists) {
-                throw new AuthorizationException("Today's checklist has already been recorded.");
-            }
-
-            $dayNumber = DailyChecklist::where('user_id', $user->id)->max('day_number') + 1;
-
-            $checklist = DailyChecklist::create([
-                'user_id' => $user->id,
-                'date' => $today,
-                'day_number' => $dayNumber,
-                'is_completed' => false,
-                'is_day_off' => true,
-                'scheduled_meetings' => 0,
-                'completed_meetings' => 0,
-                'new_clients' => 0,
-                'new_partners' => 0,
-                'business_conversations' => 0,
-                'presentations' => 0,
-                'sales' => 0,
-                'daily_income' => 0,
-                'social_media_activity' => false,
-                'communication_with_sponsor' => false
-            ]);
-
+        if (!$user->can('access-leader')) {
             $checklist->progress = $this->getProgress($user);
-            return $checklist;
         }
+
+        return $checklist;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
     /**
@@ -364,7 +278,7 @@ final class PlanService
      */
     private function getPersonalStatistics(User $user, array $data): array
     {
-        $days = (int) $data['days'];
+        $days = (int)$data['days'];
         $startDate = Carbon::today()->subDays($days - 1)->format('Y-m-d');
         $endDate = Carbon::today()->format('Y-m-d');
         $totals = DailyChecklist::where('user_id', $user->id)
@@ -378,31 +292,31 @@ final class PlanService
                 SUM(CASE WHEN is_completed = true AND is_day_off = false THEN 1 ELSE 0 END) as active_days_count
             ')->first();
 
-        $totalMeetings = (int) ($totals->total_meetings ?? 0);
-        $totalClients  = (int) ($totals->total_clients ?? 0);
-        $totalPartners = (int) ($totals->total_partners ?? 0);
-        $totalSales    = (int) ($totals->total_sales ?? 0);
-        $totalIncome   = (float) ($totals->total_income ?? 0);
-        $activeDays    = (int) ($totals->active_days_count ?? 0);
+        $totalMeetings = (int)($totals->total_meetings ?? 0);
+        $totalClients = (int)($totals->total_clients ?? 0);
+        $totalPartners = (int)($totals->total_partners ?? 0);
+        $totalSales = (int)($totals->total_sales ?? 0);
+        $totalIncome = (float)($totals->total_income ?? 0);
+        $activeDays = (int)($totals->active_days_count ?? 0);
 
         $activeDaysPercentage = $days > 0 ? round(($activeDays / $days) * 100) : 0;
-        $totalVolume = (float) $user->contacts()->sum('volume');
+        $totalVolume = (float)$user->contacts()->sum('volume');
 
         return [
-            'period_days'            => $days,
-            'total_meetings'         => $totalMeetings,
-            'avg_meetings'           => $days > 0 ? round($totalMeetings / $days, 1) : 0,
-            'total_clients'          => $totalClients,
-            'avg_clients'            => $days > 0 ? round($totalClients / $days, 1) : 0,
-            'total_partners'         => $totalPartners,
-            'avg_partners'           => $days > 0 ? round($totalPartners / $days, 1) : 0,
-            'total_sales'            => $totalSales,
-            'avg_sales'              => $days > 0 ? round($totalSales / $days, 1) : 0,
-            'total_income'           => $totalIncome,
-            'avg_income'             => $days > 0 ? round($totalIncome / $days, 2) : 0,
-            'active_days_count'      => $activeDays,
+            'period_days' => $days,
+            'total_meetings' => $totalMeetings,
+            'avg_meetings' => $days > 0 ? round($totalMeetings / $days, 1) : 0,
+            'total_clients' => $totalClients,
+            'avg_clients' => $days > 0 ? round($totalClients / $days, 1) : 0,
+            'total_partners' => $totalPartners,
+            'avg_partners' => $days > 0 ? round($totalPartners / $days, 1) : 0,
+            'total_sales' => $totalSales,
+            'avg_sales' => $days > 0 ? round($totalSales / $days, 1) : 0,
+            'total_income' => $totalIncome,
+            'avg_income' => $days > 0 ? round($totalIncome / $days, 2) : 0,
+            'active_days_count' => $activeDays,
             'active_days_percentage' => $activeDaysPercentage,
-            'total_volume'           => $totalVolume,
+            'total_volume' => $totalVolume,
         ];
     }
 
@@ -417,8 +331,8 @@ final class PlanService
 
         if ($totalLeaders === 0) {
             return [
-                'total_leaders'     => 0,
-                'active_leaders'    => 0,
+                'total_leaders' => 0,
+                'active_leaders' => 0,
                 'total_team_volume' => 0.0,
             ];
         }
@@ -433,12 +347,104 @@ final class PlanService
         $playerIds = User::whereIn('leader_id', $leaderIds)->pluck('id')->toArray();
 
         $allNetworkIds = array_merge([$elite->id], $leaderIds, $playerIds);
-        $totalTeamVolume = (float) Contact::whereIn('user_id', $allNetworkIds)->sum('volume');
+        $totalTeamVolume = (float)Contact::whereIn('user_id', $allNetworkIds)->sum('volume');
 
         return [
-            'total_leaders'     => $totalLeaders,
-            'active_leaders'    => $activeLeadersCount,
+            'total_leaders' => $totalLeaders,
+            'active_leaders' => $activeLeadersCount,
             'total_team_volume' => $totalTeamVolume,
         ];
     }
+
+
+    /**
+     * Выбрать или удалить выходной день с валидацией по мировому времени (UTC-12 ... UTC+14)
+     * @throws Exception
+     */
+    public function toggleDayOff(User $user, string $dateStr): array
+    {
+        $targetDate = Carbon::parse($dateStr)->startOfDay();
+        $serverNow = Carbon::now();
+        $earliestEarthDate = $serverNow->clone()->timezone('Etc/GMT+12')->startOfDay();
+        $latestEarthDate = $serverNow->clone()->timezone('Etc/GMT-14')->addDays(120)->startOfDay();
+
+        if ($targetDate->lt($earliestEarthDate)) {
+            throw new Exception('You cannot change a day off to a past date.');
+        }
+
+        if ($targetDate->gt($latestEarthDate)) {
+            throw new Exception('You cannot schedule a day off more than 120 days in advance.');
+        }
+
+        $model = $user->can('access-leader') ? LeadershipChecklist::class : DailyChecklist::class;
+        $record = $model::where('user_id', $user->id)->where('date', $dateStr)->first();
+
+        if ($record) {
+            if ($record->is_day_off) {
+                $record->delete();
+                return ['status' => 'removed', 'date' => $dateStr];
+            }
+            throw new Exception('The work checklist for this date has already been filled out. It cannot be changed to a day off.');
+        }
+
+        $daysOffCount = $model::where('user_id', $user->id)->where('is_day_off', true)->count();
+        if ($daysOffCount >= 30) {
+            throw new Exception('The limit of days off (30 days) has been exhausted.');
+        }
+
+        $dayNumber = 0;
+
+        if ($user->can('access-leader')) {
+            $model::create([
+                'user_id' => $user->id,
+                'date' => $dateStr,
+                'day_number' => $dayNumber,
+                'is_completed' => false,
+                'is_day_off' => true,
+                'checked_team_activity' => false,
+                'contacted_players' => false,
+                'added_new_player' => false,
+                'held_online_meeting' => false,
+                'posted_engaged_social_media' => false,
+                'attracted_new_client' => false,
+                'brought_new_partner' => false,
+                'sent_new_invitations' => false,
+            ]);
+        } else {
+            $model::create([
+                'user_id' => $user->id,
+                'date' => $dateStr,
+                'day_number' => $dayNumber,
+                'is_completed' => false,
+                'is_day_off' => true,
+                'scheduled_meetings' => 0,
+                'completed_meetings' => 0,
+                'new_clients' => 0,
+                'new_partners' => 0,
+                'business_conversations' => 0,
+                'presentations' => 0,
+                'sales' => 0,
+                'daily_income' => 0,
+                'social_media_activity' => false,
+                'communication_with_sponsor' => false
+            ]);
+        }
+
+        return ['status' => 'added', 'date' => $dateStr];
+    }
+
+    /**
+     * Получить список дат всех выходных дней пользователя.
+     */
+    public function getDaysOff(User $user): array
+    {
+        $model = $user->can('access-leader') ? LeadershipChecklist::class : DailyChecklist::class;
+
+        return $model::where('user_id', $user->id)
+            ->where('is_day_off', true)
+            ->pluck('date')
+            ->toArray();
+    }
+
+
 }

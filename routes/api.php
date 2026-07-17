@@ -89,14 +89,17 @@ Route::prefix('v1')->group(function () {
             //                       CHECKLIST METHODS                         //
             // ----------------------------------------------------------------//
             Route::prefix('checklist')->group(function () {
-                Route::get('/',         [PlanController::class, 'checklist']);
-                Route::post('/',        [PlanController::class, 'storeChecklist']);
-                Route::post('/day-off', [PlanController::class, 'setDayOff']);
+                Route::get('/',              [PlanController::class, 'checklist']);
+                Route::post('/',             [PlanController::class, 'storeChecklist']);
+                Route::post('/toggle-day-off', [PlanController::class, 'toggleDayOff']); // Включение/выключение по дате
+                Route::get('/days-off',       [PlanController::class, 'getDaysOff']);   // Получение списка всех выходных
             });
+            // ----------------------------------------------------------------//
+            //                       STATISTICS METHODS                        //
+            // ----------------------------------------------------------------//
             Route::prefix('statistics')->group(function () {
                 Route::get('/', [PlanController::class, 'statistics']);
             });
-
         });
         // ----------------------------------------------------------------//
         //                        LEADER METHODS                           //

@@ -48,11 +48,13 @@ final class PlanController extends Controller
 
     /**
      * Чек-лист / Просмотр чек-листа за выбранный день.
+     * @param ShowChecklistRequest $request
+     * @return DailyChecklistResource|LeadershipChecklistResource
      */
     public function checklist(ShowChecklistRequest $request)
     {
         $user = $request->user();
-        $result = $this->service->getChecklist($request->user(), $request->validated());
+        $result = $this->service->getChecklist($user, $request->validated());
 
         $data = is_array($result) ? (object) $result : $result;
 
@@ -75,15 +77,28 @@ final class PlanController extends Controller
     }
 
     /**
-     * Чек-лист / Установить для сегодняшнего дня статус "Выходной".
+     * Чек-лист / Выбор или удаление выходного дня по дате.
      */
-    public function setDayOff(Request $request)
+    public function toggleDayOff(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $checklist = $this->service->setDayOff($user);
+        $validated = $request->validate([
+            'date' => ['required', 'date', 'date_format:Y-m-d'],
+        ]);
 
-        return $user->can('access-leader')
-            ? LeadershipChecklistResource::make($checklist)
-            : DailyChecklistResource::make($checklist);
+        try {
+            $result = $this->service->toggleDayOff($request->user(), $validated['date']);
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * Чек-лист / Получение всех выходных дней пользователя.
+     */
+    public function getDaysOff(Request $request): JsonResponse
+    {
+        $dates = $this->service->getDaysOff($request->user());
+        return response()->json(['data' => $dates]);
     }
 }

@@ -74,6 +74,7 @@ final class MessageService
         $onlineUserIds = Redis::zrangebyscore($redisKey, (string)(time() - 30), '+inf');
         $otherOnlineUsers = array_diff($onlineUserIds, [(string)$user->id]);
         $readAt = !empty($otherOnlineUsers) ? now() : null;
+
         $message = $chat->messages()->create([
             'sender_id' => $user->id,
             'text'      => $data['text'] ?? null,
@@ -82,7 +83,12 @@ final class MessageService
 
         $message->load(['sender']);
 
-        broadcast(new MessageSent($message))->toOthers();
+        $recipientId = ($message->sender_id == $chat->elite_id)
+            ? $chat->leader_id
+            : $chat->elite_id;
+
+        broadcast(new MessageSent($message, (int)$recipientId))->toOthers();
+
         SendChatMessageNotification::dispatch($message);
         return $message;
     }

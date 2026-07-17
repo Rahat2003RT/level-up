@@ -19,13 +19,17 @@ final class MessageSent implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public readonly int $recipientId;
+
     /**
      * @param Message $message
+     * @param int $recipientId Передаем вычисленный ID получателя прямо сюда
      */
     public function __construct(
-        public readonly Message $message
-    )
-    {
+        public readonly Message $message,
+        int $recipientId
+    ) {
+        $this->recipientId = $recipientId;
     }
 
     /**
@@ -33,20 +37,19 @@ final class MessageSent implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        $chat = $this->message->chat;
         $channels = [
             new PresenceChannel("chat.{$this->message->chat_id}"),
         ];
 
-        $recipientId = ($this->message->sender_id == $chat->elite_id)
-            ? $chat->leader_id
-            : $chat->elite_id;
+        $score = Redis::zscore(
+            "chat_online:{$this->message->chat_id}",
+            (string)$this->recipientId
+        );
 
-        $score = Redis::zscore("chat_online:{$this->message->chat_id}", (string)$recipientId);
-        $isOnlineInChat = (int)$score >= (time() - 30);
+        $isOnlineInChat = $score !== null && (int)$score >= (time() - 30);
 
         if (!$isOnlineInChat) {
-            $channels[] = new PrivateChannel("user.$recipientId");
+            $channels[] = new PrivateChannel("user.{$this->recipientId}");
         }
 
         return $channels;
@@ -61,7 +64,9 @@ final class MessageSent implements ShouldBroadcast
     {
         $this->message->loadMissing([
             'sender.role',
+            'chat'
         ]);
+
         return MessageResource::make($this->message)->resolve();
     }
 }

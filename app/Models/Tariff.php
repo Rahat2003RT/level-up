@@ -80,4 +80,5 @@ class Tariff extends Model
     {
         return $query->where('is_active', true);
     }
+
 }
