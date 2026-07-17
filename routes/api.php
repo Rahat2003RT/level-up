@@ -25,7 +25,7 @@ Route::prefix('v1')->group(function () {
             Route::prefix('tariffs')->group(function () {
                 Route::get('/',         [Admin\TariffController::class, 'index']);
                 Route::post('/',        [Admin\TariffController::class, 'store']);
-                Route::put('/{tariff}', [Admin\TariffController::class, 'update']);
+                Route::patch('/{tariff}', [Admin\TariffController::class, 'update']);
                 Route::delete('/{tariff}', [Admin\TariffController::class, 'destroy']);
             });
             // ----------------------------------------------------------------//

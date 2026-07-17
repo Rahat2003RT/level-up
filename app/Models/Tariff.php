@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id Уникальный идентификатор тарифа
  * @property string|null $role Роль, к которой привязан тариф (например, 'admin', 'user')
- * @property string $name Название тарифа
- * @property string|null $description Описание тарифа и его преимуществ
+ * @property array $name Название тарифа (мультиязычный JSON-массив)
+ * @property array|null $description Описание тарифа и его преимуществ (мультиязычный JSON-массив)
  * @property float $price Стоимость тарифа
  * @property Period $period Период действия тарифа (enum класс)
  * @property bool $is_active Статус активности тарифа (активирован/деактивирован)
@@ -40,6 +40,7 @@ use Illuminate\Database\Eloquent\Model;
 class Tariff extends Model
 {
     use HasFactory;
+
     /**
      * Атрибуты, для которых разрешено массовое заполнение.
      *
@@ -57,9 +58,11 @@ class Tariff extends Model
     /**
      * Атрибуты, которые должны быть приведены к типам PHP.
      *
-     * @var array<string, string>
+     * @var array<string, string|class-string>
      */
     protected $casts = [
+        'name' => 'array',
+        'description' => 'array',
         'price' => 'decimal:2',
         'period' => Period::class,
         'is_active' => 'boolean',

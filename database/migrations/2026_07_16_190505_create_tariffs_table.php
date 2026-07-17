@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('tariffs', function (Blueprint $table) {
             $table->id();
             $table->string('role')->nullable();
-            $table->string('name'); // name
-            $table->text('description')->nullable();
+            $table->json('name');
+            $table->json('description')->nullable();
             $table->decimal('price', 10);
             $table->string('period');
             $table->boolean('is_active')->default(true);
