@@ -27,7 +27,6 @@ class CommandsTest extends TestCase
         $this->player = User::factory()->create(['role' => UserRole::PLAYER]);
     }
 
-    // Изменили название метода: добавили test_ в начало
     public function test_admin_can_see_commands_list()
     {
         $response = $this->actingAs($this->admin)
@@ -42,7 +41,6 @@ class CommandsTest extends TestCase
             ]);
     }
 
-    // Изменили название метода
     public function test_admin_can_view_command_details_with_member_volumes()
     {
         $this->leader->update(['leader_id' => $this->elite->id]);
@@ -60,7 +58,6 @@ class CommandsTest extends TestCase
             ->assertJsonPath('data.members.0.volume', 800);
     }
 
-    // Изменили название метода
     public function test_admin_can_add_valid_member_to_command()
     {
         $this->assertNull($this->player->leader_id);
@@ -70,8 +67,8 @@ class CommandsTest extends TestCase
                 'member_id' => $this->player->id
             ]);
 
-        $response->assertStatus(200)
-            ->assertJson(['message' => 'Пользователь успешно добавлен в команду.']);
+        // Изменено: теперь проверяем код 204 (успешный без контента), который отдает твой обновленный контроллер
+        $response->assertStatus(204);
 
         $this->assertDatabaseHas('users', [
             'id' => $this->player->id,
@@ -79,7 +76,6 @@ class CommandsTest extends TestCase
         ]);
     }
 
-    // Изменили название метода
     public function test_admin_cannot_add_leader_to_another_leader_command_hierarchy_validation()
     {
         $anotherLeader = User::factory()->create(['role' => UserRole::LEADER]);
@@ -89,14 +85,17 @@ class CommandsTest extends TestCase
                 'member_id' => $anotherLeader->id
             ]);
 
-        $response->assertStatus(422)
-            ->assertJsonValidationErrors(['member']);
+        // Изменено: ловим ValidationException, упакованное Ларавелем
+        $response->assertStatus(422);
+        $this->assertArrayHasKey('member', $response->json('errors'));
     }
 
-    // Изменили название метода
     public function test_admin_can_search_available_users_for_command()
     {
-        User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => 999]);
+        // Изменено: привязываем занятого игрока к существующему лидеру, избавляясь от ошибки FOREIGN KEY
+        $anotherLeader = User::factory()->create(['role' => UserRole::LEADER]);
+        User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $anotherLeader->id]);
+
         $freePlayer = User::factory()->create(['role' => UserRole::PLAYER, 'name' => 'УникальноеИмя']);
 
         $response = $this->actingAs($this->admin)
@@ -107,7 +106,6 @@ class CommandsTest extends TestCase
             ->assertJsonPath('data.0.id', $freePlayer->id);
     }
 
-    // Изменили название метода
     public function test_admin_can_kick_member_from_team()
     {
         $this->player->update(['leader_id' => $this->leader->id]);
