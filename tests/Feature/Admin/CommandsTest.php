@@ -67,7 +67,7 @@ class CommandsTest extends TestCase
                 'member_id' => $this->player->id
             ]);
 
-        // Изменено: теперь проверяем код 204 (успешный без контента), который отдает твой обновленный контроллер
+        // Теперь ожидаем 204, так как контроллер возвращает noContent()
         $response->assertStatus(204);
 
         $this->assertDatabaseHas('users', [
@@ -85,14 +85,13 @@ class CommandsTest extends TestCase
                 'member_id' => $anotherLeader->id
             ]);
 
-        // Изменено: ловим ValidationException, упакованное Ларавелем
         $response->assertStatus(422);
         $this->assertArrayHasKey('member', $response->json('errors'));
     }
 
     public function test_admin_can_search_available_users_for_command()
     {
-        // Изменено: привязываем занятого игрока к существующему лидеру, избавляясь от ошибки FOREIGN KEY
+        // Создаем легитимного лидера вместо 999 для SQLite
         $anotherLeader = User::factory()->create(['role' => UserRole::LEADER]);
         User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => $anotherLeader->id]);
 
