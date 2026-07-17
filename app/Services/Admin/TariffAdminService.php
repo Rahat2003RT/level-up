@@ -44,8 +44,8 @@ class TariffAdminService
      *
      * @param array{
      *     role?: string|null,
-     *     name: string,
-     *     description?: string|null,
+     *     name: array<string, string>,
+     *     description?: array<string, string>|null,
      *     price: float,
      *     period: string,
      *     is_active?: bool
@@ -63,8 +63,8 @@ class TariffAdminService
      * @param Tariff $tariff
      * @param array{
      *     role?: string|null,
-     *     name?: string,
-     *     description?: string|null,
+     *     name?: array<string, string>,
+     *     description?: array<string, string>|null,
      *     price?: float,
      *     period?: string,
      *     is_active?: bool

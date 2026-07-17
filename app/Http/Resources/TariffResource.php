@@ -16,11 +16,19 @@ final class TariffResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $locale = $request->header('Accept-Language') ? $request->getPreferredLanguage(['ru', 'en', 'es', 'fr', 'de', 'pt']) : 'en';
+
+        if (!in_array($locale, ['ru', 'en', 'es', 'fr', 'de', 'pt'], true)) {
+            $locale = 'en';
+        }
+
         return [
             'id' => $this->id,
             'role' => $this->role,
-            'name' => $this->name,
-            'description' => $this->description,
+
+            'name' => $this->name[$locale] ?? $this->name['en'] ?? head($this->name) ?? '',
+            'description' => $this->description[$locale] ?? $this->description['en'] ?? head($this->description) ?? null,
+
             'price' => $this->price,
             'period' => $this->period->value,
             'is_active' => $this->is_active,
