@@ -21,17 +21,14 @@ class CommandsTest extends TestCase
     {
         parent::setUp();
 
-        // Создаем администратора для прохождения can:access-admin
         $this->admin = User::factory()->create(['role' => 'admin']);
-
-        // Создаем тестовую иерархию пользователей
         $this->elite = User::factory()->create(['role' => UserRole::ELITE]);
         $this->leader = User::factory()->create(['role' => UserRole::LEADER]);
         $this->player = User::factory()->create(['role' => UserRole::PLAYER]);
     }
 
-    /** @test */
-    public function admin_can_see_commands_list()
+    // Изменили название метода: добавили test_ в начало
+    public function test_admin_can_see_commands_list()
     {
         $response = $this->actingAs($this->admin)
             ->getJson('/api/v1/admin/commands');
@@ -45,31 +42,27 @@ class CommandsTest extends TestCase
             ]);
     }
 
-    /** @test */
-    public function admin_can_view_command_details_with_member_volumes()
+    // Изменили название метода
+    public function test_admin_can_view_command_details_with_member_volumes()
     {
-        // Привязываем лидера к элите, а игрока к лидеру
         $this->leader->update(['leader_id' => $this->elite->id]);
         $this->player->update(['leader_id' => $this->leader->id]);
 
-        // Добавляем контакты с объемами для игрока
         Contact::factory()->create(['user_id' => $this->player->id, 'volume' => 500]);
         Contact::factory()->create(['user_id' => $this->player->id, 'volume' => 300]);
 
-        // Запрашиваем команду лидера
         $response = $this->actingAs($this->admin)
             ->getJson("/api/v1/admin/commands/{$this->leader->id}");
 
         $response->assertStatus(200)
             ->assertJsonPath('data.elite_name', $this->elite->name)
             ->assertJsonPath('data.members.0.id', $this->player->id)
-            ->assertJsonPath('data.members.0.volume', 800); // 500 + 300
+            ->assertJsonPath('data.members.0.volume', 800);
     }
 
-    /** @test */
-    public function admin_can_add_valid_member_to_command()
+    // Изменили название метода
+    public function test_admin_can_add_valid_member_to_command()
     {
-        // Игрок изначально без команды
         $this->assertNull($this->player->leader_id);
 
         $response = $this->actingAs($this->admin)
@@ -86,32 +79,26 @@ class CommandsTest extends TestCase
         ]);
     }
 
-    /** @test */
-    public function admin_cannot_add_leader_to_another_leader_command_hierarchy_validation()
+    // Изменили название метода
+    public function test_admin_cannot_add_leader_to_another_leader_command_hierarchy_validation()
     {
         $anotherLeader = User::factory()->create(['role' => UserRole::LEADER]);
 
-        // Пытаемся добавить Лидера в команду другого Лидера (разрешено только Player)
         $response = $this->actingAs($this->admin)
             ->postJson("/api/v1/admin/commands/{$this->leader->id}/add", [
                 'member_id' => $anotherLeader->id
             ]);
 
-        // Наш Service выбрасывает ValidationException, Ларавель вернет 422
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['member']);
     }
 
-    /** @test */
-    public function admin_can_search_available_users_for_command()
+    // Изменили название метода
+    public function test_admin_can_search_available_users_for_command()
     {
-        // Этот игрок уже занят
-        $busyPlayer = User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => 999]);
-
-        // Этот игрок свободен
+        User::factory()->create(['role' => UserRole::PLAYER, 'leader_id' => 999]);
         $freePlayer = User::factory()->create(['role' => UserRole::PLAYER, 'name' => 'УникальноеИмя']);
 
-        // Ищем кандидатов для Лидера (должен находить только свободных Player)
         $response = $this->actingAs($this->admin)
             ->getJson("/api/v1/admin/commands/{$this->leader->id}/search-available?query=УникальноеИмя");
 
@@ -120,15 +107,15 @@ class CommandsTest extends TestCase
             ->assertJsonPath('data.0.id', $freePlayer->id);
     }
 
-    /** @test */
-    public function admin_can_kick_member_from_team()
+    // Изменили название метода
+    public function test_admin_can_kick_member_from_team()
     {
         $this->player->update(['leader_id' => $this->leader->id]);
 
         $response = $this->actingAs($this->admin)
             ->deleteJson("/api/v1/admin/commands/members/{$this->player->id}/kick");
 
-        $response->assertStatus(24); // noContent() возвращает 204 статус
+        $response->assertStatus(204);
 
         $this->assertDatabaseHas('users', [
             'id' => $this->player->id,

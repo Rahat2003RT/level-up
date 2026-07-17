@@ -48,6 +48,16 @@ Route::prefix('v1')->group(function () {
                 Route::delete('/{user}',                [Admin\UserController::class, 'destroy']);
                 Route::delete('/{user}/force-delete',   [Admin\UserController::class, 'forceDelete'])->withTrashed();
             });
+            // ----------------------------------------------------------------//
+            //                      ADMIN-COMMANDS METHODS                     //
+            // ----------------------------------------------------------------//
+            Route::prefix('commands')->group(function () {
+                Route::get('/', [Admin\CommandController::class, 'index']);
+                Route::get('/{user}', [Admin\CommandController::class, 'show']);
+                Route::post('/{user}/add', [Admin\CommandController::class, 'addMember']);
+                Route::get('/{user}/search-available', [Admin\CommandController::class, 'searchAvailable']);
+                Route::delete('/members/{member}/kick', [Admin\CommandController::class, 'removeMember']);
+            });
         });
     });
     // ---------------------------------------------------------------------------------------------------------------//
