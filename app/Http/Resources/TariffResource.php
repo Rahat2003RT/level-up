@@ -19,7 +19,6 @@ final class TariffResource extends JsonResource
         $nameArray = is_array($this->name) ? $this->name : json_decode((string)$this->name, true) ?? [];
         $descriptionArray = is_array($this->description) ? $this->description : json_decode((string)$this->description, true) ?? [];
 
-        // 2. Проверяем, запрашивает ли данные админ панели
         if ($request->is('api/v1/admin/*') || $request->is('api/admin/*')) {
             $nameOutput = $nameArray;
             $descriptionOutput = $descriptionArray;
