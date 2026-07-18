@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\User;
 
+use App\Events\MessageDeleted;
 use App\Events\MessageSent;
 use App\Events\MessagesRead;
 use App\Events\MessageUpdated;
@@ -119,5 +120,13 @@ final class MessageService
         $message->load(['sender']);
         broadcast(new MessageUpdated($message))->toOthers();
         return $message;
+    }
+
+    public function deleteMessage(Message $message): void
+    {
+        $chatId = $message->chat_id;
+        $messageId = $message->id;
+        $message->delete();
+        broadcast(new MessageDeleted($chatId, $messageId))->toOthers();
     }
 }

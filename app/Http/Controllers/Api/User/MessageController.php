@@ -8,13 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Chat\ChatAccessRequest;
 use App\Http\Requests\User\Chat\StoreMessageRequest;
 use App\Http\Requests\User\Chat\UpdateMessageRequest;
-use App\Http\Resources\ChatResource;
 use App\Http\Resources\MessageResource;
 use App\Models\Chat;
 use App\Models\Message;
 use App\Services\User\MessageService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
@@ -55,9 +53,23 @@ final class MessageController extends Controller
         $message = $this->service->updateMessage($message, $request->validated());
         return MessageResource::make($message);
     }
+
     public function read(Chat $chat): Response
     {
         $this->service->markAsRead($chat, request()->user());
+        return response()->noContent();
+    }
+
+    /**
+     * Удаление сообщения
+     * @param Chat $chat
+     * @param Message $message
+     * @return Response
+     */
+    public function destroy(Chat $chat, Message $message): Response
+    {
+        abort_if($message->sender_id !== request()->user()->id, 403);
+        $this->service->deleteMessage($message);
         return response()->noContent();
     }
 }

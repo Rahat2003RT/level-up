@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\Checklist\StoreRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
+use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Requests\User\Statistics\IndexRequest;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\LeadershipChecklistResource;
+use App\Http\Resources\LeaderTeamStatisticsResource;
 use App\Http\Resources\ProgressResource;
 use App\Services\User\PlanService;
 use Dedoc\Scramble\Attributes\Group;
@@ -44,6 +46,20 @@ final class PlanController extends Controller
     {
         $stats = $this->service->getStatistics($request->user(), $request->validated());
         return response()->json(['data' => $stats]);
+    }
+
+    /**
+     * Командная статистика лидера за период
+     *
+     * Доступно только пользователям с правами лидера.
+     * @param StatisticsRequest $request
+     * @return LeaderTeamStatisticsResource
+     */
+    public function teamStatistics(StatisticsRequest $request): LeaderTeamStatisticsResource
+    {
+        $this->authorize('access-leader');
+        $stats = $this->service->getTeamStatistics($request->user(), $request->validated());
+        return LeaderTeamStatisticsResource::make($stats);
     }
 
     /**
