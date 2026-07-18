@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Events;
 
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel; // Используем PresenceChannel как в MessageSent
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -15,22 +16,20 @@ class MessageDeleted implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     /**
-     * Создаем событие удаления. Передаем id чата и id удаленного сообщения.
+     * Создаем событие удаления.
      */
     public function __construct(
-        public int    $chatId,
+        public int $chatId,
         public string $messageId
-    )
-    {
-    }
+    ) {}
 
     /**
-     * Каналы, в которые должно транслироваться событие.
+     * @return array<Channel>
      */
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('chats.' . $this->chatId),
+            new PresenceChannel("chat.{$this->chatId}"),
         ];
     }
 
@@ -40,5 +39,16 @@ class MessageDeleted implements ShouldBroadcast
     public function broadcastAs(): string
     {
         return 'message.deleted';
+    }
+
+    /**
+     * Данные, которые улетят на фронт.
+     */
+    public function broadcastWith(): array
+    {
+        return [
+            'id'      => $this->messageId,
+            'chat_id' => $this->chatId,
+        ];
     }
 }
