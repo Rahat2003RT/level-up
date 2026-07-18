@@ -73,6 +73,13 @@ class TariffAdminService
      */
     public function update(Tariff $tariff, array $data): Tariff
     {
+        if (isset($data['name'])) {
+            $data['name'] = array_merge($tariff->name ?? [], $data['name']);
+        }
+
+        if (isset($data['description'])) {
+            $data['description'] = array_merge($tariff->description ?? [], $data['description']);
+        }
         $tariff->update($data);
         return $tariff;
     }

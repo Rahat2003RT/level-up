@@ -27,19 +27,16 @@ class UpdateRequest extends ApiBaseRequest
                 Rule::in(collect(UserRole::cases())->pluck('value')->toArray()),
             ],
 
-            'name' => 'sometimes|required|array|min:1',
-            'name.*' => 'required|string|max:255',
+            'name'        => 'sometimes|required|array|min:1',
+            'description' => 'sometimes|nullable|array',
 
-            'description' => 'nullable|array',
-            'description.*' => 'nullable|string',
-
-            'price' => 'sometimes|required|numeric|min:0',
-            'period' => ['sometimes', 'required', new Enum(Period::class)],
-            'is_active' => 'sometimes|boolean',
+            'price'       => 'sometimes|required|numeric|min:0',
+            'period'      => ['sometimes', 'required', new Enum(Period::class)],
+            'is_active'   => 'sometimes|boolean',
         ];
 
         foreach ($this->locales as $locale) {
-            $rules["name.{$locale}"] = 'sometimes|string|max:255';
+            $rules["name.{$locale}"] = 'sometimes|required|string|max:255';
             $rules["description.{$locale}"] = 'sometimes|nullable|string';
         }
 

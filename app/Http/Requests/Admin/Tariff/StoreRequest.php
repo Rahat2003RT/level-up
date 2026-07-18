@@ -30,20 +30,15 @@ final class StoreRequest extends ApiBaseRequest
                 Rule::in(collect(UserRole::cases())->pluck('value')->toArray()),
             ],
 
-            'name' => 'required|array|min:1',
-            'name.*' => 'required|string|max:255',
-
+            'name'        => 'required|array|min:1',
             'description' => 'nullable|array',
-            'description.*' => 'nullable|string',
-
-            'price' => 'required|numeric|min:0',
-            'period' => ['required', new Enum(Period::class)],
-            'is_active' => 'nullable|boolean',
+            'price'       => 'required|numeric|min:0',
+            'period'      => ['required', new Enum(Period::class)],
+            'is_active'   => 'nullable|boolean',
         ];
-
         foreach ($this->locales as $locale) {
-            $rules["name.$locale"] = 'sometimes|string|max:255';
-            $rules["description.$locale"] = 'sometimes|nullable|string';
+            $rules["name.$locale"] = 'required_without_all_others|string|max:255';
+            $rules["description.$locale"] = 'nullable|string';
         }
 
         return $rules;
