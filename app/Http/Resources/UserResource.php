@@ -126,7 +126,7 @@ final class UserResource extends JsonResource
                     return [
                         'id'                 => $player->id,
                         'name'               => $player->name . ' ' . $player->surname,
-                        'avatar'             => $player->avatar_url ?? null,
+                        'avatar'             => $player->avatar_path ?? null,
                         'current_day_number' => $currentDayNumber,
                         'progress'           => $progressPercent,
                         'status'             => $status,

@@ -10,6 +10,7 @@ use App\Http\Resources\ChatResource;
 use App\Models\Chat;
 use App\Services\User\ChatService;
 use Dedoc\Scramble\Attributes\Group;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 #[Group('Чаты', weight: 280)]
@@ -22,6 +23,8 @@ final class ChatController extends Controller
 
     /**
      * Список чатов
+     * @param GetChatsRequest $request
+     * @return AnonymousResourceCollection
      */
     public function index(GetChatsRequest $request): AnonymousResourceCollection
     {
@@ -29,9 +32,16 @@ final class ChatController extends Controller
         return ChatResource::collection($chats);
     }
 
-    public function show(Chat $chat): ChatResource
+    /**
+     * Получить детальную информацию о конкретном чате
+     * @param Chat $chat
+     * @param Request $request
+     * @return ChatResource
+     */
+    public function show(Chat $chat, Request $request): ChatResource
     {
-        $chat = $this->service->showChat($chat);
-        return ChatResource::make($chat);
+        $chatData = $this->service->showChat($chat, $request->user());
+
+        return ChatResource::make($chatData);
     }
 }

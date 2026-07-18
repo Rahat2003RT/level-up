@@ -58,8 +58,22 @@ final class ChatService
         return collect();
     }
 
-    public function showChat(Chat $chat): ChatResource
+    public function showChat(Chat $chat, User $user): Chat
     {
-        return ChatResource::make($chat);
+        $chat->load([
+            'lastMessage',
+            'elite',
+            'leader.players' => function ($query) {
+                $query->withSum('contacts as total_volume', 'volume')
+                    ->with(['checklists' => fn($q) => $q->latest('date')]);
+            }
+        ]);
+
+        $chat->unread_count = $chat->messages()
+            ->whereNull('read_at')
+            ->where('sender_id', '!=', $user->id)
+            ->count();
+
+        return $chat;
     }
 }
