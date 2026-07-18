@@ -22,12 +22,17 @@ final class TariffResource extends JsonResource
             $locale = 'en';
         }
 
+        // Защита от строк: если пришла строка (например, из-за особенностей SQLite в тестах),
+        // превращаем её в массив, чтобы head() и isset не бросали исключения.
+        $name = is_array($this->name) ? $this->name : ['en' => $this->name];
+        $description = is_array($this->description) ? $this->description : ['en' => $this->description];
+
         return [
             'id'   => $this->id,
             'role' => $this->role,
 
-            'name'        => $this->name[$locale] ?? $this->name['en'] ?? head($this->name) ?? '',
-            'description' => $this->description[$locale] ?? $this->description['en'] ?? head($this->description) ?? null,
+            'name'        => $name[$locale] ?? $name['en'] ?? head($name) ?? '',
+            'description' => $description[$locale] ?? $description['en'] ?? head($description) ?? null,
 
             'price'      => $this->price,
             'period'     => $this->period->value,

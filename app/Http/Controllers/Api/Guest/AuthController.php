@@ -62,38 +62,36 @@ final class AuthController extends Controller
     /**
      * Запрос кода на сброс пароля
      * @param ForgotPasswordRequest $request
-     * @return JsonResponse
+     * @return Response
      * @throws ValidationException
      */
-    public function sendResetCode(ForgotPasswordRequest $request): JsonResponse
+    public function sendResetCode(ForgotPasswordRequest $request): Response
     {
         $this->service->sendResetCode($request->validated());
-        return response()->json([
-            'message' => __('passwords.sent'),
-        ]);
+        return response()->noContent();
     }
 
     /**
      * Проверка кода сброса пароля
      * @param VerifyResetCodeRequest $request
-     * @return JsonResponse
+     * @return Response
      * @throws ValidationException
      */
-    public function verifyResetCode(VerifyResetCodeRequest $request): JsonResponse
+    public function verifyResetCode(VerifyResetCodeRequest $request): Response
     {
         $this->service->verifyResetCode($request->validated());
-        return response()->json(['message' => 'Password is sent to your email.']);
+        return response()->noContent();
     }
 
     /**
      * Сброс пароля
      * @param ResetPasswordRequest $request
-     * @return JsonResponse
+     * @return Response
      * @throws ValidationException
      */
-    public function resetPassword(ResetPasswordRequest $request): JsonResponse
+    public function resetPassword(ResetPasswordRequest $request): Response
     {
         $this->service->resetPassword($request->validated());
-        return response()->json(['message' => __('passwords.reset')]);
+        return response()->noContent();
     }
 }
