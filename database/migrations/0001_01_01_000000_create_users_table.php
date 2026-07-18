@@ -13,6 +13,16 @@ return new class extends Migration {
      */
     public function up(): void
     {
+        Schema::create('tariffs', function (Blueprint $table) {
+            $table->id();
+            $table->string('role')->nullable();
+            $table->json('name');
+            $table->json('description')->nullable();
+            $table->decimal('price', 10);
+            $table->string('period');
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('account_id', 10)->unique()->nullable();
@@ -105,6 +115,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
+        Schema::dropIfExists('tariffs');
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
