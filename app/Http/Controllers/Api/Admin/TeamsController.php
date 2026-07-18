@@ -13,7 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
 #[Group('Команды / Админка', weight: 50)]
-final class CommandController extends Controller
+final class TeamsController extends Controller
 {
     public function __construct(
         protected CommandService $service

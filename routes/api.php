@@ -49,14 +49,14 @@ Route::prefix('v1')->group(function () {
                 Route::delete('/{user}/force-delete',   [Admin\UserController::class, 'forceDelete'])->withTrashed();
             });
             // ----------------------------------------------------------------//
-            //                      ADMIN-COMMANDS METHODS                     //
+            //                        ADMIN-TEAMS METHODS                      //
             // ----------------------------------------------------------------//
-            Route::prefix('commands')->group(function () {
-                Route::get('/', [Admin\CommandController::class, 'index']);
-                Route::get('/{user}', [Admin\CommandController::class, 'show']);
-                Route::post('/{user}/add', [Admin\CommandController::class, 'addMember']);
-                Route::get('/{user}/search-available', [Admin\CommandController::class, 'searchAvailable']);
-                Route::delete('/members/{member}/kick', [Admin\CommandController::class, 'removeMember']);
+            Route::prefix('teams')->group(function () {
+                Route::get('/', [Admin\TeamsController::class, 'index']);
+                Route::get('/{user}', [Admin\TeamsController::class, 'show']);
+                Route::post('/{user}/add', [Admin\TeamsController::class, 'addMember']);
+                Route::get('/{user}/search-available', [Admin\TeamsController::class, 'searchAvailable']);
+                Route::delete('/members/{member}/kick', [Admin\TeamsController::class, 'removeMember']);
             });
         });
     });
