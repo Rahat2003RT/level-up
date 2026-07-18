@@ -41,13 +41,11 @@ final class MessageSent implements ShouldBroadcast
             new PresenceChannel("chat.{$this->message->chat_id}"),
         ];
 
-        $score = Redis::zscore(
-            "chat_online:{$this->message->chat_id}",
-            (string)$this->recipientId
-        );
+        // Синхронизируем проверку с новой структурой ключей ChatPresenceService
+        $recipientRedisKey = "chat:{$this->message->chat_id}:user:{$this->recipientId}";
+        $isOnlineInChat = (bool) Redis::exists($recipientRedisKey);
 
-        $isOnlineInChat = $score !== null && (int)$score >= (time() - 30);
-
+        // Если пользователя нет в конкретном чате, дублируем ивент в его личный канал для уведомлений
         if (!$isOnlineInChat) {
             $channels[] = new PrivateChannel("user.{$this->recipientId}");
         }
