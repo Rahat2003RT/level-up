@@ -32,7 +32,7 @@ return new class extends Migration
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->index(['chat_id', 'created_at']);
+            $table->index(['chat_id', 'created_at', 'id']);
         });
     }
 

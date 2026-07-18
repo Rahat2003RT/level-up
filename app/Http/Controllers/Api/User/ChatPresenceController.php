@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ChatPresenceRequest;
 use App\Models\Chat;
 use App\Services\ChatPresenceService;
+use App\Services\User\MessageService;
 use Dedoc\Scramble\Attributes\Group;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -15,8 +14,11 @@ use Illuminate\Http\Response;
 final class ChatPresenceController extends Controller
 {
     public function __construct(
-        private readonly ChatPresenceService $presenceService
-    ) {}
+        private readonly ChatPresenceService $presenceService,
+        private readonly MessageService      $messageService
+    )
+    {
+    }
 
     /**
      * Пинг
@@ -26,9 +28,8 @@ final class ChatPresenceController extends Controller
      */
     public function ping(Chat $chat, Request $request): Response
     {
-        $userId = $request->user()->id;
-        $this->presenceService->ping($chat->id, $userId);
-
+        $this->presenceService->ping($chat, $request->user());
+        $this->messageService->markAsRead($chat, $request->user());
         return response()->noContent();
     }
 
@@ -40,7 +41,7 @@ final class ChatPresenceController extends Controller
      */
     public function leave(Chat $chat, Request $request): Response
     {
-        $this->presenceService->leave($chat->id, $request->user()->id);
+        $this->presenceService->leave($chat, $request->user());
         return response()->noContent();
     }
 }

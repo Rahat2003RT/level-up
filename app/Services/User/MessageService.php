@@ -31,8 +31,15 @@ final class MessageService
             $targetMessage = Message::find($params['around_id']);
 
             if ($targetMessage) {
-                return $query->where('created_at', '<=', $targetMessage->created_at)
+                return $query->where(function ($q) use ($targetMessage) {
+                    $q->where('created_at', '<', $targetMessage->created_at)
+                        ->orWhere(function ($sub) use ($targetMessage) {
+                            $sub->where('created_at', '=', $targetMessage->created_at)
+                                ->where('id', '<=', $targetMessage->id);
+                        });
+                })
                     ->orderBy('created_at', 'desc')
+                    ->orderBy('id', 'desc')
                     ->limit(30)
                     ->get();
             }
@@ -42,38 +49,54 @@ final class MessageService
             $targetMessage = Message::find($params['after_id']);
 
             if ($targetMessage) {
-                return $query->where('created_at', '>', $targetMessage->created_at)
+                return $query->where(function ($q) use ($targetMessage) {
+                    $q->where('created_at', '>', $targetMessage->created_at)
+                        ->orWhere(function ($sub) use ($targetMessage) {
+                            $sub->where('created_at', '=', $targetMessage->created_at)
+                                ->where('id', '>', $targetMessage->id);
+                        });
+                })
                     ->orderBy('created_at', 'asc')
+                    ->orderBy('id', 'asc')
                     ->limit(100)
                     ->get();
             }
         }
 
-        return $query->orderBy('created_at', 'desc')->cursorPaginate(30);
+        return $query->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
+            ->cursorPaginate(30);
     }
 
     public function markAsRead(Chat $chat, User $user): int
     {
         $unreadQuery = $chat->messages()
+            ->where('sender_id', '!=', $user->id)
             ->whereNull('read_at');
+
         $unreadMessageIds = $unreadQuery->pluck('id')->toArray();
         $unreadCount = count($unreadMessageIds);
+
         if ($unreadCount > 0) {
             $unreadQuery->update(['read_at' => now()]);
             broadcast(new MessagesRead($chat->id, $user->id, $unreadMessageIds))->toOthers();
         }
+
         return $unreadCount;
     }
 
-    /**
-     * Создать новое сообщение (Отправка).
-     */
     public function storeMessage(Chat $chat, User $user, array $data): Message
     {
-        $redisKey = "chat_online:$chat->id";
-        $onlineUserIds = Redis::zrangebyscore($redisKey, (string)(time() - 30), '+inf');
-        $otherOnlineUsers = array_diff($onlineUserIds, [(string)$user->id]);
-        $readAt = !empty($otherOnlineUsers) ? now() : null;
+        // Определяем ID получателя
+        $recipientId = ($user->id == $chat->elite_id)
+            ? $chat->leader_id
+            : $chat->elite_id;
+
+        // Проверяем онлайн получателя по структуре ключей из ChatPresenceService ("chat:{id}:user:{id}")
+        $recipientRedisKey = "chat:{$chat->id}:user:{$recipientId}";
+        $isRecipientOnline = (bool) Redis::exists($recipientRedisKey);
+
+        $readAt = $isRecipientOnline ? now() : null;
 
         $message = $chat->messages()->create([
             'sender_id' => $user->id,
@@ -83,13 +106,10 @@ final class MessageService
 
         $message->load(['sender']);
 
-        $recipientId = ($message->sender_id == $chat->elite_id)
-            ? $chat->leader_id
-            : $chat->elite_id;
-
         broadcast(new MessageSent($message, (int)$recipientId))->toOthers();
 
         SendChatMessageNotification::dispatch($message);
+
         return $message;
     }
 
