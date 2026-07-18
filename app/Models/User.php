@@ -117,6 +117,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'date_of_birth',
         'locale',
         'notifications_enabled',
+        'plan_paused'
     ];
 
     protected $hidden = [
@@ -261,6 +262,11 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->update([
             'trial_ends_at' => null,
         ]);
+    }
+
+    public function planPauses(): HasMany
+    {
+        return $this->hasMany(PlanPause::class);
     }
 
     // --- ЖИЗНЕННЫЙ ЦИКЛ МОДЕЛИ (BOOTED) ---

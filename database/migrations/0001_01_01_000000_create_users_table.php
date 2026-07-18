@@ -53,6 +53,7 @@ return new class extends Migration {
 
             $table->timestamp('subscription_ends_at')->nullable();
             $table->boolean('auto_renew')->default(true);
+            $table->boolean('plan_paused')->default(false);
             $table->string('payment_recurrent_id')->nullable();
 
             $table->timestamp('email_verified_at')->nullable();

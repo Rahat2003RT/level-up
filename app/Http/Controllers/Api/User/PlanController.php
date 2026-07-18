@@ -11,7 +11,9 @@ use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\LeadershipChecklistResource;
 use App\Http\Resources\LeaderTeamStatisticsResource;
 use App\Http\Resources\ProgressResource;
+use App\Models\PlanPause;
 use App\Services\User\PlanService;
+use Carbon\Carbon;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -57,7 +59,7 @@ final class PlanController extends Controller
      */
     public function teamStatistics(StatisticsRequest $request): LeaderTeamStatisticsResource
     {
-        $this->authorize('access-leader');
+        abort_if($request->user()->cannot('access-leader'), 403, 'This action is unauthorized.');
         $stats = $this->service->getTeamStatistics($request->user(), $request->validated());
         return LeaderTeamStatisticsResource::make($stats);
     }
@@ -116,5 +118,37 @@ final class PlanController extends Controller
     {
         $dates = $this->service->getDaysOff($request->user());
         return response()->json(['data' => $dates]);
+    }
+
+    public function togglePause(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $today = Carbon::today()->toDateString();
+        $activePause = PlanPause::where('user_id', $user->id)
+            ->whereNull('ended_at')
+            ->first();
+
+        if ($activePause) {
+            if ($activePause->started_at->toDateString() === $today) {
+                $activePause->delete();
+            } else {
+                $activePause->update([
+                    'ended_at' => Carbon::yesterday()->toDateString()
+                ]);
+            }
+
+            $user->update(['plan_paused' => false]);
+        } else {
+            PlanPause::create([
+                'user_id'    => $user->id,
+                'started_at' => $today,
+            ]);
+
+            $user->update(['plan_paused' => true]);
+        }
+
+        return response()->json([
+            'plan_paused' => $user->plan_paused,
+        ]);
     }
 }
