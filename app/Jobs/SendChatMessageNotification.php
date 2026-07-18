@@ -81,9 +81,9 @@ final class SendChatMessageNotification implements ShouldQueue
                     title: $senderName,
                     body: $bodyText,
                     data: [
-                        'action' => 'CHAT',
+                        'action'  => 'CHAT',
                         'chat_id' => (string)$chat->id,
-                        'type' => 'new_message'
+                        'type'    => 'new_message'
                     ]
                 );
             }

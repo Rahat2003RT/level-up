@@ -25,7 +25,7 @@ final class DailyChecklistResource extends JsonResource
             'business_conversations'     => $this->business_conversations,
             'presentations'              => $this->presentations,
             'sales'                      => $this->sales,
-            'daily_income'               => (float) $this->daily_income,
+            'daily_income'               => (float)$this->daily_income,
             'social_media_activity'      => $this->social_media_activity,
             'communication_with_sponsor' => $this->communication_with_sponsor,
             'notes_for_the_day'          => $this->notes_for_the_day ?? '',

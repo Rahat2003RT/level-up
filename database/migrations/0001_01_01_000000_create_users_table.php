@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\UserPlan;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
@@ -8,8 +7,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
@@ -19,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('account_id', 10)->unique()->nullable();
             $table->foreignId('leader_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('tariff_id')->nullable()->constrained('tariffs')->nullOnDelete();
             $table->string('name')->nullable();
             $table->string('nickname')->nullable();
             $table->string('surname')->nullable();
@@ -36,11 +35,15 @@ return new class extends Migration
             $table->string('timezone')->default('UTC');
 
             $table->string('role', 20)->nullable();
-            $table->string('plan', 20)->nullable();
-            $table->timestamp('subscribed_until')->nullable();
-            $table->string('robokassa_sub_id')->nullable();
 
             $table->boolean('notifications_enabled')->default(false);
+
+            $table->timestamp('trial_started_at')->nullable();
+            $table->timestamp('trial_ends_at')->nullable();
+
+            $table->timestamp('subscription_ends_at')->nullable();
+            $table->boolean('auto_renew')->default(true);
+            $table->string('payment_recurrent_id')->nullable();
 
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('last_activity_at')->nullable();
@@ -92,8 +95,7 @@ return new class extends Migration
             [
                 'nickname' => 'Admin',
                 'password' => Hash::make('Kk1cFfUWnTSuxHh'),
-                'role' => UserRole::ADMIN,
-                'plan' => UserPlan::STARTER,
+                'role'     => UserRole::ADMIN,
             ]
         );
     }

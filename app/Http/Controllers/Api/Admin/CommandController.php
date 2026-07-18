@@ -4,25 +4,27 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Command\AddMemberRequest;
+use App\Http\Requests\Admin\Command\IndexRequest;
 use App\Http\Requests\Admin\Command\SearchAvailableRequest;
 use App\Models\User;
 use App\Services\Admin\CommandService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-#[Group('Админ / Управление командами', weight: 50)]
-class CommandController extends Controller
+#[Group('Команды / Админка', weight: 50)]
+final class CommandController extends Controller
 {
     public function __construct(
-    protected CommandService $service
-) {}
+        protected CommandService $service
+    )
+    {
+    }
 
     /**
-     * Список команд
+     * Список
      */
-    public function index(Request $request): JsonResponse
+    public function index(IndexRequest $request): JsonResponse
     {
         $paginator = $this->service->getCommandsList($request->all());
 
@@ -42,7 +44,7 @@ class CommandController extends Controller
     }
 
     /**
-     * Данные команды и список её участников
+     * О команде
      */
     public function show(User $user): JsonResponse
     {
@@ -51,7 +53,18 @@ class CommandController extends Controller
     }
 
     /**
-     * Удалить пользователя из команды
+     * Добавление пользователя
+     */
+    public function addMember(AddMemberRequest $request, User $user): Response
+    {
+        /** @var User $member */
+        $member = User::findOrFail($request->validated()['member_id']);
+        $this->service->addMember($user, $member);
+        return response()->noContent();
+    }
+
+    /**
+     * Изгнание пользователя
      */
     public function removeMember(User $member): Response
     {
@@ -59,20 +72,9 @@ class CommandController extends Controller
         return response()->noContent();
     }
 
-    /**
-     * Добавить пользователя в команду
-     */
-    public function addMember(AddMemberRequest $request, User $user): Response
-    {
-        $member = User::findOrFail($request->validated()['member_id']);
-
-        $this->service->addMember($user, $member);
-
-        return response()->noContent();
-    }
 
     /**
-     * Поиск доступных для добавления пользователей
+     * Поиск свободных пользователей
      */
     public function searchAvailable(SearchAvailableRequest $request, User $user): JsonResponse
     {
@@ -80,10 +82,10 @@ class CommandController extends Controller
 
         return response()->json([
             'data' => collect($paginator->items())->map(fn($u) => [
-                'id'      => $u->id,
-                'name'    => $u->name . ' ' . $u->surname,
-                'avatar'  => $u->avatar_path ?? null,
-                'role'    => $u->role?->value,
+                'id'     => $u->id,
+                'name'   => $u->name . ' ' . $u->surname,
+                'avatar' => $u->avatar_path ?? null,
+                'role'   => $u->role?->value,
             ]),
             'meta' => [
                 'current_page' => $paginator->currentPage(),

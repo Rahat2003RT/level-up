@@ -23,10 +23,10 @@ final class LeaderTeamStatisticsResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'period_days' => (int) $this->resource['period_days'],
-            'players_count' => $this->resource['players_count'],
+            'period_days'          => (int)$this->resource['period_days'],
+            'players_count'        => $this->resource['players_count'],
             'active_players_count' => $this->resource['active_players_count'],
-            'total_volume' => $this->resource['total_volume'],
+            'total_volume'         => $this->resource['total_volume'],
         ];
     }
 }

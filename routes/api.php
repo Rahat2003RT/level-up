@@ -75,6 +75,14 @@ Route::prefix('v1')->group(function () {
             Route::patch('/password',       [User\ProfileController::class, 'changePassword']);
         });
         // ----------------------------------------------------------------//
+        //                        TARIFFS METHODS                          //
+        // ----------------------------------------------------------------//
+        Route::prefix('tariffs')->group(function () {
+            Route::get('/',                 [User\TariffController::class, 'index']);
+            Route::post('/{tariffId}/select', [User\TariffController::class, 'selectTariff']);
+            Route::post('/cancel',          [User\TariffController::class, 'cancelSubscription']);
+        });
+        // ----------------------------------------------------------------//
         //                     NOTIFICATIONS METHODS                       //
         // ----------------------------------------------------------------//
         Route::prefix('notifications')->group(function () {

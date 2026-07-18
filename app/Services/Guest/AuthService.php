@@ -34,6 +34,7 @@ final class AuthService
             'name' => $data['name'],
             'locale' => $data['locale'] ?? 'en',
         ]);
+        $user->startTrial();
         Log::channel('auth')->info('User registered successfully', [
             'user_id' => $user->id,
             'email' => $user->email,

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
-use App\Enums\Period;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Tariff\IndexRequest;
 use App\Http\Requests\Admin\Tariff\StoreRequest;
@@ -10,12 +9,11 @@ use App\Http\Requests\Admin\Tariff\UpdateRequest;
 use App\Http\Resources\TariffResource;
 use App\Models\Tariff;
 use App\Services\Admin\TariffAdminService;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Validation\Rules\Enum;
 
+#[Group('Тарифы / Админка', weight: 0)]
 final class TariffController extends Controller
 {
     /**
@@ -23,10 +21,12 @@ final class TariffController extends Controller
      */
     public function __construct(
         protected TariffAdminService $service
-    ) {}
+    )
+    {
+    }
 
     /**
-     * Список тарифов.
+     * Список.
      * @param IndexRequest $request
      * @return AnonymousResourceCollection
      */
@@ -37,7 +37,7 @@ final class TariffController extends Controller
     }
 
     /**
-     * Создание тарифа.
+     * Создание.
      * @param StoreRequest $request
      * @return TariffResource
      */
@@ -48,7 +48,7 @@ final class TariffController extends Controller
     }
 
     /**
-     * Редактирование тарифа.
+     * Редактирование.
      * @param UpdateRequest $request
      * @param Tariff $tariff
      * @return TariffResource
@@ -60,7 +60,7 @@ final class TariffController extends Controller
     }
 
     /**
-     * Удаление тарифа.
+     * Удаление.
      * @param Tariff $tariff
      * @return Response
      */

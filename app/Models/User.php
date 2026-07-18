@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\UserPlan;
 use App\Enums\UserRole;
 use App\Notifications\CustomResetPasswordNotification;
 use Carbon\Carbon;
@@ -24,6 +23,7 @@ use Laravel\Sanctum\HasApiTokens;
  *
  * @property int $id
  * @property int|null $leader_id
+ * @property int|null $tariff_id
  * @property string|null $account_id
  * @property string|null $name
  * @property string|null $nickname
@@ -41,9 +41,13 @@ use Laravel\Sanctum\HasApiTokens;
  * @property string $timezone
  * @property string|null $date_of_birth
  * @property UserRole $role
- * @property UserPlan $plan
  * @property bool $is_onboarded
  * @property bool $notifications_enabled
+ * @property Carbon|null $trial_started_at
+ * @property Carbon|null $trial_ends_at
+ * @property Carbon|null $subscription_ends_at
+ * @property bool $auto_renew
+ * @property string|null $payment_recurrent_id
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $last_activity_at
  * @property Carbon|null $blocked_at
@@ -53,12 +57,15 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $deleted_at
  *
  * @property-read User|null $leader
+ * @property-read Tariff|null $tariff
  * @property-read Collection<int, User> $players
  * @property-read Collection<int, UserDevice> $deviceTokens
  * @property-read Collection<int, UserNotification> $notifications
  * @property-read UserGoal|null $goal
  * @property-read Collection<int, DailyChecklist> $checklists
+ * @property-read Collection<int, LeadershipChecklist> $leadershipChecklists
  * @property-read Collection<int, Contact> $contacts
+ * @property-read Chat|null $leaderChat
  *
  * @method static Builder|User query()
  * @method static Builder|User newModelQuery()
@@ -75,6 +82,8 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static Builder|User whereEmail($value)
  * @method static Builder|User whereId($value)
  * @method static Builder|User whereRole($value)
+ *
+ * @mixin Builder
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -82,6 +91,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = [
         'leader_id',
+        'tariff_id',
         'name',
         'nickname',
         'surname',
@@ -94,16 +104,21 @@ class User extends Authenticatable implements MustVerifyEmail
         'company_name',
         'timezone',
         'role',
+        'trial_started_at',
+        'trial_ends_at',
+        'subscription_ends_at',
+        'auto_renew',
+        'payment_recurrent_id',
         'last_activity_at',
         'blocked_at',
         'block_reason',
         'token',
-        'plan',
         'account_id',
         'date_of_birth',
         'locale',
         'notifications_enabled',
     ];
+
     protected $hidden = [
         'password',
         'remember_token'
@@ -115,12 +130,15 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'last_activity_at' => 'datetime',
-            'blocked_at' => 'datetime',
-            'password' => 'hashed',
-            'role' => UserRole::class,
-            'plan' => UserPlan::class,
+            'email_verified_at'    => 'datetime',
+            'last_activity_at'     => 'datetime',
+            'blocked_at'           => 'datetime',
+            'trial_started_at'     => 'datetime',
+            'trial_ends_at'        => 'datetime',
+            'subscription_ends_at' => 'datetime',
+            'auto_renew'           => 'boolean',
+            'password'             => 'hashed',
+            'role'                 => UserRole::class,
         ];
     }
 
@@ -129,6 +147,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function leader(): BelongsTo
     {
         return $this->belongsTo(User::class, 'leader_id');
+    }
+
+    public function tariff(): BelongsTo
+    {
+        return $this->belongsTo(Tariff::class);
     }
 
     public function players(): HasMany
@@ -193,6 +216,55 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === UserRole::PLAYER;
     }
 
+    // --- УПРАВЛЕНИЕ ПРОБНЫМ ПЕРИОДОМ (TRIAL) ---
+
+    /**
+     * Проверить, активен ли пробный период прямо сейчас.
+     */
+    public function onTrial(): bool
+    {
+        return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+    }
+
+    /**
+     * Проверить, имеет ли пользователь активный доступ.
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->onTrial() || ($this->tariff_id && $this->subscription_ends_at?->isFuture());
+    }
+
+    /**
+     * Проверить, отменил ли пользователь продление.
+     */
+    public function isSubscriptionCancelled(): bool
+    {
+        return $this->tariff_id && !$this->auto_renew;
+    }
+
+    /**
+     * Запустить или обновить пробный период.
+     */
+    public function startTrial(int $days = 7): void
+    {
+        $this->update([
+            'trial_started_at' => now(),
+            'trial_ends_at'    => now()->addDays($days),
+        ]);
+    }
+
+    /**
+     * Отменить или завершить пробный период.
+     */
+    public function cancelTrial(): void
+    {
+        $this->update([
+            'trial_ends_at' => null,
+        ]);
+    }
+
+    // --- ЖИЗНЕННЫЙ ЦИКЛ МОДЕЛИ (BOOTED) ---
+
     protected static function booted(): void
     {
         static::updating(function (User $user) {
@@ -210,12 +282,14 @@ class User extends Authenticatable implements MustVerifyEmail
                 }
             }
         });
+
         static::creating(function ($user) {
             if (!$user->account_id) {
                 $user->account_id = static::generateUniqueAccountId();
             }
         });
     }
+
     public static function generateUniqueAccountId(): string
     {
         do {
@@ -225,11 +299,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $account_id;
     }
 
-
     /**
      * Отправка уведомления о сбросе пароля.
      *
-     * @param  string  $token
+     * @param string $token
      * @return void
      */
     public function sendPasswordResetNotification($token): void

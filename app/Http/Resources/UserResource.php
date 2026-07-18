@@ -25,13 +25,13 @@ final class UserResource extends JsonResource
         $isLeader = $this->role?->value === 'leader';
         $todayStr = Carbon::today()->toDateString();
         return [
-            'id' => $this->id,
+            'id'         => $this->id,
             'account_id' => $this->account_id,
-            'leader_id' => $this->leader_id,
-            'name' => $this->name,
-            'surname' => $this->surname,
-            'email' => $this->email,
-            'phone' => $this->phone,
+            'leader_id'  => $this->leader_id,
+            'name'       => $this->name,
+            'surname'    => $this->surname,
+            'email'      => $this->email,
+            'phone'      => $this->phone,
 
             'avatar' => match (true) {
                 empty($this->avatar_path) => null,
@@ -39,23 +39,31 @@ final class UserResource extends JsonResource
                 default => Storage::disk('public')->url($this->avatar_path),
             },
 
-            'country' => $this->country,
-            'city' => $this->city,
-            'company_name' => $this->company_name,
-            'timezone' => $this->timezone,
-            'date_of_birth' => $this->date_of_birth,
+            'country'               => $this->country,
+            'city'                  => $this->city,
+            'company_name'          => $this->company_name,
+            'timezone'              => $this->timezone,
+            'date_of_birth'         => $this->date_of_birth,
             'notifications_enabled' => $this->notifications_enabled,
-            'locale' => $this->locale,
+            'locale'                => $this->locale,
 
-            'role' => $this->role?->value,
-            'plan' => $this->plan?->value,
-            'is_onboarded' => $this->is_onboarded,
+            'role'                    => $this->role?->value,
+            'is_onboarded'            => $this->is_onboarded,
+
+            'tariff_id'               => $this->tariff_id,
+            'tariff'                  => TariffResource::make($this->whenLoaded('tariff')),
+            'on_trial'                => $this->onTrial(),
+            'has_active_subscription' => $this->hasActiveSubscription(),
+            'auto_renew'              => $this->auto_renew,
+            'trial_started_at'        => $this->trial_started_at?->toIso8601String(),
+            'trial_ends_at'           => $this->trial_ends_at?->toIso8601String(),
+            'subscription_ends_at'    => $this->subscription_ends_at?->toIso8601String(),
 
             'is_blocked' => !is_null($this->blocked_at),
             'is_deleted' => $this->trashed(),
 
             $this->mergeWhen(!is_null($this->blocked_at), [
-                'blocked_at' => $this->blocked_at?->toIso8601String(),
+                'blocked_at'   => $this->blocked_at?->toIso8601String(),
                 'block_reason' => $this->block_reason,
             ]),
 
@@ -77,15 +85,14 @@ final class UserResource extends JsonResource
                 }
 
                 return [
-                    'id' => $this->leader->id,
-                    'name' => $this->leader->name . ' ' . $this->leader->surname,
-                    'role' => $this->leader->role?->value,
-                    'avatar' => match (true) {
+                    'id'      => $this->leader->id,
+                    'name'    => $this->leader->name . ' ' . $this->leader->surname,
+                    'role'    => $this->leader->role?->value,
+                    'avatar'  => match (true) {
                         empty($this->leader->avatar_path) => null,
                         filter_var($this->leader->avatar_path, FILTER_VALIDATE_URL) => $this->leader->avatar_path,
                         default => Storage::disk('public')->url($this->leader->avatar_path),
                     },
-
                     'chat_id' => $this->leaderChat?->id,
                 ];
             }),
@@ -117,24 +124,24 @@ final class UserResource extends JsonResource
                     }
 
                     return [
-                        'id' => $player->id,
-                        'name' => $player->name . ' ' . $player->surname,
-                        'avatar' => $player->avatar_url ?? null,
+                        'id'                 => $player->id,
+                        'name'               => $player->name . ' ' . $player->surname,
+                        'avatar'             => $player->avatar_url ?? null,
                         'current_day_number' => $currentDayNumber,
-                        'progress' => $progressPercent,
-                        'status' => $status,
+                        'progress'           => $progressPercent,
+                        'status'             => $status,
                     ];
                 });
 
                 return [
-                    'team_volume' => $teamVolume,
+                    'team_volume'  => $teamVolume,
                     'team_members' => $members,
                 ];
             }),
 
             'last_activity_at' => $this->last_activity_at?->toIso8601String(),
-            'created_at' => $this->created_at?->toIso8601String(),
-            'updated_at' => $this->updated_at?->toIso8601String(),
+            'created_at'       => $this->created_at?->toIso8601String(),
+            'updated_at'       => $this->updated_at?->toIso8601String(),
         ];
     }
 }

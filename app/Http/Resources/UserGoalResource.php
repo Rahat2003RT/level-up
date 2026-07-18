@@ -16,9 +16,9 @@ final class UserGoalResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'target_clients_count' => $this->target_clients_count,
+            'target_clients_count'  => $this->target_clients_count,
             'target_partners_count' => $this->target_partners_count,
-            'target_sales_volume' => $this->target_sales_volume,
+            'target_sales_volume'   => $this->target_sales_volume,
         ];
     }
 }

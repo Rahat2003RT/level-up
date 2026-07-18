@@ -9,36 +9,39 @@ use Illuminate\Validation\ValidationException;
 
 final class CommandService
 {
-    /**
-     * 1. Метод получения команд (команд игроков и команд лидеров)
-     */
     public function getCommandsList(array $filters): LengthAwarePaginator
     {
-        $perPage = $filters['per_page'] ?? 20;
+        $role = $filters['role'] ?? null;
+        $perPage = $filters['limit'] ?? 20;
+        $page = $filters['page'] ?? 1;
 
-        // Команда существует у любого, кто является Elite или Leader
         $query = User::whereIn('role', [UserRole::ELITE, UserRole::LEADER])
             ->withCount('players as members_count')
+            ->when($role, function ($query) use ($role) {
+                return $query->where('role', $role);
+            })
             ->when($filters['query'] ?? null, function ($q, $search) {
-                $searchLower = mb_strtolower($search, 'UTF-8');
-                $q->whereRaw('LOWER(name) LIKE ?', ["%$searchLower%"]);
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'ILIKE', "%$search%")
+                        ->orWhere('surname', 'ILIKE', "%$search%");
+                });
             });
 
-        return $query->latest()->paginate($perPage);
+        return $query->latest()->paginate($perPage, ['*'], 'page', $page);
     }
 
-    /**
-     * 2. Метод получения конкретной команды и её участников
-     */
     public function getCommandDetails(User $leaderOrElite): array
     {
-        // Находим вышестоящего (если текущий — Leader, у него может быть Elite)
         $eliteName = null;
-        if ($leaderOrElite->role === UserRole::LEADER && $leaderOrElite->leader_id) {
-            $eliteName = User::where('id', $leaderOrElite->leader_id)->value('name');
+
+        if ($leaderOrElite->role === UserRole::LEADER) {
+            if (!$leaderOrElite->relationLoaded('leader')) {
+                $leaderOrElite->load('leader');
+            }
+
+            $eliteName = $leaderOrElite->leader?->name;
         }
 
-        // Получаем список участников без самого лидера/элиты
         $members = $leaderOrElite->players()
             ->withSum('contacts as volume', 'volume')
             ->get()
@@ -65,28 +68,24 @@ final class CommandService
     public function removeMember(User $member): bool
     {
         if (is_null($member->leader_id)) {
-            throw ValidationException::withMessages(['member' => 'Этот пользователь и так не состоит в команде.']);
+            throw ValidationException::withMessages(['member' => 'This user is not a member of any team.']);
         }
 
         return $member->update(['leader_id' => null]);
     }
 
-    /**
-     * 4. Метод добавления в команду (административно)
-     */
     public function addMember(User $leaderOrElite, User $member): bool
     {
-        // Проверяем правила иерархии
         if ($leaderOrElite->role === UserRole::LEADER && $member->role !== UserRole::PLAYER) {
-            throw ValidationException::withMessages(['member' => 'В команду Лидера можно добавлять только Игроков (Player).']);
+            throw ValidationException::withMessages(['member' => 'Only Players can be added to a Leader team.']);
         }
 
         if ($leaderOrElite->role === UserRole::ELITE && $member->role !== UserRole::LEADER) {
-            throw ValidationException::withMessages(['member' => 'В команду Элиты можно добавлять только Лидеров (Leader).']);
+            throw ValidationException::withMessages(['member' => 'Only Leaders can be added to an Elite team.']);
         }
 
         if ($member->id === $leaderOrElite->id) {
-            throw ValidationException::withMessages(['member' => 'Нельзя добавить пользователя в свою собственную команду.']);
+            throw ValidationException::withMessages(['member' => 'Cannot add a user to their own team.']);
         }
 
         return $member->update(['leader_id' => $leaderOrElite->id]);

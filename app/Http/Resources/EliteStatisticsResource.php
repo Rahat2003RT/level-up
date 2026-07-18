@@ -17,9 +17,9 @@ final class EliteStatisticsResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'total_leaders' => (int) $this->resource['total_leaders'],
-            'active_leaders' => (int) $this->resource['active_leaders'],
-            'total_team_volume' => (float) $this->resource['total_team_volume'],
+            'total_leaders'     => (int)$this->resource['total_leaders'],
+            'active_leaders'    => (int)$this->resource['active_leaders'],
+            'total_team_volume' => (float)$this->resource['total_team_volume'],
         ];
     }
 }

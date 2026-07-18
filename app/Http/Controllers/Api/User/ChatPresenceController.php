@@ -20,11 +20,13 @@ final class ChatPresenceController extends Controller
 
     /**
      * Пинг
+     * @param Chat $chat
+     * @param Request $request
+     * @return Response
      */
     public function ping(Chat $chat, Request $request): Response
     {
         $userId = $request->user()->id;
-
         $this->presenceService->ping($chat->id, $userId);
 
         return response()->noContent();
@@ -32,6 +34,9 @@ final class ChatPresenceController extends Controller
 
     /**
      * Выход из чата
+     * @param Chat $chat
+     * @param Request $request
+     * @return Response
      */
     public function leave(Chat $chat, Request $request): Response
     {

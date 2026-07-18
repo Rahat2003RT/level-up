@@ -38,7 +38,7 @@ final class ProfileService
             );
         }
 
-        return $user->fresh(['goal', 'deviceTokens', 'leader']);
+        return $user->fresh(['goal', 'deviceTokens', 'leader', 'tariff']);
     }
 
     public function deleteAccount(User $user): void
@@ -56,7 +56,8 @@ final class ProfileService
             'goal',
             'deviceTokens',
             'leader',
-            'leaderChat'
+            'leaderChat',
+            'tariff'
         ]);
     }
 
