@@ -36,8 +36,8 @@ class UpdateRequest extends ApiBaseRequest
         ];
 
         foreach ($this->locales as $locale) {
-            $rules["name.{$locale}"] = 'sometimes|required|string|max:255';
-            $rules["description.{$locale}"] = 'sometimes|nullable|string';
+            $rules["name.{$locale}"] = 'sometimes|string|max:255';
+            $rules["description.{$locale}"] = 'nullable|string';
         }
 
         return $rules;

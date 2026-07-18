@@ -36,9 +36,10 @@ final class StoreRequest extends ApiBaseRequest
             'period'      => ['required', new Enum(Period::class)],
             'is_active'   => 'nullable|boolean',
         ];
+
         foreach ($this->locales as $locale) {
-            $rules["name.$locale"] = 'required_without_all_others|string|max:255';
-            $rules["description.$locale"] = 'nullable|string';
+            $rules["name.$locale"] = 'sometimes|string|max:255';
+            $rules["description.$locale"] = 'sometimes|nullable|string';
         }
 
         return $rules;
