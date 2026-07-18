@@ -32,12 +32,20 @@ final class SendChatMessageNotification implements ShouldQueue
      */
     public function handle(FcmService $fcmService): void
     {
+        $bodyText = trim((string)$this->message->text);
+
+        if (empty($bodyText)) {
+            return;
+        }
+
         $chat = $this->message->chat;
         $sender = $this->message->sender;
+
         $recipientId = ($this->message->sender_id === $chat->elite_id)
             ? $chat->leader_id
             : $chat->elite_id;
 
+        // 2. Проверяем, не открыт ли у получателя этот чат прямо сейчас (онлайн в Redis)
         $redisKey = "chat_online:{$chat->id}";
         $score = Redis::zscore($redisKey, (string)$recipientId);
         $isOnlineInChat = (int)$score >= (time() - 30);
@@ -46,8 +54,9 @@ final class SendChatMessageNotification implements ShouldQueue
             return;
         }
 
+        // 3. Достаем получателя с его токенами. Явно через query(), чтобы IDE не ругалась
         /** @var User|null $recipient */
-        $recipient = User::where('id', $recipientId)
+        $recipient = User::query()->where('id', $recipientId)
             ->where('notifications_enabled', true)
             ->with('deviceTokens')
             ->first();
@@ -65,28 +74,22 @@ final class SendChatMessageNotification implements ShouldQueue
         if (!array_key_exists($loc, $userDict)) {
             $loc = 'en';
         }
+
         $senderName = trim((string)$sender->name);
         if (empty($senderName)) {
             $senderName = $userDict[$loc] . ' ' . $sender->id;
         }
-
-        $bodyText = trim((string)$this->message->text);
-
-        if (empty($bodyText)) {
-            $bodyText = '...';
-
-            foreach ($recipient->deviceTokens as $deviceToken) {
-                $fcmService->sendToToken(
-                    token: $deviceToken->token,
-                    title: $senderName,
-                    body: $bodyText,
-                    data: [
-                        'action'  => 'CHAT',
-                        'chat_id' => (string)$chat->id,
-                        'type'    => 'new_message'
-                    ]
-                );
-            }
+        foreach ($recipient->deviceTokens as $deviceToken) {
+            $fcmService->sendToToken(
+                token: $deviceToken->token,
+                title: $senderName,
+                body: $bodyText,
+                data: [
+                    'action'  => 'CHAT',
+                    'chat_id' => (string)$chat->id,
+                    'type'    => 'new_message'
+                ]
+            );
         }
     }
 }

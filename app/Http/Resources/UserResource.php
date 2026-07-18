@@ -55,6 +55,9 @@ final class UserResource extends JsonResource
             'on_trial'                => $this->onTrial(),
             'has_active_subscription' => $this->hasActiveSubscription(),
             'auto_renew'              => $this->auto_renew,
+
+            'plan_paused'             => $this->plan_paused,
+
             'trial_started_at'        => $this->trial_started_at?->toIso8601String(),
             'trial_ends_at'           => $this->trial_ends_at?->toIso8601String(),
             'subscription_ends_at'    => $this->subscription_ends_at?->toIso8601String(),
@@ -98,10 +101,7 @@ final class UserResource extends JsonResource
             }),
 
             $this->mergeWhen($isLeader, function () use ($todayStr) {
-                $players = $this->players()
-                    ->withSum('contacts as total_volume', 'volume')
-                    ->with(['checklists' => fn($q) => $q->latest('date')])
-                    ->get();
+                $players = $this->players;
 
                 $teamVolume = (int)$players->sum('total_volume');
 
@@ -118,9 +118,9 @@ final class UserResource extends JsonResource
 
                     $progressPercent = min(100, max(0, round(($currentDayNumber / 90) * 100)));
 
-                    $status = 'Inactive';
+                    $status = false;
                     if ($lastChecklist && $lastChecklist->is_completed && !($lastChecklist->is_day_off ?? false)) {
-                        $status = 'Active';
+                        $status = true;
                     }
 
                     return [
@@ -130,6 +130,7 @@ final class UserResource extends JsonResource
                         'current_day_number' => $currentDayNumber,
                         'progress'           => $progressPercent,
                         'status'             => $status,
+                        'plan_paused'        => $player->plan_paused,
                     ];
                 });
 

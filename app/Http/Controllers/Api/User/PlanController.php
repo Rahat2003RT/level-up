@@ -15,6 +15,7 @@ use App\Models\PlanPause;
 use App\Services\User\PlanService;
 use Carbon\Carbon;
 use Dedoc\Scramble\Attributes\Group;
+use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -106,7 +107,7 @@ final class PlanController extends Controller
         try {
             $result = $this->service->toggleDayOff($request->user(), $validated['date']);
             return response()->json($result);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 422);
         }
     }
@@ -120,6 +121,9 @@ final class PlanController extends Controller
         return response()->json(['data' => $dates]);
     }
 
+    /**
+     * Чек-лист / Поставить на паузу чеклист
+     */
     public function togglePause(Request $request): JsonResponse
     {
         $user = $request->user();

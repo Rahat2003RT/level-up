@@ -47,6 +47,7 @@ use Laravel\Sanctum\HasApiTokens;
  * @property Carbon|null $trial_ends_at
  * @property Carbon|null $subscription_ends_at
  * @property bool $auto_renew
+ * @property bool plan_paused
  * @property string|null $payment_recurrent_id
  * @property Carbon|null $email_verified_at
  * @property Carbon|null $last_activity_at
@@ -140,6 +141,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'auto_renew'           => 'boolean',
             'password'             => 'hashed',
             'role'                 => UserRole::class,
+            'plan_paused'          => 'boolean',
         ];
     }
 

@@ -96,6 +96,7 @@ Route::prefix('v1')->group(function () {
         //                        PROGRESS METHODS                         //
         // ----------------------------------------------------------------//
         Route::prefix('plan')->group(function () {
+            Route::post('/toggle-pause', [User\PlanController::class, 'togglePause']);
             // ----------------------------------------------------------------//
             //                        PROGRESS METHODS                         //
             // ----------------------------------------------------------------//
