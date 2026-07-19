@@ -145,18 +145,21 @@
 
             const chatIdInput = document.getElementById('test-chat-id');
 
+            JavaScript
             function subscribeToChat(chatId) {
                 window.Echo.leave(`chat.${chatId}`);
 
                 log(`Подписываемся на Presence-канал: chat.${chatId}`, 'info');
 
-                // Меняем private на join для прослушивания PresenceChannel
                 window.Echo.join(`chat.${chatId}`)
-                    .listen('.message.sent', (e) => { // Слушаем точное имя из broadcastAs()
+                    .here((users) => {
+                        log(`👥 Успешно подключились к каналу! Участников в сети: ${users.length}`, 'success');
+                    })
+                    .listen('message.sent', (e) => { // ИСПРАВЛЕНО: Убрали точку перед именем события
                         log(`🔥 Поймано событие message.sent: ${JSON.stringify(e)}`, 'event');
                     })
                     .error((error) => {
-                        log(`❌ Ошибка канала chat.${chatId}: ${JSON.stringify(error)}`, 'error');
+                        log(`❌ Ошибка авторизации канала: ${JSON.stringify(error)}`, 'error');
                     });
             }
 
