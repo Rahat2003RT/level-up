@@ -19,7 +19,6 @@
             forceTLS: false,
             disableStats: true,
             enabledTransports: ['ws', 'wss'],
-            // Добавляем авторизацию приватных каналов сокетов через Sanctum-токен
             auth: {
                 headers: {
                     @if($sanctumToken)
@@ -120,7 +119,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const logsContainer = document.getElementById('socket-logs');
-        const token = "{{ $sanctumToken }}"; // Прокидываем токен прямо в JS скрипт
+        const token = "{{ $sanctumToken }}";
 
         function log(message, type = 'info') {
             const el = document.createElement('div');
@@ -145,21 +144,23 @@
 
             const chatIdInput = document.getElementById('test-chat-id');
 
-            JavaScript
             function subscribeToChat(chatId) {
                 window.Echo.leave(`chat.${chatId}`);
-
                 log(`Подписываемся на Presence-канал: chat.${chatId}`, 'info');
 
                 window.Echo.join(`chat.${chatId}`)
                     .here((users) => {
-                        log(`👥 Успешно подключились к каналу! Участников в сети: ${users.length}`, 'success');
+                        log(`👥 Успешно вошли в канал! Участников онлайн: ${users.length}`, 'success');
                     })
-                    .listen('message.sent', (e) => { // ИСПРАВЛЕНО: Убрали точку перед именем события
+                    .listen('message.sent', (e) => { // Слушаем БЕЗ точки, так как имя кастомное
                         log(`🔥 Поймано событие message.sent: ${JSON.stringify(e)}`, 'event');
                     })
+                    // Резервное прослушивание на случай, если бродкаст летит под системным именем класса
+                    .listen('.App\\Events\\MessageSent', (e) => {
+                        log(`🔥 Поймано событие App\\Events\\MessageSent: ${JSON.stringify(e)}`, 'event');
+                    })
                     .error((error) => {
-                        log(`❌ Ошибка авторизации канала: ${JSON.stringify(error)}`, 'error');
+                        log(`❌ Ошибка авторизации канала chat.${chatId}: ${JSON.stringify(error)}`, 'error');
                     });
             }
 
@@ -169,7 +170,7 @@
                 subscribeToChat(e.target.value);
             });
 
-            // Запрос списка чатов напрямую к реальному API
+            // Список чатов
             document.getElementById('btn-load-chats').addEventListener('click', async () => {
                 const chatsContainer = document.getElementById('available-chats-list');
                 chatsContainer.classList.remove('hidden');
@@ -179,7 +180,7 @@
                     const response = await fetch('/api/v1/chats', {
                         headers: {
                             'Accept': 'application/json',
-                            'Authorization': `Bearer ${token}` // Авторизуем запрос по токену
+                            'Authorization': `Bearer ${token}`
                         }
                     });
 
@@ -218,7 +219,7 @@
                 }
             });
 
-            // Имитируем отправку сообщения через реальный эндпоинт API
+            // Имитация отправки сообщения
             document.getElementById('btn-send-message').addEventListener('click', async () => {
                 const chatId = chatIdInput.value;
                 const text = document.getElementById('test-message-text').value;
@@ -231,7 +232,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'Authorization': `Bearer ${token}` // Авторизуем запрос по токену
+                            'Authorization': `Bearer ${token}`
                         },
                         body: JSON.stringify({ text: text })
                     });
