@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', DashboardController::class);
@@ -39,3 +40,16 @@ Route::get('/password-reset', function (\Illuminate\Http\Request $request) {
         </div>
     ';
 })->name('password.reset');
+
+
+
+Route::get('/debug/sockets-sandbox', function () {
+    // Берем тестовых пользователей (например, лидеров, элиту и игроков)
+    $users = User::query()->latest()->limit(15)->get();
+    return view('debug.sockets', compact('users'));
+})->name('debug.sockets');
+
+Route::post('/debug/sockets-sandbox/login/{user}', function (User $user) {
+    Auth::login($user);
+    return redirect()->route('debug.sockets');
+})->name('debug.sockets.login');
