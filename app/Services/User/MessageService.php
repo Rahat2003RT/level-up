@@ -95,7 +95,7 @@ final class MessageService
 
         // Проверяем онлайн получателя по структуре ключей из ChatPresenceService ("chat:{id}:user:{id}")
         $recipientRedisKey = "chat:{$chat->id}:user:{$recipientId}";
-        $isRecipientOnline = (bool) Redis::exists($recipientRedisKey);
+        $isRecipientOnline = (bool)Redis::exists($recipientRedisKey);
 
         $readAt = $isRecipientOnline ? now() : null;
 
@@ -116,7 +116,10 @@ final class MessageService
 
     public function updateMessage(Message $message, array $data): Message
     {
-        $message->update(['text' => $data['text'] ?? $message->text]);
+        $message->update([
+            'text' => $data['text'] ?? $message->text,
+            'is_edited' => true,
+        ]);
         $message->refresh();
         $message->load(['sender']);
         broadcast(new MessageUpdated($message))->toOthers();

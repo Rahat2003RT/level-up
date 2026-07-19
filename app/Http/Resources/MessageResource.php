@@ -21,7 +21,7 @@ final class MessageResource extends JsonResource
             'sender_id'  => $this->sender_id,
             'text'       => $this->text,
             'read_at'    => $this->read_at?->toIso8601String(),
-            'is_edited' => $this->updated_at && $this->created_at && $this->updated_at->diffInSeconds($this->created_at) > 1,
+            'is_edited'  => (bool) $this->is_edited,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

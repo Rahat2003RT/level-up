@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
  * @property int $sender_id
  * @property string $text
  * @property Carbon|null $read_at
+ * @property bool $is_edited
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -42,12 +43,14 @@ final class Message extends Model
         'sender_id',
         'text',
         'read_at',
+        'is_edited',
     ];
 
     protected function casts(): array
     {
         return [
             'read_at' => 'datetime',
+            'is_edited' => 'boolean',
         ];
     }
 
