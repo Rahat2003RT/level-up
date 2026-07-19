@@ -116,7 +116,8 @@ final class MessageService
 
     public function updateMessage(Message $message, array $data): Message
     {
-        $message->update(['text' => $data['text'] ?? $message->text,]);
+        $message->update(['text' => $data['text'] ?? $message->text]);
+        $message->refresh();
         $message->load(['sender']);
         broadcast(new MessageUpdated($message))->toOthers();
         return $message;

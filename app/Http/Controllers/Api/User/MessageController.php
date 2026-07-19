@@ -48,6 +48,13 @@ final class MessageController extends Controller
         return MessageResource::make($message);
     }
 
+    /**
+     * Обновить сообщение
+     * @param UpdateMessageRequest $request
+     * @param Chat $chat
+     * @param Message $message
+     * @return MessageResource
+     */
     public function update(UpdateMessageRequest $request, Chat $chat, Message $message): MessageResource
     {
         $message = $this->service->updateMessage($message, $request->validated());
