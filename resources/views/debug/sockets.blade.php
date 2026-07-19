@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель отладки WebSockets</title>
 
-    <!-- Подключаем Tailwind -->
+    <!-- Подключаем Tailwind CSS через CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Подключаем клиентские библиотеки сокетов напрямую через CDN -->
+    <!-- Подключаем библиотеки сокетов напрямую через CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.3.0/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
 
     <script>
-        // Вручную поднимаем экземпляр Echo
+        // Вручную поднимаем экземпляр Echo для работы с Laravel Reverb
         window.Echo = new Echo({
             broadcaster: 'reverb',
             key: '{{ config("broadcaster.connections.reverb.key") ?? "laravel-reverb-key" }}',
             wsHost: window.location.hostname,
-            wsPort: 8080, // Проверь, чтобы порт совпадал с тем, на котором крутится твой Reverb
+            wsPort: 8080, // Проверь порт запуска твоего Reverb (обычно 8080)
             forceTLS: false,
             disableStats: true,
             enabledTransports: ['ws', 'wss'],
@@ -46,7 +46,7 @@
         </div>
     </div>
 
-    <!-- Правая колонка: Статус, Форма отправки и Логи -->
+    <!-- Правая колонка: Управление и Логи -->
     <div class="col-span-2 space-y-6 flex flex-col h-[85vh]">
 
         <!-- Текущий статус -->
@@ -61,8 +61,21 @@
 
         <!-- Блок отправки тестового сообщения -->
         <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 shrink-0">
-            <h2 class="text-xl font-bold mb-4 text-amber-400">3. Отправить тестовое сообщение в чат</h2>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-amber-400">3. Тестирование чатов</h2>
+                @auth
+                    <button type="button" id="btn-load-chats" class="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-all">
+                        🔄 Показать мои чаты
+                    </button>
+                @endauth
+            </div>
+
             @auth
+                <!-- Контейнер для динамического списка доступных чатов -->
+                <div id="available-chats-list" class="hidden mb-4 p-3 bg-gray-900 rounded border border-gray-700 text-sm max-h-40 overflow-y-auto space-y-1">
+                    <div class="text-gray-400 text-xs">// Запрос чатов...</div>
+                </div>
+
                 <div class="grid grid-cols-4 gap-4">
                     <div>
                         <label class="block text-xs text-gray-400 mb-1">ID Чата</label>
@@ -94,7 +107,7 @@
 
 </div>
 
-<!-- Скрипт прослушивания сокетов и отправки API запросов -->
+<!-- Интерактивный JS скрипт -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const logsContainer = document.getElementById('socket-logs');
@@ -122,16 +135,14 @@
 
             const chatIdInput = document.getElementById('test-chat-id');
 
+            // Функция динамического переподключения к приватному каналу чата
             function subscribeToChat(chatId) {
-                // Покидаем старый канал перед подпиской на новый
                 window.Echo.leave(`chat.${chatId}`);
 
                 log(`Подписываемся на приватный канал: chat.${chatId}`, 'info');
 
-                // Обрати внимание: если у тебя в PHP канале чата указано 'chats.{id}',
-                // то здесь нужно поменять 'chat.' на 'chats.'
                 window.Echo.private(`chat.${chatId}`)
-                    // Обрати внимание: слушаем '.MessageSent'. Если не работает, попробуй полное имя: '.App\\Events\\MessageSent'
+                    // Если событие в бэкенде называется по-другому (без broadcastAs), используй полное имя класса: '.App\\Events\\MessageSent'
                     .listen('.MessageSent', (e) => {
                         log(`🔥 Поймано событие MessageSent: ${JSON.stringify(e.message || e)}`, 'event');
                     })
@@ -140,15 +151,64 @@
                     });
             }
 
-            // Слушаем чат, указанный в инпуте при загрузке страницы
+            // Подписка при первой загрузке страницы
             subscribeToChat(chatIdInput.value);
 
-            // Меняем прослушиваемый канал, если ввели другой ID
+            // Смена подписки при ручном изменении ID чата в инпуте
             chatIdInput.addEventListener('change', (e) => {
                 subscribeToChat(e.target.value);
             });
 
-            // Обработчик кнопки "Отправить"
+            // Функция запроса списка доступных чатов текущего юзера
+            document.getElementById('btn-load-chats').addEventListener('click', async () => {
+                const chatsContainer = document.getElementById('available-chats-list');
+                chatsContainer.classList.remove('hidden');
+                chatsContainer.innerHTML = '<div class="text-gray-400 text-xs">Запрашиваю список чатов из API...</div>';
+
+                try {
+                    const response = await fetch('/api/v1/chats', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+
+                    const result = await response.json();
+                    const chats = result.data || result;
+
+                    if (response.ok && Array.isArray(chats)) {
+                        if (chats.length === 0) {
+                            chatsContainer.innerHTML = '<div class="text-amber-400 text-xs">У этого пользователя пока нет активных чатов в БД.</div>';
+                            return;
+                        }
+
+                        chatsContainer.innerHTML = '<div class="text-xs text-gray-400 mb-2">// Кликни на чат, чтобы выбрать его ID:</div>';
+
+                        chats.forEach(chat => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'block w-full text-left p-1.5 rounded bg-gray-800 hover:bg-gray-700 text-xs font-mono transition-all border border-gray-700 hover:border-amber-400';
+
+                            const previewText = chat.last_message?.text || 'нет сообщений';
+                            btn.innerText = `[Чат #${chat.id}] Собеседник: ${chat.role || 'Диалог'} | Текст: "${previewText}"`;
+
+                            btn.addEventListener('click', () => {
+                                chatIdInput.value = chat.id;
+                                chatIdInput.dispatchEvent(new Event('change'));
+                                log(`Выбран чат #${chat.id} из списка доступных`, 'info');
+                            });
+
+                            chatsContainer.appendChild(btn);
+                        });
+                    } else {
+                        chatsContainer.innerHTML = `<div class="text-red-400 text-xs">Ошибка API: ${JSON.stringify(result)}</div>`;
+                    }
+                } catch (err) {
+                    chatsContainer.innerHTML = `<div class="text-red-400 text-xs">Сбой запроса: ${err.message}</div>`;
+                }
+            });
+
+            // Обработчик отправки сообщения (имитируем запрос от мобильного приложения)
             document.getElementById('btn-send-message').addEventListener('click', async () => {
                 const chatId = chatIdInput.value;
                 const text = document.getElementById('test-message-text').value;
