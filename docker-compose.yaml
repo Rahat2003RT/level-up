@@ -81,6 +81,7 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
+        restart: unless-stopped
         user: "82:82"
         entrypoint: []
         command: php artisan reverb:start --host=0.0.0.0 --port=8080
