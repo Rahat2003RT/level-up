@@ -147,14 +147,16 @@
 
             function subscribeToChat(chatId) {
                 window.Echo.leave(`chat.${chatId}`);
-                log(`Подписываемся на приватный канал: chat.${chatId}`, 'info');
 
-                window.Echo.private(`chat.${chatId}`)
-                    .listen('.MessageSent', (e) => {
-                        log(`🔥 Поймано событие MessageSent: ${JSON.stringify(e.message || e)}`, 'event');
+                log(`Подписываемся на Presence-канал: chat.${chatId}`, 'info');
+
+                // Меняем private на join для прослушивания PresenceChannel
+                window.Echo.join(`chat.${chatId}`)
+                    .listen('.message.sent', (e) => { // Слушаем точное имя из broadcastAs()
+                        log(`🔥 Поймано событие message.sent: ${JSON.stringify(e)}`, 'event');
                     })
                     .error((error) => {
-                        log(`❌ Ошибка приватного канала: ${JSON.stringify(error)}`, 'error');
+                        log(`❌ Ошибка канала chat.${chatId}: ${JSON.stringify(error)}`, 'error');
                     });
             }
 
