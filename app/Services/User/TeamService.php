@@ -153,7 +153,7 @@ final class TeamService
                 'contacts as partners_count' => fn($q) => $q->where('type', 'partner')
             ])
             ->withSum('contacts as total_volume', 'volume')
-            ->with(['checklists' => fn($q) => $q->where('date', $todayStr)])
+            ->with(['checklists' => fn($q) => $q->where('date', $todayStr), 'leaderChat'])
             ->latest()
             ->paginate($perPage);
 
@@ -174,6 +174,7 @@ final class TeamService
 
             return [
                 'id' => $player->id,
+                'chat_id' => $player->leaderChat?->id,
                 'name' => $player->name . ' ' . $player->surname,
                 'avatar' => $player->avatar_path ?? null,
                 'role' => UserRole::PLAYER->value,
@@ -212,7 +213,8 @@ final class TeamService
             })
             ->with([
                 'leadershipChecklists' => fn($q) => $q->latest('date'),
-                'players.checklists'
+                'players.checklists',
+                'leaderChat'
             ])
             ->latest('created_at')
             ->paginate($perPage);
@@ -250,6 +252,7 @@ final class TeamService
 
             return [
                 'id' => $leader->id,
+                'chat_id' => $leader->leaderChat?->id,
                 'name' => $leader->name . ' ' . $leader->surname,
                 'avatar' => $leader->avatar_path ?? null,
                 'role' => UserRole::LEADER->value,
