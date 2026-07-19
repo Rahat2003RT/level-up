@@ -9,6 +9,7 @@ use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -29,9 +30,22 @@ final class MessageUpdated implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
-            new PresenceChannel("chat.{$this->message->chat_id}"),
+        $chat = $this->message->chat;
+        $channels = [
+            new PresenceChannel("chat.{$this->message->chat_id}")
         ];
+
+        $lastMessageId = $chat->messages()
+            ->latest()
+            ->value('id');
+
+        // Шлем в списки чатов (user.id) только если это последнее сообщение
+        if ($this->message->id === $lastMessageId) {
+            $channels[] = new PrivateChannel("user.{$chat->leader_id}");
+            $channels[] = new PrivateChannel("user.{$chat->elite_id}");
+        }
+
+        return $channels;
     }
 
     /**

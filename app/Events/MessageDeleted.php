@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Events;
 
+use App\Models\Chat;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel; // Используем PresenceChannel как в MessageSent
+use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -20,7 +22,8 @@ class MessageDeleted implements ShouldBroadcast
      */
     public function __construct(
         public int $chatId,
-        public string $messageId
+        public string $messageId,
+        public bool $isLastMessage = false
     ) {}
 
     /**
@@ -28,9 +31,25 @@ class MessageDeleted implements ShouldBroadcast
      */
     public function broadcastOn(): array
     {
-        return [
+        $chat = Chat::find($this->chatId);
+
+        // В саму комнату чата отправляем событие ВСЕГДА
+        $channels = [
             new PresenceChannel("chat.{$this->chatId}"),
         ];
+
+        if (!$chat) {
+            return $channels;
+        }
+
+        // Шлём в личные каналы (для обновления списка чатов)
+        // ТОЛЬКО если удалённое сообщение было последним
+        if ($this->isLastMessage) {
+            $channels[] = new PrivateChannel("user.{$chat->leader_id}");
+            $channels[] = new PrivateChannel("user.{$chat->elite_id}");
+        }
+
+        return $channels;
     }
 
     /**
@@ -46,9 +65,13 @@ class MessageDeleted implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
+        $chat = Chat::find($this->chatId);
+        $nextLastMessage = $chat?->messages()->latest()->first();
         return [
             'id'      => $this->messageId,
             'chat_id' => $this->chatId,
+            'is_last_message' => $this->isLastMessage,
+            'next_last_text'  => $nextLastMessage?->text,
         ];
     }
 }
