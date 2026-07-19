@@ -132,12 +132,14 @@ final class MessageService
 
     public function deleteMessage(Message $message): void
     {
-        $chat = $message->chat;
+        // Обязательно подгружаем отношение, если его нет в памяти
+        $chat = $message->chat ?? Chat::find($message->chat_id);
         $chatId = $message->chat_id;
         $messageId = $message->id;
 
+        // ИСПРАВЛЕНО: явно передаем 'created_at' для сортировки UUID моделей
         $lastMessageId = $chat->messages()
-            ->latest()
+            ->latest('created_at')
             ->value('id');
 
         $isLast = ($messageId === $lastMessageId);
