@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <title>Панель отладки WebSockets</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Подключаем собранные ассеты твоего приложения (где инициализирован Laravel Echo) -->
-    @vite(['resources/js/app.js'])
 </head>
 <body class="bg-gray-900 text-gray-100 min-h-screen p-8">
 
