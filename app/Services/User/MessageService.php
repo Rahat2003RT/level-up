@@ -116,21 +116,34 @@ final class MessageService
 
     public function updateMessage(Message $message, array $data): Message
     {
+
         $message->update([
             'text' => $data['text'] ?? $message->text,
             'is_edited' => true,
         ]);
+
         $message->refresh();
         $message->load(['sender']);
+
         broadcast(new MessageUpdated($message))->toOthers();
+
         return $message;
     }
 
     public function deleteMessage(Message $message): void
     {
+        $chat = $message->chat;
         $chatId = $message->chat_id;
         $messageId = $message->id;
+
+        $lastMessageId = $chat->messages()
+            ->latest('created_at')
+            ->value('id');
+
+        $isLast = ($messageId === $lastMessageId);
+
         $message->delete();
-        broadcast(new MessageDeleted($chatId, $messageId))->toOthers();
+
+        broadcast(new MessageDeleted($chatId, $messageId, $isLast))->toOthers();
     }
 }
