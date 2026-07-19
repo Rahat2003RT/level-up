@@ -137,7 +137,7 @@ final class MessageService
         $messageId = $message->id;
 
         $lastMessageId = $chat->messages()
-            ->latest('created_at')
+            ->latest()
             ->value('id');
 
         $isLast = ($messageId === $lastMessageId);
