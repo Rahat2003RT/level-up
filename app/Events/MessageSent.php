@@ -41,9 +41,11 @@ final class MessageSent implements ShouldBroadcast
             new PresenceChannel("chat.{$this->message->chat_id}"),
         ];
 
+        // Синхронизируем проверку с новой структурой ключей ChatPresenceService
         $recipientRedisKey = "chat:{$this->message->chat_id}:user:{$this->recipientId}";
         $isOnlineInChat = (bool) Redis::exists($recipientRedisKey);
 
+        // Если пользователя нет в конкретном чате, дублируем ивент в его личный канал для уведомлений
         if (!$isOnlineInChat) {
             $channels[] = new PrivateChannel("user.{$this->recipientId}");
         }
