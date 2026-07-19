@@ -60,19 +60,16 @@ final class ChatService
 
     public function showChat(Chat $chat, User $user): Chat
     {
+        $chat->loadCount(['messages as unread_count' => function ($query) use ($user) {
+            $query->whereNull('read_at')
+                ->where('sender_id', '!=', $user->id);
+        }]);
+
         $chat->load([
             'lastMessage',
             'elite',
-            'leader.players' => function ($query) {
-                $query->withSum('contacts as total_volume', 'volume')
-                    ->with(['checklists' => fn($q) => $q->latest('date')]);
-            }
+            'leader'
         ]);
-
-        $chat->unread_count = $chat->messages()
-            ->whereNull('read_at')
-            ->where('sender_id', '!=', $user->id)
-            ->count();
 
         return $chat;
     }

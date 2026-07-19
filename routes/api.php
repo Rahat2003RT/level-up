@@ -129,6 +129,7 @@ Route::prefix('v1')->group(function () {
             //                         MESSAGE METHODS                         //
             // ----------------------------------------------------------------//
             Route::prefix('{chat}')->group(function () {
+                Route::get('/', [User\ChatController::class, 'show']);
                 Route::get('/messages', [User\MessageController::class, 'index']);
                 Route::post('/messages', [User\MessageController::class, 'store']);
                 Route::post('/messages/read', [User\MessageController::class, 'read']);
