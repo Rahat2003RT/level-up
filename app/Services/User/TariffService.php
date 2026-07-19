@@ -25,7 +25,7 @@ class TariffService
 
         return Tariff::query()
             ->where('is_active', true)
-            ->where('role', $userRole)
+            //->where('role', $userRole)
             ->orderBy('price', 'asc')
             ->get();
     }
