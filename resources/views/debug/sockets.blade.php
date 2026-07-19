@@ -13,7 +13,8 @@
         // Инициализируем Laravel Echo для работы с Reverb
         window.Echo = new Echo({
             broadcaster: 'reverb',
-            key: '{{ config("broadcaster.connections.reverb.key") ?? "laravel-reverb-key" }}',
+            // ИСПРАВЛЕНО: Теперь ключ 100% совпадает с бэкендом
+            key: '{{ env("REVERB_APP_KEY", "6di1afibeuroj8j7mrhz") }}',
             wsHost: window.location.hostname,
             wsPort: 8080,
             forceTLS: false,
@@ -152,7 +153,7 @@
                     .here((users) => {
                         log(`👥 Успешно вошли в канал! Участников онлайн: ${users.length}`, 'success');
                     })
-                    .listen('message.sent', (e) => { // Слушаем БЕЗ точки, так как имя кастомное
+                    .listen('.message.sent', (e) => { // ВЕРНУЛИ ТОЧКУ СЮДА!
                         log(`🔥 Поймано событие message.sent: ${JSON.stringify(e)}`, 'event');
                     })
                     // Резервное прослушивание на случай, если бродкаст летит под системным именем класса
