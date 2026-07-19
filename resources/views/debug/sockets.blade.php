@@ -147,21 +147,16 @@
 
             function subscribeToChat(chatId) {
                 window.Echo.leave(`chat.${chatId}`);
-                log(`Подписываемся на Presence-канал: chat.${chatId}`, 'info');
 
-                window.Echo.join(`chat.${chatId}`)
-                    .here((users) => {
-                        log(`👥 Успешно вошли в канал! Участников онлайн: ${users.length}`, 'success');
-                    })
-                    .listen('.message.sent', (e) => { // ВЕРНУЛИ ТОЧКУ СЮДА!
-                        log(`🔥 Поймано событие message.sent: ${JSON.stringify(e)}`, 'event');
-                    })
-                    // Резервное прослушивание на случай, если бродкаст летит под системным именем класса
-                    .listen('.App\\Events\\MessageSent', (e) => {
-                        log(`🔥 Поймано событие App\\Events\\MessageSent: ${JSON.stringify(e)}`, 'event');
+                log(`Подписываемся на ПУБЛИЧНЫЙ канал: chat.${chatId}`, 'info');
+
+                // Используем .channel() для публичных каналов (никакой авторизации не требуется)
+                window.Echo.channel(`chat.${chatId}`)
+                    .listen('.message.sent', (e) => { // Точка обязательна!
+                        log(`🔥 УРА! Поймано событие: ${JSON.stringify(e)}`, 'event');
                     })
                     .error((error) => {
-                        log(`❌ Ошибка авторизации канала chat.${chatId}: ${JSON.stringify(error)}`, 'error');
+                        log(`❌ Ошибка канала: ${JSON.stringify(error)}`, 'error');
                     });
             }
 

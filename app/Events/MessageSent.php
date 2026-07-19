@@ -49,7 +49,9 @@ final class MessageSent implements ShouldBroadcast
         if (!$isOnlineInChat) {
             $channels[] = new PrivateChannel("user.{$this->recipientId}");
         }
-
+        return [
+            new Channel("chat.{$this->message->chat_id}"),
+        ];
         return $channels;
     }
 
