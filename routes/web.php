@@ -44,12 +44,18 @@ Route::get('/password-reset', function (\Illuminate\Http\Request $request) {
 
 
 Route::get('/debug/sockets-sandbox', function () {
-    // Берем тестовых пользователей (например, лидеров, элиту и игроков)
     $users = User::query()->latest()->limit(15)->get();
-    return view('debug.sockets', compact('users'));
+    // Забираем токен из сессии флеш-данных, если он там есть
+    $sanctumToken = session('sanctum_token');
+    return view('debug.sockets', compact('users', 'sanctumToken'));
 })->name('debug.sockets');
 
 Route::post('/debug/sockets-sandbox/login/{user}', function (User $user) {
     Auth::login($user);
-    return redirect()->route('debug.sockets');
+
+    // Генерируем Sanctum-токен для этого пользователя
+    $tokenResult = $user->createToken('debug-token');
+
+    // Кладем plainTextToken в сессию, чтобы забрать на странице редиректа
+    return redirect()->route('debug.sockets')->with('sanctum_token', $tokenResult->plainTextToken);
 })->name('debug.sockets.login');

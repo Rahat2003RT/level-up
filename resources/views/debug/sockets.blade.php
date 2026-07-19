@@ -5,23 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель отладки WebSockets</title>
 
-    <!-- Подключаем Tailwind CSS через CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Подключаем библиотеки сокетов напрямую через CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.3.0/pusher.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.16.1/dist/echo.iife.js"></script>
 
     <script>
-        // Вручную поднимаем экземпляр Echo для работы с Laravel Reverb
+        // Инициализируем Laravel Echo для работы с Reverb
         window.Echo = new Echo({
             broadcaster: 'reverb',
             key: '{{ config("broadcaster.connections.reverb.key") ?? "laravel-reverb-key" }}',
             wsHost: window.location.hostname,
-            wsPort: 8080, // Проверь порт запуска твоего Reverb (обычно 8080)
+            wsPort: 8080,
             forceTLS: false,
             disableStats: true,
             enabledTransports: ['ws', 'wss'],
+            // Добавляем авторизацию приватных каналов сокетов через Sanctum-токен
+            auth: {
+                headers: {
+                    @if($sanctumToken)
+                    'Authorization': 'Bearer {{ $sanctumToken }}',
+                    @endif
+                    'Accept': 'application/json'
+                }
+            }
         });
     </script>
 </head>
@@ -29,7 +35,7 @@
 
 <div class="max-w-7xl mx-auto grid grid-cols-3 gap-8">
 
-    <!-- Левая колонка: Выбор пользователя -->
+    <!-- 1. Выбор пользователя -->
     <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
         <h2 class="text-xl font-bold mb-4 text-amber-400">1. Войти как пользователь</h2>
         <div class="space-y-3 max-h-[70vh] overflow-y-auto pr-2">
@@ -46,20 +52,25 @@
         </div>
     </div>
 
-    <!-- Правая колонка: Управление и Логи -->
+    <!-- Управление и Логи -->
     <div class="col-span-2 space-y-6 flex flex-col h-[85vh]">
 
-        <!-- Текущий статус -->
+        <!-- 2. Статус авторизации -->
         <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 shrink-0">
             <h2 class="text-xl font-bold mb-2 text-amber-400">2. Статус авторизации</h2>
             @auth
                 <p class="text-green-400">Вы авторизованы как: <span class="font-bold text-white">{{ auth()->user()->name }} (ID: {{ auth()->id() }})</span></p>
+                @if($sanctumToken)
+                    <div class="mt-3 p-2 bg-gray-900 rounded border border-gray-700 font-mono text-xs text-gray-300 break-all select-all">
+                        <span class="text-amber-400 font-bold">API Token:</span> Bearer {{ $sanctumToken }}
+                    </div>
+                @endif
             @else
                 <p class="text-red-400">Вы не авторизованы. Выберите пользователя слева.</p>
             @endauth
         </div>
 
-        <!-- Блок отправки тестового сообщения -->
+        <!-- 3. Тестирование чатов -->
         <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 shrink-0">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-bold text-amber-400">3. Тестирование чатов</h2>
@@ -71,7 +82,6 @@
             </div>
 
             @auth
-                <!-- Контейнер для динамического списка доступных чатов -->
                 <div id="available-chats-list" class="hidden mb-4 p-3 bg-gray-900 rounded border border-gray-700 text-sm max-h-40 overflow-y-auto space-y-1">
                     <div class="text-gray-400 text-xs">// Запрос чатов...</div>
                 </div>
@@ -96,7 +106,7 @@
             @endauth
         </div>
 
-        <!-- Консоль сокетов -->
+        <!-- 4. Консоль сокетов -->
         <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 flex flex-col flex-1 min-h-0">
             <h2 class="text-xl font-bold mb-2 text-amber-400">4. Лог событий WebSocket (Laravel Echo)</h2>
             <div id="socket-logs" class="bg-black p-4 rounded font-mono text-sm overflow-y-auto flex-1 border border-gray-800 space-y-1">
@@ -107,10 +117,10 @@
 
 </div>
 
-<!-- Интерактивный JS скрипт -->
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const logsContainer = document.getElementById('socket-logs');
+        const token = "{{ $sanctumToken }}"; // Прокидываем токен прямо в JS скрипт
 
         function log(message, type = 'info') {
             const el = document.createElement('div');
@@ -135,14 +145,11 @@
 
             const chatIdInput = document.getElementById('test-chat-id');
 
-            // Функция динамического переподключения к приватному каналу чата
             function subscribeToChat(chatId) {
                 window.Echo.leave(`chat.${chatId}`);
-
                 log(`Подписываемся на приватный канал: chat.${chatId}`, 'info');
 
                 window.Echo.private(`chat.${chatId}`)
-                    // Если событие в бэкенде называется по-другому (без broadcastAs), используй полное имя класса: '.App\\Events\\MessageSent'
                     .listen('.MessageSent', (e) => {
                         log(`🔥 Поймано событие MessageSent: ${JSON.stringify(e.message || e)}`, 'event');
                     })
@@ -151,15 +158,13 @@
                     });
             }
 
-            // Подписка при первой загрузке страницы
             subscribeToChat(chatIdInput.value);
 
-            // Смена подписки при ручном изменении ID чата в инпуте
             chatIdInput.addEventListener('change', (e) => {
                 subscribeToChat(e.target.value);
             });
 
-            // Функция запроса списка доступных чатов текущего юзера
+            // Запрос списка чатов напрямую к реальному API
             document.getElementById('btn-load-chats').addEventListener('click', async () => {
                 const chatsContainer = document.getElementById('available-chats-list');
                 chatsContainer.classList.remove('hidden');
@@ -169,7 +174,7 @@
                     const response = await fetch('/api/v1/chats', {
                         headers: {
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'Authorization': `Bearer ${token}` // Авторизуем запрос по токену
                         }
                     });
 
@@ -208,7 +213,7 @@
                 }
             });
 
-            // Обработчик отправки сообщения (имитируем запрос от мобильного приложения)
+            // Имитируем отправку сообщения через реальный эндпоинт API
             document.getElementById('btn-send-message').addEventListener('click', async () => {
                 const chatId = chatIdInput.value;
                 const text = document.getElementById('test-message-text').value;
@@ -221,7 +226,7 @@
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            'Authorization': `Bearer ${token}` // Авторизуем запрос по токену
                         },
                         body: JSON.stringify({ text: text })
                     });
