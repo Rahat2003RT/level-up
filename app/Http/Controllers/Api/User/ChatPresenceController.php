@@ -10,7 +10,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-#[Group('Чаты / Присутствие', weight: 290)]
+#[Group('Чаты', weight: 290)]
 final class ChatPresenceController extends Controller
 {
     public function __construct(

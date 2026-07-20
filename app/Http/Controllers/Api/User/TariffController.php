@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TariffResource;
 use App\Services\User\TariffService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
+#[Group('Тарифы', weight: 290)]
 final class TariffController extends Controller
 {
     /**
@@ -20,7 +22,7 @@ final class TariffController extends Controller
     }
 
     /**
-     * Список тарифов, доступных для текущей роли пользователя.
+     * Все тарифы
      * @param Request $request
      * @return AnonymousResourceCollection
      */
@@ -31,7 +33,7 @@ final class TariffController extends Controller
     }
 
     /**
-     * Выбрать план.
+     * Выбрать тариф.
      */
     public function selectTariff(Request $request, int $tariffId): Response
     {

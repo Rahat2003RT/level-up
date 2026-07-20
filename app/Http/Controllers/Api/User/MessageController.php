@@ -16,7 +16,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
-#[Group('Сообщения', weight: 290)]
+#[Group('Чаты', weight: 290)]
 final class MessageController extends Controller
 {
     public function __construct(
@@ -27,6 +27,9 @@ final class MessageController extends Controller
 
     /**
      * Список сообщений чата
+     * @param ChatAccessRequest $request
+     * @param Chat $chat
+     * @return AnonymousResourceCollection
      */
     public function index(ChatAccessRequest $request, Chat $chat): AnonymousResourceCollection
     {
@@ -42,6 +45,12 @@ final class MessageController extends Controller
         ]);
     }
 
+    /**
+     * Написать сообщение
+     * @param StoreMessageRequest $request
+     * @param Chat $chat
+     * @return MessageResource
+     */
     public function store(StoreMessageRequest $request, Chat $chat): MessageResource
     {
         $message = $this->service->storeMessage($chat, $request->user(), $request->validated());
@@ -49,7 +58,7 @@ final class MessageController extends Controller
     }
 
     /**
-     * Обновить сообщение
+     * Редактировать сообщение
      * @param UpdateMessageRequest $request
      * @param Chat $chat
      * @param Message $message
@@ -61,19 +70,12 @@ final class MessageController extends Controller
         return MessageResource::make($message);
     }
 
-    public function read(Chat $chat): Response
-    {
-        $this->service->markAsRead($chat, request()->user());
-        return response()->noContent();
-    }
-
     /**
-     * Удаление сообщения
-     * @param Chat $chat
+     * Удалить сообщение
      * @param Message $message
      * @return Response
      */
-    public function destroy(Chat $chat, Message $message): Response
+    public function destroy(Message $message): Response
     {
         abort_if($message->sender_id !== request()->user()->id, 403);
         $this->service->deleteMessage($message);

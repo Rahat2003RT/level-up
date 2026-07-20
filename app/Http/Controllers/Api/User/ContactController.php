@@ -9,10 +9,12 @@ use App\Http\Requests\User\Contact\UpdateRequest;
 use App\Http\Resources\ContactResource;
 use App\Models\Contact;
 use App\Services\User\ContactService;
+use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
+#[Group('Пользователь / Контакты', weight: 290)]
 final class ContactController extends Controller
 {
     public function __construct(
@@ -23,6 +25,8 @@ final class ContactController extends Controller
 
     /**
      * Контакты / Список контактов
+     * @param IndexRequest $request
+     * @return AnonymousResourceCollection
      */
     public function index(IndexRequest $request): AnonymousResourceCollection
     {
