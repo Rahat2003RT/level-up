@@ -97,19 +97,17 @@ final class CommandService
     public function searchAvailableUsers(User $leaderOrElite, array $filters): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 20;
-        $search = $filters['query'] ?? null;
+        $search = isset($filters['query']) ? trim((string)$filters['query']) : null;
 
-        // Определяем, кого мы ищем для этой команды
         $targetRole = $leaderOrElite->role === UserRole::ELITE ? UserRole::LEADER : UserRole::PLAYER;
 
         return User::where('role', $targetRole)
-            ->whereNull('leader_id') // Не в команде
-            ->where('id', '!=', $leaderOrElite->id) // Исключаем самого владельца
+            ->whereNull('leader_id')
+            ->where('id', '!=', $leaderOrElite->id)
             ->when($search, function ($q) use ($search) {
-                $searchLower = mb_strtolower($search, 'UTF-8');
-                $q->where(function ($sub) use ($searchLower) {
-                    $sub->whereRaw('LOWER(name) LIKE ?', ["%$searchLower%"])
-                        ->orWhereRaw('LOWER(surname) LIKE ?', ["%$searchLower%"]);
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'ILIKE', "%{$search}%")
+                        ->orWhere('surname', 'ILIKE', "%{$search}%");
                 });
             })
             ->paginate($perPage);
