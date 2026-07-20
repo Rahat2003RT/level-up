@@ -32,7 +32,7 @@ final class SendChatMessageNotification implements ShouldQueue
      */
     public function handle(FcmService $fcmService): void
     {
-        $bodyText = trim((string)$this->message->text);
+        $bodyText = trim($this->message->text);
 
         if (empty($bodyText)) {
             return;
@@ -45,7 +45,6 @@ final class SendChatMessageNotification implements ShouldQueue
             ? $chat->leader_id
             : $chat->elite_id;
 
-        // 2. Проверяем, не открыт ли у получателя этот чат прямо сейчас (онлайн в Redis)
         $redisKey = "chat_online:{$chat->id}";
         $score = Redis::zscore($redisKey, (string)$recipientId);
         $isOnlineInChat = (int)$score >= (time() - 30);
@@ -54,7 +53,6 @@ final class SendChatMessageNotification implements ShouldQueue
             return;
         }
 
-        // 3. Достаем получателя с его токенами. Явно через query(), чтобы IDE не ругалась
         /** @var User|null $recipient */
         $recipient = User::query()->where('id', $recipientId)
             ->where('notifications_enabled', true)

@@ -112,6 +112,14 @@ final readonly class UserService
             $orderBy = 'created_at';
         }
         $query->orderBy($orderBy, $orderSort);
-        return $query->paginate($filters['limit'] ?? 20);
+        return $query
+            ->with([
+                'goal',
+                'deviceTokens',
+                'leader',
+                'leaderChat',
+                'tariff'
+            ])
+            ->paginate($filters['limit'] ?? 20);
     }
 }

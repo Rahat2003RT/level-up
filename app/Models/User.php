@@ -7,6 +7,7 @@ use App\Notifications\CustomResetPasswordNotification;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -318,5 +320,20 @@ class User extends Authenticatable implements MustVerifyEmail
         $locale = request()->header('X-Locale', request()->input('lang', 'en'));
 
         $this->notify(new CustomResetPasswordNotification($token, $locale));
+    }
+
+    protected function avatar(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if (empty($this->avatar_path)) {
+                    return null;
+                }
+                if (filter_var($this->avatar_path, FILTER_VALIDATE_URL)) {
+                    return $this->avatar_path;
+                }
+                return Storage::disk('public')->url($this->avatar_path);
+            }
+        );
     }
 }
