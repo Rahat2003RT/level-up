@@ -24,6 +24,8 @@ final class ProfileController extends Controller
 
     /**
      * Инфо пользователя
+     * @param Request $request
+     * @return UserResource
      */
     public function me(Request $request): UserResource
     {
@@ -33,6 +35,8 @@ final class ProfileController extends Controller
 
     /**
      * Обновление пользователя
+     * @param UpdateRequest $request
+     * @return UserResource
      */
     public function update(UpdateRequest $request): UserResource
     {

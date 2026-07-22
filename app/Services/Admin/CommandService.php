@@ -91,9 +91,6 @@ final class CommandService
         return $member->update(['leader_id' => $leaderOrElite->id]);
     }
 
-    /**
-     * 5. Метод поиска пользователей, которых можно добавить в команду
-     */
     public function searchAvailableUsers(User $leaderOrElite, array $filters): LengthAwarePaginator
     {
         $perPage = $filters['per_page'] ?? 20;

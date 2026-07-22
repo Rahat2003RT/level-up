@@ -14,6 +14,10 @@ use Illuminate\Database\Eloquent\Collection;
 
 final class PlanService
 {
+    public function getStatisticsForUser(User $user, array $data): array
+    {
+        return $this->getStatistics($user, $data);
+    }
     public function getProgress(User $user): array
     {
         if ($user->players()->exists()) {
@@ -448,25 +452,38 @@ final class PlanService
     }
 
     /**
-     * Получить список дат всех выходных дней пользователя.
+     * Получить список дат выходных и заполненных дней пользователя.
      */
-    public function getDaysOff(User $user): array
+    public function getChecklistDates(User $user): array
     {
         $model = $user->can('access-leader') ? LeadershipChecklist::class : DailyChecklist::class;
 
-        return $model::where('user_id', $user->id)
-            ->where('is_day_off', true)
-            ->pluck('date')
-            ->toArray();
+        // Достаем только необходимые поля для оптимизации памяти
+        $checklists = $model::where('user_id', $user->id)
+            ->select(['date', 'is_day_off', 'is_completed'])
+            ->get();
+
+        $daysOff = [];
+        $activeDays = [];
+
+        foreach ($checklists as $checklist) {
+            $dateStr = is_string($checklist->date)
+                ? $checklist->date
+                : $checklist->date->toDateString();
+
+            if ($checklist->is_day_off) {
+                $daysOff[] = $dateStr;
+            } elseif ($checklist->is_completed) {
+                $activeDays[] = $dateStr;
+            }
+        }
+
+        return [
+            'days_off'    => $daysOff,
+            'active_days' => $activeDays,
+        ];
     }
 
-    /**
-     * Получить командную статистику лидера за указанный период (в днях).
-     *
-     * @param User $leader
-     * @param array $data
-     * @return array
-     */
     /**
      * Получить командную статистику лидера за указанный период (в днях)
      * с индивидуальным учётом пауз для каждого игрока.

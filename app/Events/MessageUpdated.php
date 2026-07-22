@@ -39,7 +39,6 @@ final class MessageUpdated implements ShouldBroadcast
             ->latest()
             ->value('id');
 
-        // Шлем в списки чатов (user.id) только если это последнее сообщение
         if ($this->message->id === $lastMessageId) {
             $channels[] = new PrivateChannel("user.{$chat->leader_id}");
             $channels[] = new PrivateChannel("user.{$chat->elite_id}");

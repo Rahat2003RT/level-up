@@ -10,9 +10,13 @@ use App\Http\Requests\Admin\Users\ChangeRoleRequest;
 use App\Http\Requests\Admin\Users\ChangeUserRequest;
 use App\Http\Requests\Admin\Users\CreateUserRequest;
 use App\Http\Requests\Admin\Users\IndexUserRequest;
+use App\Http\Requests\Admin\Users\ToggleTrialRequest;
+use App\Http\Requests\User\Statistics\IndexRequest;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\UserStatisticsResource;
 use App\Models\User;
 use App\Services\Admin\UserService;
+use App\Services\User\PlanService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
@@ -22,7 +26,8 @@ use Illuminate\Validation\ValidationException;
 final class UserController extends Controller
 {
     public function __construct(
-        private readonly UserService $service
+        private readonly UserService $service,
+        private readonly PlanService $planService
     )
     {
     }
@@ -56,7 +61,7 @@ final class UserController extends Controller
      */
     public function show(User $user): UserResource
     {
-        return UserResource::make($user->loadMissing(['deviceTokens']));
+        return UserResource::make($user->loadMissing(['deviceTokens', 'goal', 'leader', 'tariff']));
     }
 
     /**
@@ -142,5 +147,34 @@ final class UserController extends Controller
     {
         $this->service->forceDelete($user);
         return response()->noContent();
+    }
+
+    /**
+     * Выдать (на 7 дней) или забрать пробный период
+     *
+     * @param ToggleTrialRequest $request
+     * @param User $user
+     * @return UserResource
+     */
+    public function toggleTrial(ToggleTrialRequest $request, User $user): UserResource
+    {
+        $updatedUser = $this->service->toggleTrial(
+            $user,
+            (bool) $request->validated('is_trial')
+        );
+        return UserResource::make($updatedUser);
+    }
+
+    /**
+     * Статистика конкретного пользователя для администратора
+     *
+     * @param IndexRequest $request (или отдельный AdminIndexRequest)
+     * @param User $user
+     * @return UserStatisticsResource
+     */
+    public function statistics(IndexRequest $request, User $user): UserStatisticsResource
+    {
+        $stats = $this->planService->getStatisticsForUser($user, $request->validated());
+        return UserStatisticsResource::make($stats);
     }
 }

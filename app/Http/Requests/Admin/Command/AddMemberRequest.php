@@ -5,7 +5,7 @@ namespace App\Http\Requests\Admin\Command;
 use App\Http\Requests\ApiBaseRequest;
 use Illuminate\Validation\Rule;
 
-class AddMemberRequest extends ApiBaseRequest
+final class AddMemberRequest extends ApiBaseRequest
 {
     public function rules(): array
     {

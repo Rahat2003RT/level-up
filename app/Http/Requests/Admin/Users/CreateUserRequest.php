@@ -40,6 +40,11 @@ final class CreateUserRequest extends ApiBaseRequest
             'locale'                => ['nullable', 'string', 'max:5', Rule::in(['ru', 'en', 'es', 'pt', 'fr', 'de'])],
             'date_of_birth'         => ['nullable', 'date', 'before:today'],
             'notifications_enabled' => ['nullable', 'boolean'],
+
+            'goal' => ['nullable', 'array'],
+            'goal.target_clients_count' => ['nullable', 'integer', 'min:0'],
+            'goal.target_partners_count' => ['nullable', 'integer', 'min:0'],
+            'goal.target_sales_volume' => ['nullable', 'integer', 'min:0'],
         ];
     }
 }

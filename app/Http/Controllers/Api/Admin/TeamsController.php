@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\Command\AddMemberRequest;
 use App\Http\Requests\Admin\Command\IndexRequest;
 use App\Http\Requests\Admin\Command\SearchAvailableRequest;
+use App\Http\Resources\Admin\UserAvailableResource;
 use App\Models\User;
 use App\Services\Admin\CommandService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
 #[Group('Команды / Админка', weight: 50)]
@@ -54,6 +56,9 @@ final class TeamsController extends Controller
 
     /**
      * Добавление пользователя
+     * @param AddMemberRequest $request
+     * @param User $user
+     * @return Response
      */
     public function addMember(AddMemberRequest $request, User $user): Response
     {
@@ -64,7 +69,9 @@ final class TeamsController extends Controller
     }
 
     /**
-     * Изгнание пользователя
+     * Выгнать с команды
+     * @param User $member
+     * @return Response
      */
     public function removeMember(User $member): Response
     {
@@ -75,23 +82,13 @@ final class TeamsController extends Controller
 
     /**
      * Поиск свободных пользователей
+     * @param SearchAvailableRequest $request
+     * @param User $user
+     * @return AnonymousResourceCollection
      */
-    public function searchAvailable(SearchAvailableRequest $request, User $user): JsonResponse
+    public function searchAvailable(SearchAvailableRequest $request, User $user): AnonymousResourceCollection
     {
-        $paginator = $this->service->searchAvailableUsers($user, $request->validated());
-
-        return response()->json([
-            'data' => collect($paginator->items())->map(fn($u) => [
-                'id'     => $u->id,
-                'name'   => $u->name . ' ' . $u->surname,
-                'avatar' => $u->avatar_path ?? null,
-                'role'   => $u->role?->value,
-            ]),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page'    => $paginator->lastPage(),
-                'total'        => $paginator->total(),
-            ]
-        ]);
+        $users = $this->service->searchAvailableUsers($user, $request->validated());
+        return UserAvailableResource::collection($users);
     }
 }

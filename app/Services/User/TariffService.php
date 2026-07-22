@@ -35,7 +35,7 @@ class TariffService
      *
      * @throws ValidationException
      */
-    public function selectTariff(User $user, int $tariffId): void
+    public function selectTariff(User $user, int $tariffId): User
     {
         /** @var Tariff $tariff */
         $tariff = Tariff::query()
@@ -52,7 +52,7 @@ class TariffService
         $periodEnum = $tariff->period;
 
         $subscriptionEndsAt = match ($periodEnum) {
-            Period::Weak => now()->addWeek(),
+            Period::Weak, Period::Week => now()->addWeek(),
             Period::Month => now()->addMonth(),
             Period::ThreeMonths => now()->addMonths(3),
             Period::FourMonths => now()->addMonths(4),
@@ -65,6 +65,8 @@ class TariffService
             'subscription_ends_at' => $subscriptionEndsAt,
             'auto_renew'           => true,
         ]);
+
+        return $user->load('tariff');
     }
 
     /**
@@ -72,7 +74,7 @@ class TariffService
      *
      * @throws ValidationException
      */
-    public function cancelAutoRenew(User $user): void
+    public function cancelAutoRenew(User $user): User
     {
         if (!$user->tariff_id) {
             throw ValidationException::withMessages([
@@ -82,5 +84,7 @@ class TariffService
         $user->update([
             'auto_renew' => false
         ]);
+
+        return $user->load('tariff');
     }
 }

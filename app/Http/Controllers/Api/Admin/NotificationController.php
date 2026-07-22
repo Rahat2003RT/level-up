@@ -11,7 +11,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 
-#[Group('Уведомления / Админка', weight: 0)]
+#[Group('Уведомления / Админка', weight: 15)]
 final class  NotificationController extends Controller
 {
     public function __construct(

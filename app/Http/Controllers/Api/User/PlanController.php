@@ -7,10 +7,12 @@ use App\Http\Requests\User\Checklist\StoreRequest;
 use App\Http\Requests\User\Player\ShowChecklistRequest;
 use App\Http\Requests\User\Player\StatisticsRequest;
 use App\Http\Requests\User\Statistics\IndexRequest;
+use App\Http\Resources\ChecklistDatesResource;
 use App\Http\Resources\DailyChecklistResource;
 use App\Http\Resources\LeadershipChecklistResource;
 use App\Http\Resources\LeaderTeamStatisticsResource;
 use App\Http\Resources\ProgressResource;
+use App\Http\Resources\UserStatisticsResource;
 use App\Models\PlanPause;
 use App\Services\User\PlanService;
 use Carbon\Carbon;
@@ -48,7 +50,7 @@ final class PlanController extends Controller
     public function statistics(IndexRequest $request)
     {
         $stats = $this->service->getStatistics($request->user(), $request->validated());
-        return response()->json(['data' => $stats]);
+        return UserStatisticsResource::make($stats);
     }
 
     /**
@@ -113,12 +115,15 @@ final class PlanController extends Controller
     }
 
     /**
-     * Чек-лист / Получение всех выходных дней пользователя.
+     * Чек-лист / Получение всех выходных и заполненных дней пользователя.
+     * @param Request $request
+     * @return ChecklistDatesResource
      */
-    public function getDaysOff(Request $request): JsonResponse
+    public function getDaysOff(Request $request): ChecklistDatesResource
     {
-        $dates = $this->service->getDaysOff($request->user());
-        return response()->json(['data' => $dates]);
+        $dates = $this->service->getChecklistDates($request->user());
+
+        return ChecklistDatesResource::make($dates);
     }
 
     /**

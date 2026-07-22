@@ -12,6 +12,20 @@ use Illuminate\Validation\ValidationException;
 
 final class ProfileService
 {
+    /**
+     * @param User $user
+     * @return User
+     */
+    public function getInfoAboutMe(User $user): User
+    {
+        return $user->load([
+            'goal',
+            'deviceTokens',
+            'leader',
+            'leaderChat',
+            'tariff'
+        ]);
+    }
     public function updateProfile(User $user, array $data): User
     {
         if (isset($data['avatar']) && $data['avatar'] instanceof UploadedFile) {
@@ -46,20 +60,7 @@ final class ProfileService
         $user->delete();
     }
 
-    /**
-     * @param User $user
-     * @return User
-     */
-    public function getInfoAboutMe(User $user): User
-    {
-        return $user->load([
-            'goal',
-            'deviceTokens',
-            'leader',
-            'leaderChat',
-            'tariff'
-        ]);
-    }
+
 
     /**
      * @throws ValidationException

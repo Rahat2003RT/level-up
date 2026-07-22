@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\TariffResource;
+use App\Http\Resources\UserResource;
 use App\Services\User\TariffService;
 use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Request;
@@ -35,18 +36,18 @@ final class TariffController extends Controller
     /**
      * Выбрать тариф.
      */
-    public function selectTariff(Request $request, int $tariffId): Response
+    public function selectTariff(Request $request, int $tariffId): UserResource
     {
-        $this->service->selectTariff($request->user(), $tariffId);
-        return response()->noContent();
+        $user = $this->service->selectTariff($request->user(), $tariffId);
+        return UserResource::make($user);
     }
 
     /**
      * Отменить автопродление/подписку на текущий тариф.
      */
-    public function cancelSubscription(Request $request): Response
+    public function cancelSubscription(Request $request): UserResource
     {
-        $this->service->cancelAutoRenew($request->user());
-        return response()->noContent();
+        $user = $this->service->cancelAutoRenew($request->user());
+        return UserResource::make($user);
     }
 }

@@ -46,6 +46,8 @@ Route::prefix('v1')->group(function () {
                 Route::post('/{user}/restore', [Admin\UserController::class, 'restore'])->withTrashed();
                 Route::delete('/{user}', [Admin\UserController::class, 'destroy']);
                 Route::delete('/{user}/force-delete', [Admin\UserController::class, 'forceDelete'])->withTrashed();
+                Route::patch('/{user}/trial', [Admin\UserController::class, 'toggleTrial']);
+                Route::get('/{user}/statistics', [Admin\UserController::class, 'statistics']);
             });
             // ----------------------------------------------------------------//
             //                        ADMIN-TEAMS METHODS                      //

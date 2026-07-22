@@ -29,7 +29,16 @@ final readonly class UserService
 
     public function createUser(array $data): User
     {
-        return User::create($data);
+        $goalData = $data['goal'] ?? null;
+        unset($data['goal']);
+
+        $user = User::create($data);
+
+        if ($goalData) {
+            $user->goal()->create($goalData);
+        }
+
+        return $user->load('goal');
     }
 
     /**
@@ -52,7 +61,14 @@ final readonly class UserService
 
     public function changeUser(User $user, array $data): User
     {
+        $goalData = $data['goal'] ?? null;
+        unset($data['goal']);
+
         $user->update($data);
+
+        if ($goalData !== null) {
+            $user->goal()->updateOrCreate([], $goalData);
+        }
 
         return $user;
     }
@@ -121,5 +137,19 @@ final readonly class UserService
                 'tariff'
             ])
             ->paginate($filters['limit'] ?? 20);
+    }
+
+    /**
+     * Выдать (на 7 дней) или забрать trial у пользователя
+     */
+    public function toggleTrial(User $user, bool $isTrial): User
+    {
+        if ($isTrial) {
+            $user->startTrial(7);
+        } else {
+            $user->cancelTrial();
+        }
+
+        return $user;
     }
 }

@@ -24,8 +24,8 @@ final class TeamMemberResource extends JsonResource
             'id'                 => $this->id,
             'name'               => $this->name . ' ' . $this->surname,
             'avatar'             => $this->avatar,
-            'current_day_number' => $this->current_day_number, // Вычисленное заранее поле
-            'progress'           => $this->progress_percent,     // Вычисленное заранее поле
+            'current_day_number' => $this->current_day_number,
+            'progress'           => $this->progress_percent,
             'status'             => $this->is_active_today,
             'plan_paused'        => $this->plan_paused,
         ];

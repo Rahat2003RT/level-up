@@ -88,7 +88,7 @@ use Laravel\Sanctum\HasApiTokens;
  *
  * @mixin Builder
  */
-class User extends Authenticatable implements MustVerifyEmail
+final class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 

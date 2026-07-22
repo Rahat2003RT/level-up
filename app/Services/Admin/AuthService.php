@@ -19,7 +19,7 @@ final readonly class AuthService
         $user = User::query()->where('nickname', $data['nickname'])->first();
 
         if (!$user || !$user->isAdmin() || !Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages(['nickname' => ['Invalid credentials.']]);
+            throw ValidationException::withMessages(['nickname' => ['Invalid credentials']]);
         }
         if ($user->blocked_at) {
             $reason = $user->block_reason ?? 'No reason provided';

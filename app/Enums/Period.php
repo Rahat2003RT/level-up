@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum Period: string
 {
+    case Week = 'week';
     case Weak = 'weak';
     case Month = 'month';
     case ThreeMonths = '3month';

@@ -13,7 +13,7 @@ use Dedoc\Scramble\Attributes\Group;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
-#[Group('Тарифы / Админка', weight: 0)]
+#[Group('Тарифы / Админка', weight: 20)]
 final class TariffController extends Controller
 {
     /**

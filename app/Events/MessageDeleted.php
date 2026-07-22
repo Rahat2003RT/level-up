@@ -13,7 +13,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageDeleted implements ShouldBroadcast
+final class MessageDeleted implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -32,23 +32,13 @@ class MessageDeleted implements ShouldBroadcast
     public function broadcastOn(): array
     {
         $chat = Chat::find($this->chatId);
+        $channels = [new PresenceChannel("chat.{$this->chatId}"),];
 
-        // В саму комнату чата отправляем событие ВСЕГДА
-        $channels = [
-            new PresenceChannel("chat.{$this->chatId}"),
-        ];
-
-        if (!$chat) {
-            return $channels;
-        }
-
-        // Шлём в личные каналы (для обновления списка чатов)
-        // ТОЛЬКО если удалённое сообщение было последним
+        if (!$chat) {return $channels;}
         if ($this->isLastMessage) {
             $channels[] = new PrivateChannel("user.{$chat->leader_id}");
             $channels[] = new PrivateChannel("user.{$chat->elite_id}");
         }
-
         return $channels;
     }
 

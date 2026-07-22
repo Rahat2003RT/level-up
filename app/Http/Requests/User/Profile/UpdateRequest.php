@@ -29,7 +29,7 @@ class UpdateRequest extends ApiBaseRequest
             'country'               => ['nullable', 'string', 'max:32'],
             'city'                  => ['nullable', 'string', 'max:255'],
             'locale'                => ['nullable', 'string', 'max:5', Rule::in($locales)],
-            'role' => [
+            'role'                  => [
                 'nullable',
                 'string',
                 'max:32',
@@ -39,6 +39,7 @@ class UpdateRequest extends ApiBaseRequest
             'date_of_birth'         => ['nullable', 'string'],
             'notifications_enabled' => ['nullable', 'boolean'],
             'device_token'          => ['nullable', 'string', 'max:255'],
+            'timezone'              => ['nullable', 'string', 'timezone'],
         ];
     }
 }
